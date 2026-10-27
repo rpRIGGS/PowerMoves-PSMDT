@@ -1,3 +1,40 @@
+⚠️ POWERMOVES RP — CUSTOM DEVELOPMENT BUILD
+
+IMPORTANT NOTICE: This repository contains a heavily customized version of Project Sloth PS-MDT, developed specifically for the PowerMoves RP FiveM roleplay server.
+
+This version is being modified and expanded to support PowerMoves RP's unique QBCore job configurations, agency structures, government jurisdictions, permissions, and integrated law enforcement, judicial, fire rescue, medical, and government management systems.
+
+⚠️ NOT A STANDARD PS-MDT RELEASE
+
+This repository is not intended to serve as a standard, general-purpose, or plug-and-play release of Project Sloth PS-MDT.
+
+The modifications are designed specifically around the PowerMoves RP server environment, including its custom agencies, departments, ranks, government hierarchy, and jurisdictional structure.
+
+As a result, this version may not function correctly on other FiveM servers without substantial reconfiguration, modification, or additional development.
+
+Original Project Attribution & Acknowledgment
+
+PowerMoves RP proudly acknowledges and credits the original developers and contributors of Project Sloth PS-MDT.
+
+Original Project: Project Sloth PS-MDT
+Original Repository: https://github.com/Project-Sloth/ps-mdt
+Original License: Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
+License Information: https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+This repository is an independently maintained modification of the original open-source project.
+
+All original developer credits, copyright notices, and applicable licensing terms are retained and respected. Modifications developed for PowerMoves RP are identified as independent adaptations and remain subject to the applicable original license requirements.
+
+PowerMoves RP is not affiliated with, sponsored by, endorsed by, or officially associated with Project Sloth or its original development team.
+
+We sincerely appreciate the time, effort, and contributions of the Project Sloth developers and the open-source FiveM development community. Their work provides the foundation upon which this customized implementation is being developed.
+
+---
+
+Original Project Sloth Documentation
+
+The original Project Sloth PS-MDT documentation is preserved below for reference, attribution, and compatibility information.
+
 # ps-mdt v3
 
 Police MDT (Mobile Data Terminal) for FiveM. Built with Svelte 5 and Lua. Works on QBCore and QBX through the ps_lib abstraction layer.
