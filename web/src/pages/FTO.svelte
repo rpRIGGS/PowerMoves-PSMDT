@@ -133,11 +133,64 @@
 				NUI_EVENTS.FTO.GET_MY_TRAINING_TRANSCRIPT, {}, []
 			);
 			trainingHistory = Array.isArray(rows) ? rows : [];
+			const credentials = await fetchNui<AccreditationRow[]>(
+				NUI_EVENTS.FTO.GET_MY_ACCREDITATIONS, {}, []
+			);
+			accreditations = Array.isArray(credentials) ? credentials : [];
 		} catch {
 			trainingHistory = [];
+			accreditations = [];
 			globalNotifications.error("Unable to retrieve personal training history");
 		} finally {
 			trainingHistoryLoading = false;
+		}
+	}
+	interface AccreditationRow {
+		id: number;
+		credential_code: string;
+		credential_name: string;
+		credential_family: string;
+		specialization: string | null;
+		issued_by_job: string;
+		issued_at: string;
+		expires_at: string | null;
+		source_reference: string | null;
+	}
+	let accreditations = $state<AccreditationRow[]>([]);
+	let issueFormOpen = $state(false);
+	let issueBusy = $state(false);
+	let issueCitizen = $state("");
+	let issueCode = $state("");
+	let issueName = $state("");
+	let issueSpecialization = $state("");
+	let issueExpiry = $state("");
+	let canIssueAccreditation = $derived(
+		['post', 'sadle', 'safr'].includes(authService?.agency ?? '')
+		&& (authService?.hasPermission('roster_manage_certifications') ?? false)
+	);
+	async function issueAccreditation() {
+		if (issueBusy || !canIssueAccreditation) return;
+		issueBusy = true;
+		try {
+			const res = await fetchNui<{ success: boolean; message?: string }>(
+				NUI_EVENTS.FTO.ISSUE_ACCREDITATION,
+				{ citizenid: issueCitizen.trim(), code: issueCode.trim(),
+				  name: issueName.trim(), specialization: issueSpecialization.trim(),
+				  expiresAt: issueExpiry },
+				{ success: false, message: 'Not available outside FiveM' }
+			);
+			if (res?.success) {
+				globalNotifications.success('Accreditation recorded');
+				issueFormOpen = false;
+				issueCitizen = ''; issueCode = ''; issueName = '';
+				issueSpecialization = ''; issueExpiry = '';
+			} else {
+				globalNotifications.error(res?.message || 'Accreditation could not be saved');
+			}
+		} catch {
+			globalNotifications.error('Accreditation could not be saved');
+		} finally {
+			issueBusy = false;
 		}
 	}
 	let canManage = $derived(authService?.hasPermission('fto_manage') ?? false);
@@ -625,6 +678,20 @@
 		</div>
 		<div class="list-panel">
 			<p style="padding:12px 18px;opacity:0.75">Personal training milestones across previous and current agencies. Instructor evaluations remain in the agency's authorized training records.</p>
+			<h3 style="padding:14px 18px 4px">State Certifications</h3>
+			{#if !trainingHistoryLoading && accreditations.length === 0}
+				<p style="padding:8px 18px">No state-issued certifications recorded.</p>
+			{:else}
+				{#each accreditations as credential}
+					<div style="padding:12px 18px;border-bottom:1px solid rgba(255,255,255,0.09)">
+						<strong>{credential.credential_name}</strong> ({credential.credential_code})
+						<div style="opacity:0.8;margin-top:5px">Issued by {credential.issued_by_job} · {credential.credential_family}</div>
+						<div style="opacity:0.7;margin-top:5px">Issued: {formatDateValue(credential.issued_at)} · Expires: {credential.expires_at ? formatDateValue(credential.expires_at) : 'No expiration recorded'}</div>
+						{#if credential.specialization}<div style="opacity:0.7">{credential.specialization}</div>{/if}
+					</div>
+				{/each}
+			{/if}
+			<h3 style="padding:14px 18px 4px">Training Assignments</h3>
 			{#if trainingHistoryLoading}
 				<p style="padding:16px">Loading training history...</p>
 			{:else if trainingHistory.length === 0}
@@ -639,6 +706,40 @@
 					</div>
 				{/each}
 			{/if}
+		</div>
+	{:else if issueFormOpen && canIssueAccreditation}
+		<div class="topbar">
+			<button class="back-btn" onclick={() => { issueFormOpen = false; }}>Back to {trainingTitle}</button>
+			<span class="topbar-case-number">Issue State Accreditation</span>
+		</div>
+		<div class="create-form">
+			<p>State-issued credentials follow the person across department transfers. Only authorized POST, SADLE, and SAFR officials can submit.</p>
+			<div class="form-group">
+				<label class="form-label" for="acc-citizen">Citizen ID</label>
+				<input id="acc-citizen" class="form-input" maxlength="64" bind:value={issueCitizen} />
+			</div>
+			<div class="form-group">
+				<label class="form-label" for="acc-code">Credential code</label>
+				<input id="acc-code" class="form-input" maxlength="64" bind:value={issueCode} />
+			</div>
+			<div class="form-group">
+				<label class="form-label" for="acc-name">Credential title</label>
+				<input id="acc-name" class="form-input" maxlength="160" bind:value={issueName} />
+			</div>
+			<div class="form-group">
+				<label class="form-label" for="acc-specialization">Specialization (optional)</label>
+				<input id="acc-specialization" class="form-input" maxlength="160" bind:value={issueSpecialization} />
+			</div>
+			<div class="form-group">
+				<label class="form-label" for="acc-expiry">Expires (optional)</label>
+				<input id="acc-expiry" type="date" class="form-input" bind:value={issueExpiry} />
+			</div>
+			<div class="form-actions">
+				<button class="action-btn" onclick={() => { issueFormOpen = false; }}>Cancel</button>
+				<button class="primary-btn" onclick={issueAccreditation} disabled={issueBusy || !issueCitizen.trim() || !issueCode.trim() || !issueName.trim()}>
+					{issueBusy ? 'Saving...' : 'Issue Credential'}
+				</button>
+			</div>
 		</div>
 	{:else if selectedDetail}
 		<!-- ==================== DETAIL VIEW ==================== -->
@@ -1161,6 +1262,9 @@
 			<button class="back-btn" onclick={openMyTrainingHistory} disabled={trainingHistoryLoading}>
 				My Training History
 			</button>
+			{#if canIssueAccreditation}
+				<button class="primary-btn" onclick={() => { issueFormOpen = true; }}>Issue State Credential</button>
+			{/if}
 			{#if canManage}
 				<button class="primary-btn" onclick={() => { showCreateForm = true; }}>
 					<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
