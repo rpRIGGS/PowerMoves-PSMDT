@@ -282,7 +282,10 @@ end
 function CheckPermission(source, permName)
     if not permName or not CheckAuth(source) then return false end
     local access = GetMdtAccess(source)
-    return contains(access.permissions, permName)
+    -- A permission grant is not authorization to operate while off duty.
+    -- Enforce live duty/role eligibility server-side, not only in the NUI.
+    return access.authorized == true and access.eligible == true
+        and contains(access.permissions, permName)
 end
 
 local function upsertProfileSession(src, action)
