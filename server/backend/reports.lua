@@ -87,6 +87,20 @@ local function checkReportAccess(src, reportId)
     return hasAccess and hasAccess[1] ~= nil
 end
 
+-- A disclosed report can be read but cannot be rewritten or deleted.
+-- New records belong to their originating agency; older records without an
+-- owner marker keep legacy team editing until their owner is reconciled.
+local function checkReportWriteAccess(src, reportId, action)
+    if not CheckAuth(src) or not CheckPermission(src, action) then return false end
+    if reportId == nil then return true end
+    if not checkReportAccess(src, reportId) then return false end
+    local owner = MySQL.scalar.await(
+        "SELECT identifier FROM mdt_reports_restrictions WHERE reportid = ? AND type = 'owner' LIMIT 1",
+        { reportId })
+    if owner ~= nil and owner ~= ps.getJobName(src) then return false end
+    return CheckAuth(src) and CheckPermission(src, action)
+end
+
 local function buildFullName(firstname, lastname, citizenid)
     local first = firstname and tostring(firstname) or ''
     local last = lastname and tostring(lastname) or ''
