@@ -136,10 +136,15 @@ ps.registerCallback('ps-mdt:server:getRosterList', function(source)
     local domain = GetMdtDomain(source)
     local jobList, matchFn, defaultDept, scopeJobType
     if domain == 'ems' then
-        jobList = (Config and Config.MedicalJobs) or { 'ambulance' }
+        -- The shared legacy responder roster includes both QBCore families.
+        -- Access to detailed personnel mutations remains separately checked.
+        jobList = {}
+        for _, name in ipairs((Config and Config.MedicalJobs) or {}) do jobList[#jobList + 1] = name end
+        for _, name in ipairs((Config and Config.FireJobs) or {}) do jobList[#jobList + 1] = name end
         matchFn = IsEmsJob
-        defaultDept = (jobList[1]) or 'ambulance'
-        scopeJobType = Config and Config.MedicalJobType and tostring(Config.MedicalJobType) or nil
+        defaultDept = jobList[1] or 'pillboxmed'
+        -- No single framework job.type covers both 'fire' and 'ems'.
+        scopeJobType = nil
     else
         jobList = (Config and Config.PoliceJobs) or { 'police' }
         matchFn = IsPoliceJob
@@ -639,7 +644,7 @@ ps.registerCallback('ps-mdt:server:getOfficerTags', function(source)
 
     local jobType = ps.getJobType(src)
     local rows
-    if jobType and (jobType == 'leo' or jobType == 'ems') then
+    if jobType and (jobType == 'leo' or jobType == 'ems' or jobType == 'fire') then
         rows = MySQL.query.await([[
             SELECT id, name, color, description FROM mdt_tags
             WHERE type = 'officer'
