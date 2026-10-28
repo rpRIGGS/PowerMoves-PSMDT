@@ -37,7 +37,7 @@
 	import type { createTabService } from "../services/tabService.svelte";
 	import { getReportTypesForJob, type MDTTab } from "../constants";
 
-	import type { JobType } from "../interfaces/IUser";
+	import type { JobType, InterfaceId } from "../interfaces/IUser";
 
 	const {
 		reportId,
@@ -45,15 +45,17 @@
 		instanceStateService,
 		tabService,
 		jobType = 'leo',
+		interfaceId,
 	}: {
 		reportId: string | null;
 		onClose: () => void;
 		instanceStateService: ReturnType<typeof createInstanceStateService>;
 		tabService?: ReturnType<typeof createTabService>;
 		jobType?: JobType;
+		interfaceId?: InterfaceId;
 	} = $props();
 
-	const isEMS = $derived(jobType === 'ems');
+	const isEMS = $derived(interfaceId === 'sams' || (jobType === 'ems' && interfaceId !== 'safr'));
 
 	function navigateTo(tab: MDTTab) {
 		if (!tabService) return;
@@ -92,7 +94,7 @@
 	// Initialize persistence hook
 	const persistence = usePersistence(instanceStateService, "report-page");
 
-	const defaultReportType = getReportTypesForJob(jobType)[0] || "Incident Report";
+	const defaultReportType = getReportTypesForJob(jobType, interfaceId)[0] || "Incident Report";
 	let report: Report = $state({ ...reportService.createEmptyReport(), type: defaultReportType });
 	let penalCodes = $state<Charge[]>([]);
 	let reductionOffers = $state<number[]>([]);
@@ -925,6 +927,7 @@
 					availableTemplates={reportTemplates}
 					{showTemplateMenu}
 					{jobType}
+					{interfaceId}
 				/>
 
 				<div class="left-panel">
