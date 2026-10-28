@@ -1,7 +1,7 @@
 import type { PlayerData } from "./IPlayerData";
 
 export type JobType = 'leo' | 'ems' | 'doj' | 'gov' | 'civilian';
-export type InterfaceId = 'sadle' | 'sadoj' | 'safr' | 'sams' | 'sagov';
+export type InterfaceId = 'sadle' | 'sadoj' | 'safr' | 'sams' | 'sagov' | 'sadot';
 
 export interface AuthUpdateData {
 	playerData?: PlayerData;
