@@ -20,7 +20,7 @@
 		return authService.hasRawPermission(key);
 	}
 
-	let visibleTabs = $derived(getTabsForJob(jobType).filter(t => {
+	let visibleTabs = $derived(getTabsForJob(jobType, authService?.interfaceId).filter(t => {
 		if (isTabHidden(t.name)) return false;
 		return true;
 	}));
