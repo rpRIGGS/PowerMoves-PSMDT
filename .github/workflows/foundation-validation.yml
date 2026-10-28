@@ -54,7 +54,7 @@ jobs:
           node tests/basics/dashboard_routes_regression.cjs
           node tests/basics/navigation_regression.cjs
           node tests/ems_dashboard/frontend_regression.cjs
-          node tests/phase1/auth_frontend_regression.cjs
+          node tests/phase1/auth_frontend_regression.cjs web/node_modules/svelte/compiler web/node_modules/typescript
           node tests/phase2/government_frontend_regression.cjs
           node tests/phase3/government_frontend_regression.cjs
       - name: Full frontend type and Svelte validation
