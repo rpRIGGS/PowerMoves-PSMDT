@@ -219,7 +219,7 @@ local function buildReportAccessClause()
                 SELECT 1 FROM mdt_reports_restrictions mrr_ems
                 WHERE mrr_ems.reportid = mr.id AND mrr_ems.type = 'jobtype' AND mrr_ems.identifier IN ('ems', 'fire')
             ))
-            OR (mrr.reportid IS NULL AND (? = 'leo' OR ? = 'ems'))
+            OR (mrr.reportid IS NULL AND (? = 'leo' OR ? IN ('ems', 'fire')))
             OR (mrr.type = 'citizenid' AND mrr.identifier = ?)
             OR (mrr.type = 'job' AND mrr.identifier = ?)
             OR (mrr.type = 'jobtype' AND mrr.identifier = ?)
