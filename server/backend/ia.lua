@@ -30,6 +30,28 @@ local function ownsIAComplaint(src, complaintId)
     return domain ~= nil and domain == GetMdtDomain(src)
 end
 
+-- The alleged employee's configured current employer is a provisional routing
+-- source, not proof of where they worked on the incident date. Unknown or
+-- unsupported employers remain unassigned for authorized IA triage.
+local function allegedEmployeeAgency(citizenid)
+    if type(citizenid) ~= 'string' or citizenid == '' then return nil, 'police' end
+    local encoded = MySQL.scalar.await('SELECT job FROM players WHERE citizenid = ? LIMIT 1', {citizenid})
+    if type(encoded) ~= 'string' then return nil, 'police' end
+    local ok, job = pcall(json.decode, encoded)
+    if not ok or type(job) ~= 'table' or type(job.name) ~= 'string' then return nil, 'police' end
+    local name = job.name
+    for _, configured in ipairs(Config.PoliceJobs or {}) do
+        if configured == name then return name, 'police' end
+    end
+    for _, configured in ipairs(Config.FireJobs or {}) do
+        if configured == name then return name, 'ems' end
+    end
+    for _, configured in ipairs(Config.MedicalJobs or {}) do
+        if configured == name then return name, 'ems' end
+    end
+    return nil, 'police'
+end
+
 local function buildComplaintNumber(id)
     local year = os.date('%Y')
     return ('IA-%s-%05d'):format(year, id)
