@@ -12,6 +12,16 @@ local function getEffectiveJobType(src)
     return jobType
 end
 
+-- A new report may carry an originating agency ('owner') restriction.
+-- Legacy reports without one continue to use their original access policy.
+-- Explicit citizen/job sharing overrides the owner; generic jobtype does not.
+local ownerScope = [[
+    (NOT EXISTS (SELECT 1 FROM mdt_reports_restrictions o WHERE o.reportid = mr.id AND o.type = 'owner')
+     OR EXISTS (SELECT 1 FROM mdt_reports_restrictions o WHERE o.reportid = mr.id AND o.type = 'owner' AND o.identifier = ?)
+     OR EXISTS (SELECT 1 FROM mdt_reports_restrictions g WHERE g.reportid = mr.id
+        AND ((g.type = 'citizenid' AND g.identifier = ?) OR (g.type = 'job' AND g.identifier = ?))))
+]]
+
 local function collectCitizenIds(reportData)
     local citizenids = {}
 
