@@ -1,5 +1,11 @@
 local resourceName = tostring(GetCurrentResourceName())
 
+-- Warrant records belong to the existing police/DOJ audience. A medical job
+-- must not receive the payload merely because it can open an MDT.
+local function canReadWarrantData(src)
+    return CheckAuth(src) and not IsEmsJob(ps.getJobName(src), ps.getJobType(src))
+end
+
 local function validateExpiry(expiry)
     if not expiry then
         return nil
@@ -45,6 +51,9 @@ end
 -- Exposed as a global so the dashboard aggregate (server/backend/dashboard.lua)
 -- can reuse it without a second round-trip.
 function GetActiveWarrantsData(src)
+    if src ~= nil and not canReadWarrantData(src) then return {} end
+    local citizenid = src ~= nil and ps.getIdentifier(src) or nil
+    local jobName = src ~= nil and ps.getJobName(src) or nil
     local rows = MySQL.query.await([[
         SELECT
             w.reportid,
@@ -78,15 +87,22 @@ function GetActiveWarrantsData(src)
         }
     end
 
+    -- SQL and name resolution can yield while the source changes character or job.
+    if src ~= nil and (not canReadWarrantData(src)
+        or ps.getIdentifier(src) ~= citizenid or ps.getJobName(src) ~= jobName) then return {} end
     return results
 end
 
--- Push the current active-warrants list to all clients so any open MDT
--- live-updates without a manual refresh. The payload is global (identical for
--- every viewer), so a single broadcast is enough; the client relay gates it to
--- LEO players before handing it to the NUI.
+-- Send actual records only to their authorized server-side audience. Client
+-- visibility checks cannot protect a payload already broadcast to everyone.
 function BroadcastActiveWarrants()
-    TriggerClientEvent(resourceName .. ':client:updateActiveWarrants', -1, GetActiveWarrantsData())
+    local data = GetActiveWarrantsData()
+    for _, playerSource in pairs(GetPlayers()) do
+        local target = tonumber(playerSource)
+        if target and target > 0 and canReadWarrantData(target) then
+            TriggerClientEvent(resourceName .. ':client:updateActiveWarrants', target, data)
+        end
+    end
 end
 
 ps.registerCallback(resourceName .. ':server:getActiveWarrants', function(source)

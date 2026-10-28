@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, onDestroy } from "svelte";
+	import { onMount, onDestroy, untrack } from "svelte";
 	import { formatDate, formatTime, toDate } from "../utils/datetime";
 	import { fetchNui } from "../utils/fetchNui";
 	import { NUI_EVENTS } from "../constants/nuiEvents";
@@ -93,7 +93,11 @@
 	}
 
 	// Services
-	const dashboardService = createDashboardService() as ReturnType<
+	let dashboardContext = $derived(JSON.stringify([
+		jobType, playerData?.citizenid, playerData?.job?.name,
+		playerData?.job?.grade?.level, playerData?.job?.onduty, playerData?.job?.isboss,
+	]));
+	const dashboardService = createDashboardService(() => jobType, () => dashboardContext) as ReturnType<
 		typeof createDashboardService
 	> & {
 		activeBolos?: ActiveBolo[];
@@ -197,7 +201,18 @@
 		}
 	}
 
+	let mounted = $state(false);
+	let initializedDashboardContext = "";
+	$effect(() => {
+		const context = dashboardContext;
+		if (!mounted || context === initializedDashboardContext) return;
+		initializedDashboardContext = context;
+		untrack(() => { void dashboardService.initialize(); });
+	});
+
 	onMount(async () => {
+		initializedDashboardContext = dashboardContext;
+		mounted = true;
 		dashboardService.initialize();
 		dashboardService.startCarouselTimer();
 		loadDojDashboard();
@@ -306,7 +321,7 @@
 			<div class="stat-divider"></div>
 
 			<!-- Impound -->
-			{#if impound.held > 0 || impound.outstanding > 0}
+			{#if jobType !== 'ems' && (impound.held > 0 || impound.outstanding > 0)}
 				<div class="stat-item" title={impound.oldestDays > 0
 					? `Oldest vehicle has been held for ${impound.oldestDays} day${impound.oldestDays === 1 ? '' : 's'}`
 					: 'Vehicles currently held in impound'}>
@@ -569,7 +584,7 @@
 				<!-- Upcoming hearings (dispatches now live on the Map tab) -->
 				<div class="panel" class:panel--half={isLEOJob}>
 					<div class="panel-header">
-						<span class="panel-title">Upcoming Hearings</span>
+						<span class="panel-title">{jobType === 'ems' ? 'Upcoming Appointments' : 'Upcoming Hearings'}</span>
 						<span class="panel-count">{dashboardService.upcomingHearings.length}</span>
 					</div>
 					<div class="panel-body">

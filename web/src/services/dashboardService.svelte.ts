@@ -4,8 +4,12 @@ import { debugError } from "../utils/debug";
 import { isEnvBrowser } from "../utils/misc";
 import { NUI_EVENTS } from "../constants/nuiEvents";
 import type { DashboardData } from "../interfaces/IDashboard";
+import type { JobType } from "../interfaces/IUser";
 
-export function createDashboardService() {
+export function createDashboardService(
+	getJobType: () => JobType = () => "leo",
+	getContextKey: () => string = () => "",
+) {
 	// State initialization with default values
 	const defaultState = {
 		jobInfo: { rank: "Loading...", payRate: "$0/hr" },
@@ -56,6 +60,99 @@ export function createDashboardService() {
 	let activeUnits = $state(defaultState.activeUnits);
 	let recentDispatches = $state(defaultState.recentDispatches);
 	let usageMetrics = $state(defaultState.usageMetrics);
+	let stateJobType = getJobType();
+	let stateContextKey = getContextKey();
+	let lifecycle = 0;
+	let dashboardRequest = 0;
+	let reportsRequest = 0;
+	let dispatchRequest = 0;
+	let destroyed = false;
+	let listenersSetUp = false;
+	let emsRefresh: Promise<void> | null = null;
+	const isEMS = () => getJobType() === "ems";
+	const snapshotMatches = () => !destroyed && stateJobType === getJobType() && stateContextKey === getContextKey();
+
+	function rows<T>(value: unknown): T[] {
+		return Array.isArray(value) ? value : [];
+	}
+
+	function emptyUsageMetrics() {
+		return {
+			totals: { reports: 0, arrests: 0, activeWarrants: 0 },
+			windows: { reportsLast7: 0, reportsLast30: 0, arrestsLast7: 0, arrestsLast30: 0 },
+			impound: { held: 0, outstanding: 0, oldestDays: 0, impoundedLast7: 0 },
+		};
+	}
+
+	function emsUsageMetrics(data?: typeof usageMetrics) {
+		const metrics = emptyUsageMetrics();
+		metrics.totals.reports = Number(data?.totals?.reports) || 0;
+		metrics.windows.reportsLast7 = Number(data?.windows?.reportsLast7) || 0;
+		metrics.windows.reportsLast30 = Number(data?.windows?.reportsLast30) || 0;
+		return metrics;
+	}
+
+	function clearPoliceData() {
+		activeWarrants = [];
+		activeBolos = [];
+		openCases = [];
+		usageMetrics = isEMS() ? emsUsageMetrics(usageMetrics) : emptyUsageMetrics();
+	}
+
+	function clearData() {
+		stopCarouselTimer();
+		jobInfo = { rank: "Loading...", payRate: "$0/hr" };
+		reportsInfo = { totalThisWeek: 0, changeFromLastWeek: 0 };
+		weeklyTimeData = [];
+		recentReports = [];
+		recentReportsPage = 1;
+		recentReportsHasMore = false;
+		bulletins = [];
+		currentBulletinIndex = 0;
+		upcomingHearings = [];
+		activeUnits = { count: 0 };
+		recentDispatches = [];
+		clearPoliceData();
+		usageMetrics = emptyUsageMetrics();
+	}
+
+	function scope() {
+		const jobType = getJobType();
+		const contextKey = getContextKey();
+		if (stateJobType !== jobType || stateContextKey !== contextKey) {
+			stateJobType = jobType;
+			stateContextKey = contextKey;
+			lifecycle++;
+			emsRefresh = null;
+			clearData();
+		}
+		return { lifecycle, jobType, contextKey };
+	}
+
+	function isCurrent(context: ReturnType<typeof scope>) {
+		return !destroyed && context.lifecycle === lifecycle && context.jobType === getJobType() && context.contextKey === getContextKey();
+	}
+
+	function refreshEmsDashboard() {
+		if (destroyed) return;
+		scope();
+		if (emsRefresh) return;
+		const pending = loadDashboardData();
+		emsRefresh = pending;
+		void pending.finally(() => { if (emsRefresh === pending) emsRefresh = null; });
+	}
+
+	async function refreshRecentDispatches() {
+		const context = scope();
+		const request = ++dispatchRequest;
+		try {
+			const data = await fetchNui<DashboardData["recentDispatches"]>(NUI_EVENTS.DASHBOARD.GET_RECENT_DISPATCHES, {}, []);
+			if (isCurrent(context) && request === dispatchRequest) recentDispatches = rows(data);
+		} catch (error) {
+			if (isCurrent(context) && request === dispatchRequest) recentDispatches = [];
+			debugError("Failed to fetch dispatches:", error);
+		}
+	}
 
 	// Derived state
 	let currentBulletinIndex = $state(0);
@@ -155,6 +252,9 @@ export function createDashboardService() {
 		useNuiEvent<DashboardData["jobData"]>(
 			NUI_EVENTS.DASHBOARD.UPDATE_JOB_DATA,
 			(data) => {
+				if (destroyed) return;
+				if (isEMS()) { refreshEmsDashboard(); return; }
+				scope();
 				jobInfo = data || jobInfo;
 			},
 		);
@@ -162,6 +262,9 @@ export function createDashboardService() {
 		useNuiEvent<DashboardData["reportStatistics"]>(
 			NUI_EVENTS.DASHBOARD.UPDATE_REPORT_STATISTICS,
 			(data) => {
+				if (destroyed) return;
+				if (isEMS()) { refreshEmsDashboard(); return; }
+				scope();
 				reportsInfo = data || reportsInfo;
 			},
 		);
@@ -169,6 +272,9 @@ export function createDashboardService() {
 		useNuiEvent<DashboardData["timeStatistics"]>(
 			NUI_EVENTS.DASHBOARD.UPDATE_TIME_STATISTICS,
 			(data) => {
+				if (destroyed) return;
+				if (isEMS()) { refreshEmsDashboard(); return; }
+				scope();
 				weeklyTimeData = data || weeklyTimeData;
 			},
 		);
@@ -176,6 +282,9 @@ export function createDashboardService() {
 		useNuiEvent<DashboardData["activeWarrants"]>(
 			NUI_EVENTS.DASHBOARD.UPDATE_ACTIVE_WARRANTS,
 			(data) => {
+				if (destroyed) return;
+				if (isEMS()) { scope(); clearPoliceData(); return; }
+				scope();
 				activeWarrants = Array.isArray(data) ? data : activeWarrants;
 			},
 		);
@@ -183,6 +292,9 @@ export function createDashboardService() {
 		useNuiEvent<DashboardData["bulletins"]>(
 			NUI_EVENTS.DASHBOARD.UPDATE_BULLETINS,
 			(data) => {
+				if (destroyed) return;
+				if (isEMS()) { refreshEmsDashboard(); return; }
+				scope();
 				if (data) {
 					bulletins = data;
 					checkAndStartCarousel();
@@ -193,6 +305,9 @@ export function createDashboardService() {
 		useNuiEvent<DashboardData["recentReports"]>(
 			NUI_EVENTS.DASHBOARD.UPDATE_RECENT_REPORTS,
 			(data) => {
+				if (destroyed) return;
+				if (isEMS()) { void loadRecentReports(1, true); return; }
+				scope();
 				recentReports = data || recentReports;
 			},
 		);
@@ -200,6 +315,9 @@ export function createDashboardService() {
 		useNuiEvent<DashboardData["activeBolos"]>(
 			NUI_EVENTS.DASHBOARD.UPDATE_ACTIVE_BOLOS,
 			(data) => {
+				if (destroyed) return;
+				if (isEMS()) { scope(); clearPoliceData(); return; }
+				scope();
 				activeBolos = data || activeBolos;
 			},
 		);
@@ -207,6 +325,9 @@ export function createDashboardService() {
 		useNuiEvent<DashboardData["activeUnits"]>(
 			NUI_EVENTS.DASHBOARD.UPDATE_ACTIVE_UNITS,
 			(data) => {
+				if (destroyed) return;
+				if (isEMS()) { refreshEmsDashboard(); return; }
+				scope();
 				activeUnits = data || activeUnits;
 			},
 		);
@@ -214,6 +335,9 @@ export function createDashboardService() {
 		useNuiEvent<DashboardData["recentDispatches"]>(
 			NUI_EVENTS.DASHBOARD.UPDATE_RECENT_DISPATCHES,
 			(data) => {
+				if (destroyed) return;
+				if (isEMS()) { void refreshRecentDispatches(); return; }
+				scope();
 				recentDispatches = data || recentDispatches;
 			},
 		);
@@ -221,18 +345,25 @@ export function createDashboardService() {
 		useNuiEvent<DashboardData["usageMetrics"]>(
 			NUI_EVENTS.DASHBOARD.UPDATE_USAGE_METRICS,
 			(data) => {
+				if (destroyed) return;
+				if (isEMS()) { refreshEmsDashboard(); return; }
+				scope();
 				usageMetrics = data || usageMetrics;
 			},
 		);
 	}
 
 	// Load initial data
-	async function loadInitialData() {
+	async function loadDashboardData() {
+		if (destroyed) return;
+		const context = scope();
+		const request = ++dashboardRequest;
 		// Single aggregated round-trip for the whole dashboard. Previously this
 		// fired ~9 separate NUI callbacks (one per widget) on open — each a
 		// server round-trip + cb() serialisation the client had to process,
 		// which was the bulk of the on-open ps-mdt spike. Now it's one call.
 		type DashboardPayload = {
+			dashboardDomain?: string;
 			jobData?: typeof jobInfo;
 			reportStatistics?: typeof reportsInfo;
 			timeStatistics?: typeof weeklyTimeData;
@@ -252,33 +383,46 @@ export function createDashboardService() {
 				{},
 				{},
 			);
+			if (!isCurrent(context) || request !== dashboardRequest) return;
+			if (isEMS() && data?.dashboardDomain !== "ems") {
+				clearData();
+				return;
+			}
 
 			if (data && typeof data === "object") {
 				jobInfo = data.jobData || jobInfo;
 				reportsInfo = data.reportStatistics || reportsInfo;
 				weeklyTimeData = data.timeStatistics || weeklyTimeData;
-				activeWarrants = Array.isArray(data.activeWarrants)
-					? data.activeWarrants
-					: activeWarrants;
+				activeWarrants = isEMS() ? [] : rows(data.activeWarrants);
 				if (data.bulletins) {
-					bulletins = data.bulletins;
+					bulletins = rows(data.bulletins);
+					currentBulletinIndex = 0;
 					checkAndStartCarousel();
 				}
-				activeBolos = data.activeBolos || activeBolos;
-				upcomingHearings = Array.isArray(data.upcomingHearings) ? data.upcomingHearings : upcomingHearings;
-				openCases = Array.isArray(data.openCases) ? data.openCases : openCases;
+				activeBolos = isEMS() ? [] : rows(data.activeBolos);
+				upcomingHearings = rows(data.upcomingHearings);
+				openCases = isEMS() ? [] : rows(data.openCases);
 				activeUnits = data.activeUnits || activeUnits;
-				recentDispatches = data.recentDispatches || recentDispatches;
-				usageMetrics = data.usageMetrics || usageMetrics;
+				recentDispatches = rows(data.recentDispatches);
+				usageMetrics = isEMS() ? emsUsageMetrics(data.usageMetrics) : data.usageMetrics || usageMetrics;
 			}
 		} catch (error) {
+			if (isCurrent(context) && request === dashboardRequest && isEMS()) clearData();
 			debugError("Failed to fetch dashboard data:", error);
 		}
+	}
 
-		await loadRecentReports(1, true);
+	async function loadInitialData() {
+		if (destroyed) return;
+		const context = scope();
+		await loadDashboardData();
+		if (isCurrent(context)) await loadRecentReports(1, true);
 	}
 
 	async function loadRecentReports(page = 1, reset = false) {
+		if (destroyed) return;
+		const context = scope();
+		const request = ++reportsRequest;
 		try {
 			const payload = { page, limit: recentReportsPageSize };
 			const response = await fetchNui(
@@ -286,11 +430,16 @@ export function createDashboardService() {
 				payload,
 				[],
 			);
+			if (!isCurrent(context) || request !== reportsRequest) return;
 			const items = Array.isArray(response) ? response : [];
 			recentReports = reset ? items : [...recentReports, ...items];
 			recentReportsPage = page;
 			recentReportsHasMore = items.length >= recentReportsPageSize;
 		} catch (error) {
+			if (isCurrent(context) && request === reportsRequest && isEMS()) {
+				recentReports = [];
+				recentReportsHasMore = false;
+			}
 			debugError("Failed to fetch recent reports:", error);
 		}
 	}
@@ -302,15 +451,30 @@ export function createDashboardService() {
 
 	// Cleanup all intervals and resources
 	function destroy() {
+		destroyed = true;
+		lifecycle++;
+		emsRefresh = null;
 		stopCarouselTimer();
+		clearData();
 	}
 
 	// Initialize the service
 	async function initialize() {
 		// Clean up any existing intervals before re-initializing
 		stopCarouselTimer();
+		destroyed = false;
+		lifecycle++;
+		emsRefresh = null;
+		stateJobType = getJobType();
+		stateContextKey = getContextKey();
+		clearData();
 
 		if (isEnvBrowser()) {
+			if (isEMS()) {
+				jobInfo = { rank: "EMS Personnel", payRate: "$0/hr" };
+				bulletins = [{ id: 1, content: "EMS dashboard preview" }];
+				return;
+			}
 			const now = Date.now();
 			jobInfo = { rank: "Sergeant", payRate: "$450/hr" };
 			reportsInfo = { totalThisWeek: 12, changeFromLastWeek: 3 };
@@ -354,7 +518,10 @@ export function createDashboardService() {
 			};
 			return;
 		}
-		setupEventListeners();
+		if (!listenersSetUp) {
+			setupEventListeners();
+			listenersSetUp = true;
+		}
 		await loadInitialData();
 	}
 
@@ -362,46 +529,46 @@ export function createDashboardService() {
 	return {
 		// State getters
 		get jobInfo() {
-			return jobInfo;
+			return snapshotMatches() ? jobInfo : defaultState.jobInfo;
 		},
 		get reportsInfo() {
-			return reportsInfo;
+			return snapshotMatches() ? reportsInfo : defaultState.reportsInfo;
 		},
 		get weeklyTimeData() {
-			return weeklyTimeData;
+			return snapshotMatches() ? weeklyTimeData : [];
 		},
 		get activeWarrants() {
-			return activeWarrants;
+			return snapshotMatches() && !isEMS() ? activeWarrants : [];
 		},
 		get recentReports() {
-			return recentReports;
+			return snapshotMatches() ? recentReports : [];
 		},
 		get recentReportsHasMore() {
-			return recentReportsHasMore;
+			return snapshotMatches() && recentReportsHasMore;
 		},
 		get activeBolos() {
-			return activeBolos;
+			return snapshotMatches() && !isEMS() ? activeBolos : [];
 		},
 		get upcomingHearings() {
-			return upcomingHearings;
+			return snapshotMatches() ? upcomingHearings : [];
 		},
 		get openCases() {
-			return openCases;
+			return snapshotMatches() && !isEMS() ? openCases : [];
 		},
 		get bulletins() {
-			return bulletins;
+			return snapshotMatches() ? bulletins : [];
 		},
 		get bulletinContent() {
-			return bulletinContent;
+			return snapshotMatches() ? bulletinContent : "Loading bulletins...";
 		},
 		get activeUnits() {
-			return activeUnits;
+			return snapshotMatches() ? activeUnits : defaultState.activeUnits;
 		},
 		get recentDispatches() {
-			return recentDispatches;
+			return snapshotMatches() ? recentDispatches : [];
 		},
 		get usageMetrics() {
-			return usageMetrics;
+			return snapshotMatches() ? isEMS() ? emsUsageMetrics(usageMetrics) : usageMetrics : emptyUsageMetrics();
 		},
 
 		// Carousel state
@@ -428,6 +595,9 @@ export function createDashboardService() {
 
 		// State setters (if needed for external updates)
 		setRecentDispatches: (data: DashboardData["recentDispatches"]) => {
+			if (destroyed) return;
+			if (isEMS()) { void refreshRecentDispatches(); return; }
+			scope();
 			recentDispatches = data;
 		},
 	};

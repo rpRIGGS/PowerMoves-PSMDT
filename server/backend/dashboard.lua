@@ -15,6 +15,102 @@ local function getEffectiveJobType(src)
     return 'leo'
 end
 
+-- A dashboard request may yield while reading permissions or SQL. Bind every
+-- read to its original character/job and discard results after an identity or
+-- permission change, including a police-to-EMS transfer during the request.
+local function dashboardIdentity(src)
+    local job = ps.getJobData(src)
+    local grade = job and job.grade
+    local isBoss = job and (job.isboss == true or job.isBoss == true)
+        or false
+    if type(grade) == 'table' then
+        isBoss = isBoss or grade.isboss == true or grade.isBoss == true or grade.boss == true
+    end
+    if ps.isBoss then isBoss = isBoss or ps.isBoss(src) == true end
+    if type(grade) == 'table' then grade = grade.level or grade.grade or grade.rank or grade.value or grade.id end
+    local onDuty
+    if ps.getJobDuty then
+        onDuty = ps.getJobDuty(src) == true
+    else
+        onDuty = job and job.onduty == true
+    end
+    return {
+        citizenid = ps.getIdentifier(src), job = ps.getJobName(src),
+        coreType = ps.getJobType(src), grade = tonumber(grade),
+        onDuty = onDuty, isBoss = isBoss,
+    }
+end
+
+local function sameDashboardIdentity(a, b)
+    return a and b and a.citizenid == b.citizenid and a.job == b.job
+        and a.coreType == b.coreType and a.grade == b.grade and a.onDuty == b.onDuty
+        and a.isBoss == b.isBoss
+end
+
+local function dashboardSnapshot(src)
+    local ok, snapshot = pcall(function()
+        if not CheckAuth(src) then return nil end
+        local before = dashboardIdentity(src)
+        if not before.citizenid or not before.job then return nil end
+        local access = GetMdtAccess(src)
+        local current = dashboardIdentity(src)
+        if not sameDashboardIdentity(before, current) or type(access) ~= 'table' then return nil end
+        current.jobType = getEffectiveJobType(src)
+        if current.jobType == 'ems' and (access.authorized ~= true or access.jobType ~= 'ems') then return nil end
+        current.interfaceId = access.interfaceId
+        current.permissions, current.permissionKeys = {}, {}
+        for _, permission in ipairs(access.permissions or {}) do
+            if type(permission) == 'string' and not current.permissions[permission] then
+                current.permissions[permission] = true
+                current.permissionKeys[#current.permissionKeys + 1] = permission
+            end
+        end
+        table.sort(current.permissionKeys)
+        current.permissionKey = table.concat(current.permissionKeys, '\0')
+        return current
+    end)
+    return ok and snapshot or nil
+end
+
+local function sameDashboardSnapshot(a, b)
+    return sameDashboardIdentity(a, b) and a.jobType == b.jobType
+        and a.interfaceId == b.interfaceId and a.permissionKey == b.permissionKey
+end
+
+local function registerDashboardRead(name, reader, empty)
+    ps.registerCallback(resourceName .. ':server:' .. name, function(source, ...)
+        local snapshot = dashboardSnapshot(source)
+        if not snapshot then return empty and empty() or {} end
+        local ok, result = pcall(reader, source, snapshot, ...)
+        if not ok or not sameDashboardSnapshot(snapshot, dashboardSnapshot(source)) then
+            return empty and empty() or {}
+        end
+        return result
+    end)
+end
+
+local function canReadEmsReports(snapshot)
+    return snapshot.permissions.reports_view == true or snapshot.permissions.reports_create == true
+end
+
+-- Same unrestricted-or-explicit viewer ACL used by existing report reads.
+-- EXISTS avoids counting a report more than once when several grants match.
+local EMS_REPORT_ACCESS = [[
+    (NOT EXISTS (SELECT 1 FROM mdt_reports_restrictions restricted WHERE restricted.reportid = mr.id)
+     OR EXISTS (
+        SELECT 1 FROM mdt_reports_restrictions granted
+        WHERE granted.reportid = mr.id AND (
+            (granted.type = 'citizenid' AND granted.identifier = ?)
+            OR (granted.type = 'job' AND granted.identifier = ?)
+            OR (granted.type = 'jobtype' AND granted.identifier = ?)
+        )
+     ))
+]]
+
+local function emsReportParameters(snapshot)
+    return { snapshot.citizenid, snapshot.job, snapshot.jobType }
+end
+
 local function computeJobData(src)
     return {
         rank    = ps.getJobGradeName(src) or 'Officer',
@@ -22,14 +118,25 @@ local function computeJobData(src)
     }
 end
 
-ps.registerCallback(resourceName .. ':server:getJobData', function(source)
-    local src = source
-    assert(src, 'Player ID cannot be nil')
-    if not CheckAuth(src) then return {} end
+registerDashboardRead('getJobData', function(src)
     return computeJobData(src)
 end)
 
-local function computeReportStatistics()
+local function computeReportStatistics(src, snapshot)
+    if snapshot and snapshot.jobType == 'ems' then
+        if not canReadEmsReports(snapshot) then return { totalThisWeek = 0, changeFromLastWeek = 0 } end
+        local response = MySQL.query.await(([[
+            SELECT
+                COUNT(DISTINCT CASE WHEN mr.datecreated >= NOW() - INTERVAL 1 WEEK THEN mr.id END) AS totalThisWeek,
+                COUNT(DISTINCT CASE WHEN mr.datecreated >= NOW() - INTERVAL 2 WEEK AND mr.datecreated < NOW() - INTERVAL 1 WEEK THEN mr.id END) AS totalLastWeek
+            FROM mdt_reports mr WHERE %s
+        ]]):format(EMS_REPORT_ACCESS), emsReportParameters(snapshot))
+        local row = response and response[1] or {}
+        return {
+            totalThisWeek = tonumber(row.totalThisWeek) or 0,
+            changeFromLastWeek = (tonumber(row.totalThisWeek) or 0) - (tonumber(row.totalLastWeek) or 0),
+        }
+    end
     return Cache.getOrSet('dashboard:reportStats', Config.CacheTTL and Config.CacheTTL.ReportStats or 30, function()
         local response = MySQL.query.await([[
             SELECT
@@ -46,11 +153,8 @@ local function computeReportStatistics()
     end)
 end
 
-ps.registerCallback(resourceName .. ':server:getReportStatistics', function(source)
-    local src = source
-    assert(src, 'Player ID cannot be nil')
-    if not CheckAuth(src) then return {} end
-    return computeReportStatistics()
+registerDashboardRead('getReportStatistics', function(src, snapshot)
+    return computeReportStatistics(src, snapshot)
 end)
 
 local function computeTimeStatistics(src)
@@ -85,10 +189,7 @@ local function computeTimeStatistics(src)
     return result
 end
 
-ps.registerCallback(resourceName .. ':server:getTimeStatistics', function(source)
-    local src = source
-    assert(src, 'Player ID cannot be nil')
-    if not CheckAuth(src) then return {} end
+registerDashboardRead('getTimeStatistics', function(src)
     return computeTimeStatistics(src)
 end)
 
@@ -102,10 +203,19 @@ local function computeBulletins()
     return rows
 end
 
-ps.registerCallback(resourceName .. ':server:getBulletins', function(source)
-    local src = source
-    assert(src, 'Player ID cannot be nil')
-    if not CheckAuth(src) then return {} end
+local function computeEmsBulletins(snapshot)
+    if not snapshot.permissions.bulletin_view then return {} end
+    return MySQL.query.await([[
+        SELECT id, content FROM mdt_bulletin_posts
+        WHERE job = ?
+        ORDER BY pinned DESC, FIELD(priority, 'urgent', 'high', 'normal', 'low'), created_at DESC
+    ]], { snapshot.job }) or {}
+end
+
+registerDashboardRead('getBulletins', function(src, snapshot)
+    -- This legacy management endpoint has no department column. Never mix
+    -- exact-job board-post IDs with legacy global create/delete operations.
+    if snapshot.jobType == 'ems' then return {} end
     return computeBulletins()
 end)
 
@@ -145,17 +255,26 @@ ps.registerCallback(resourceName .. ':server:deleteBulletin', function(source, p
     return { success = true }
 end)
 
-ps.registerCallback(resourceName .. ':server:getRecentReports', function(source, page, limit)
-    local src      = source
-    assert(src, 'Player ID cannot be nil')
-    if not CheckAuth(src) then return {} end
+registerDashboardRead('getRecentReports', function(src, snapshot, page, limit)
     local pageNumber = math.max(1, tonumber(page) or 1)
     local pageSize   = math.min(50, math.max(1, tonumber(limit) or 10))
 
-    local identifier = ps.getIdentifier(src)
-    local job        = ps.getJobName(src)
-    local jobType    = getEffectiveJobType(src)
+    local identifier = snapshot.citizenid
+    local job        = snapshot.job
+    local jobType    = snapshot.jobType
     local offset     = (pageNumber - 1) * pageSize
+
+    if jobType == 'ems' then
+        if not canReadEmsReports(snapshot) then return {} end
+        local params = emsReportParameters(snapshot)
+        params[#params + 1] = pageSize
+        params[#params + 1] = offset
+        return MySQL.query.await(([[
+            SELECT mr.id, mr.title, mr.type, mr.contentplaintext, mr.author, mr.authorplaintext, mr.datecreated, mr.dateupdated
+            FROM mdt_reports mr WHERE %s
+            ORDER BY mr.datecreated DESC LIMIT ? OFFSET ?
+        ]]):format(EMS_REPORT_ACCESS), params) or {}
+    end
 
     local rows = MySQL.query.await([[
         SELECT mr.id, mr.title, mr.type, mr.contentplaintext, mr.author, mr.authorplaintext, mr.datecreated, mr.dateupdated
@@ -195,25 +314,23 @@ local function computeActiveBolos(src)
     return result
 end
 
-ps.registerCallback(resourceName .. ':server:getActiveBolos', function(source)
-    local src = source
-    assert(src, 'Player ID cannot be nil')
-    if not CheckAuth(src) then return {} end
+registerDashboardRead('getActiveBolos', function(src, snapshot)
+    if snapshot.jobType == 'ems' then return {} end
     return computeActiveBolos(src)
 end)
 
-local function computeActiveUnits()
+local function computeActiveUnits(snapshot)
+    if snapshot and snapshot.jobType == 'ems' then
+        return { count = tonumber(ps.getJobTypeCount(Config.MedicalJobType or 'ems')) or 0 }
+    end
     return Cache.getOrSet('dashboard:activeUnits', Config.CacheTTL and Config.CacheTTL.ActiveUnits or 10, function()
         return { count = ps.getJobTypeCount('leo') }
     end)
 end
 
-ps.registerCallback(resourceName .. ':server:getActiveUnits', function(source)
-    local src = source
-    assert(src, 'Player ID cannot be nil')
-    if not CheckAuth(src) then return { count = 0 } end
-    return computeActiveUnits()
-end)
+registerDashboardRead('getActiveUnits', function(src, snapshot)
+    return computeActiveUnits(snapshot)
+end, function() return { count = 0 } end)
 
 local function sanitizeDispatch(call)
     if not call or type(call) ~= 'table' then return nil end
@@ -278,7 +395,18 @@ local function computeOpenCases()
 end
 
 -- Next few calendar entries (court/training/meetings) for the dashboard.
-local function computeUpcomingHearings(src)
+local function computeUpcomingHearings(src, snapshot)
+    if snapshot and snapshot.jobType == 'ems' then
+        if not snapshot.permissions.training_view then return {} end
+        return MySQL.query.await([[
+            SELECT id, title, category, hearing_type, scheduled_at, location, status
+            FROM mdt_court_hearings
+            WHERE job_type = ? AND category IN ('training', 'meeting', 'other')
+              AND status IN ('scheduled', 'in_session')
+              AND scheduled_at >= (NOW() - INTERVAL 1 HOUR)
+            ORDER BY scheduled_at ASC LIMIT 6
+        ]], { 'ems' }) or {}
+    end
     local domain = (GetMdtDomain and GetMdtDomain(src)) or 'police'
     local rows = MySQL.query.await([[
         SELECT id, title, category, hearing_type, defendant_name, scheduled_at, location, status
@@ -481,6 +609,48 @@ local function invalidateDispatchCache()
     dispatchListCache.list = nil
 end
 
+-- Preserve the provider's audience separately from the legacy response shape.
+-- Older sanitization drops string/map audiences; EMS must never interpret a
+-- missing or malformed recipient list as a globally authorized call.
+local dispatchAudiences = setmetatable({}, { __mode = 'k' })
+local function normalizedDispatchAudience(value)
+    local audience = {}
+    if type(value) == 'string' then
+        if value ~= '' then audience[value] = true end
+    elseif type(value) == 'table' then
+        for key, entry in pairs(value) do
+            if type(key) == 'number' and type(entry) == 'string' and entry ~= '' then
+                audience[entry] = true
+            elseif type(key) == 'string' and key ~= '' and
+                (entry == true or (type(entry) == 'number' and entry >= 0)) then
+                audience[key] = true
+            end
+        end
+    end
+    return audience
+end
+
+local function projectEmsDispatch(call, audience)
+    local result = {}
+    for key, value in pairs(call) do if key ~= 'units' then result[key] = value end end
+    result.jobs = {}
+    for jobName in pairs(audience) do result.jobs[#result.jobs + 1] = jobName end
+    table.sort(result.jobs)
+    result.units = {}
+    for _, unit in pairs(call.units or {}) do
+        local info = type(unit.charinfo) == 'table' and unit.charinfo or {}
+        local job = type(unit.job) == 'table' and unit.job or {}
+        local metadata = type(unit.metadata) == 'table' and unit.metadata or {}
+        result.units[#result.units + 1] = {
+            citizenid = unit.citizenid,
+            charinfo = { firstname = info.firstname, lastname = info.lastname },
+            job = { name = job.name, label = job.label, type = job.type },
+            metadata = { callsign = metadata.callsign },
+        }
+    end
+    return result
+end
+
 local function buildSanitizedDispatches()
     local now = GetGameTimer()
     if dispatchListCache.list and (now - dispatchListCache.ts) < DISPATCH_CACHE_TTL then
@@ -501,6 +671,7 @@ local function buildSanitizedDispatches()
     for _, call in ipairs(recentDispatches) do
         local sanitized = sanitizeDispatch(call)
         if sanitized then
+            dispatchAudiences[sanitized] = normalizedDispatchAudience(call.jobs)
             local note = sanitized.id ~= nil and DispatchNotes[tostring(sanitized.id)] or nil
             if note then
                 sanitized.note = { text = note.text, author = note.author, updatedAt = note.updatedAt }
@@ -514,8 +685,19 @@ local function buildSanitizedDispatches()
     return built
 end
 
-local function computeRecentDispatches(src)
+local function computeRecentDispatches(src, snapshot)
     local dispatches = buildSanitizedDispatches()
+
+    if snapshot and snapshot.jobType == 'ems' then
+        local filtered = {}
+        for _, call in ipairs(dispatches) do
+            local audience = dispatchAudiences[call] or {}
+            if audience[snapshot.job] or audience[Config.MedicalJobType or 'ems'] or audience.ems then
+                filtered[#filtered + 1] = projectEmsDispatch(call, audience)
+            end
+        end
+        return filtered
+    end
 
     -- Per-player job filter is cheap (a table scan, no DB/export), so it stays
     -- outside the cache.
@@ -543,11 +725,8 @@ local function computeRecentDispatches(src)
     return dispatches
 end
 
-ps.registerCallback(resourceName .. ':server:getRecentDispatches', function(source)
-    local src = source
-    assert(src, 'Player ID cannot be nil')
-    if not CheckAuth(src) then return {} end
-    return computeRecentDispatches(src)
+registerDashboardRead('getRecentDispatches', function(src, snapshot)
+    return computeRecentDispatches(src, snapshot)
 end)
 
 -- Impound at a glance: how much is being held, how much money is outstanding and
@@ -591,7 +770,28 @@ local function computeImpoundMetrics(safeCount)
     }
 end
 
-local function computeUsageMetrics()
+local function computeUsageMetrics(snapshot)
+    if snapshot and snapshot.jobType == 'ems' then
+        local row = {}
+        if canReadEmsReports(snapshot) then
+            local rows = MySQL.query.await(([[
+                SELECT COUNT(DISTINCT mr.id) AS reports,
+                    COUNT(DISTINCT CASE WHEN mr.datecreated >= NOW() - INTERVAL 7 DAY THEN mr.id END) AS reportsLast7,
+                    COUNT(DISTINCT CASE WHEN mr.datecreated >= NOW() - INTERVAL 30 DAY THEN mr.id END) AS reportsLast30
+                FROM mdt_reports mr WHERE %s
+            ]]):format(EMS_REPORT_ACCESS), emsReportParameters(snapshot))
+            row = rows and rows[1] or {}
+        end
+        return {
+            totals = { reports = tonumber(row.reports) or 0, arrests = 0, activeWarrants = 0 },
+            windows = {
+                reportsLast7 = tonumber(row.reportsLast7) or 0,
+                reportsLast30 = tonumber(row.reportsLast30) or 0,
+                arrestsLast7 = 0, arrestsLast30 = 0,
+            },
+            impound = { held = 0, outstanding = 0, oldestDays = 0, impoundedLast7 = 0 },
+        }
+    end
     return Cache.getOrSet('dashboard:usageMetrics', Config.CacheTTL and Config.CacheTTL.UsageMetrics or 60, function()
         local function safeCount(query, params)
             local ok, result = pcall(MySQL.scalar.await, query, params or {})
@@ -614,10 +814,8 @@ local function computeUsageMetrics()
     end)
 end
 
-ps.registerCallback(resourceName .. ':server:getUsageMetrics', function(source)
-    local src = source
-    if not CheckAuth(src) then return {} end
-    return computeUsageMetrics()
+registerDashboardRead('getUsageMetrics', function(src, snapshot)
+    return computeUsageMetrics(snapshot)
 end)
 
 -- ============================================================================
@@ -627,9 +825,23 @@ end)
 --  one server round-trip + one cb() serialisation instead of nine, which is
 --  the bulk of the on-open client spike.
 -- ============================================================================
-ps.registerCallback(resourceName .. ':server:getDashboard', function(source)
-    local src = source
-    if not CheckAuth(src) then return {} end
+registerDashboardRead('getDashboard', function(src, snapshot)
+    if snapshot.jobType == 'ems' then
+        return {
+            dashboardDomain = 'ems',
+            jobData = computeJobData(src),
+            upcomingHearings = computeUpcomingHearings(src, snapshot),
+            openCases = {},
+            reportStatistics = computeReportStatistics(src, snapshot),
+            timeStatistics = computeTimeStatistics(src),
+            activeWarrants = {},
+            bulletins = computeEmsBulletins(snapshot),
+            activeBolos = {},
+            activeUnits = computeActiveUnits(snapshot),
+            usageMetrics = computeUsageMetrics(snapshot),
+            recentDispatches = computeRecentDispatches(src, snapshot),
+        }
+    end
     return {
         jobData          = computeJobData(src),
         upcomingHearings = computeUpcomingHearings(src),
@@ -644,7 +856,6 @@ ps.registerCallback(resourceName .. ':server:getDashboard', function(source)
         -- never sent it, so the numbers (and the impound tile) stayed empty.
         usageMetrics     = computeUsageMetrics(),
         recentDispatches = computeRecentDispatches(src),
-        usageMetrics     = computeUsageMetrics(),
     }
 end)
 -- Human-readable description of a call for audit labels, e.g. "10-71 (Shooting)"
