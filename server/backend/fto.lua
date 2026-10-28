@@ -130,6 +130,17 @@ ps.registerCallback(resourceName .. ':server:getFTOList', function(source, pageN
     }
 end)
 
+-- Enforce the same training-domain boundary for direct reads and mutations
+-- that the FTO list already applies. Agency-specific grants will be a
+-- separate step before cross-agency accreditation access is enabled.
+local function canAccessFTORecord(src, assignmentId)
+    local row = MySQL.single.await(
+        'SELECT job_type FROM mdt_fto_assignments WHERE id = ? LIMIT 1',
+        {assignmentId}
+    )
+    return row ~= nil and row.job_type == GetMdtDomain(src)
+end
+
 -- Get single FTO assignment with DORs
 ps.registerCallback(resourceName .. ':server:getFTO', function(source, data)
     local src = source
@@ -145,6 +156,7 @@ ps.registerCallback(resourceName .. ':server:getFTO', function(source, data)
         WHERE a.id = ?
     ]], { assignmentId })
     if not entry then return { success = false, error = 'Not found' } end
+    if entry.job_type ~= GetMdtDomain(src) then return { success = false, error = 'Unauthorized' } end
 
     local citizenId = ps.getIdentifier(src)
     local hasFTOView = CheckPermission(src, 'fto_view')
@@ -189,9 +201,9 @@ ps.registerCallback(resourceName .. ':server:getOfficerFTOHistory', function(sou
             (SELECT d2.overall_rating FROM mdt_fto_dors d2 WHERE d2.assignment_id = a.id ORDER BY d2.created_at DESC LIMIT 1) AS latest_rating
         FROM mdt_fto_assignments a
         LEFT JOIN mdt_fto_phases p ON a.current_phase_id = p.id
-        WHERE a.trainee_citizenid = ? OR a.trainer_citizenid = ?
+        WHERE a.job_type = ? AND (a.trainee_citizenid = ? OR a.trainer_citizenid = ?)
         ORDER BY a.created_at DESC
-    ]], { officerCitizenId, officerCitizenId })
+    ]], { GetMdtDomain(src), officerCitizenId, officerCitizenId })
 
     return (ok and rows) or {}
 end)
@@ -275,6 +287,7 @@ ps.registerCallback(resourceName .. ':server:updateFTOAssignment', function(sour
 
     if #sets == 0 then return { success = false, error = 'No fields to update' } end
 
+    if not canAccessFTORecord(src, assignmentId) then return { success = false, error = 'Unauthorized' } end
     vals[#vals + 1] = assignmentId
     MySQL.update.await('UPDATE mdt_fto_assignments SET ' .. table.concat(sets, ', ') .. ' WHERE id = ?', vals)
     return { success = true }
@@ -299,6 +312,7 @@ ps.registerCallback(resourceName .. ':server:advanceFTOPhase', function(source, 
     local a = MySQL.single.await(
         'SELECT id, current_phase_id, status, trainee_name FROM mdt_fto_assignments WHERE id = ?', { assignmentId })
     if not a then return { success = false, error = 'Assignment not found' } end
+    if not canAccessFTORecord(src, assignmentId) then return { success = false, error = 'Unauthorized' } end
     if a.status ~= 'active' then return { success = false, error = 'Only active assignments can change phase' } end
 
     -- Resolve which job's phase ladder applies: the current phase's job, else the caller's.
@@ -357,6 +371,7 @@ ps.registerCallback(resourceName .. ':server:setFTOStatus', function(source, dat
 
     local a = MySQL.single.await('SELECT id, trainee_name FROM mdt_fto_assignments WHERE id = ?', { assignmentId })
     if not a then return { success = false, error = 'Assignment not found' } end
+    if not canAccessFTORecord(src, assignmentId) then return { success = false, error = 'Unauthorized' } end
 
     if status == 'active' then
         -- Reactivating clears the end date.
@@ -381,6 +396,7 @@ ps.registerCallback(resourceName .. ':server:deleteFTOAssignment', function(sour
     assignmentId = tonumber(assignmentId)
     if not assignmentId then return { success = false, error = 'Invalid ID' } end
 
+    if not canAccessFTORecord(src, assignmentId) then return { success = false, error = 'Unauthorized' } end
     MySQL.query.await('DELETE FROM mdt_fto_assignments WHERE id = ?', { assignmentId })
     return { success = true }
 end)
@@ -394,6 +410,8 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
     data = data or {}
     local assignmentId = tonumber(data.assignment_id)
     if not assignmentId then return { success = false, error = 'Assignment is required' } end
+
+    if not canAccessFTORecord(src, assignmentId) then return { success = false, error = 'Unauthorized' } end
 
     -- Always tag a DOR with a phase. If the client didn't send one, fall back to
     -- the assignment's current phase so it counts for the right phase.
@@ -445,6 +463,8 @@ ps.registerCallback(resourceName .. ':server:deleteFTODor', function(source, dor
     dorId = tonumber(dorId)
     if not dorId then return { success = false, error = 'Invalid ID' } end
 
+    local owner = MySQL.single.await('SELECT assignment_id FROM mdt_fto_dors WHERE id = ?', { dorId })
+    if not owner or not canAccessFTORecord(src, owner.assignment_id) then return { success = false, error = 'Unauthorized' } end
     MySQL.query.await('DELETE FROM mdt_fto_dors WHERE id = ?', { dorId })
     return { success = true }
 end)
