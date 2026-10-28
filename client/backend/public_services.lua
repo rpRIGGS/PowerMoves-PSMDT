@@ -7,10 +7,8 @@ local serviceHandlers = {
         label = 'File Internal Affairs Complaint',
         icon = 'fas fa-file-circle-exclamation',
         open = function()
-            -- Existing civilian form remains the single implementation.
-            if GetResourceState(GetCurrentResourceName()) ~= 'started' then return end
-            SendNUIMessage({ action = 'showComplaintForm', data = {} })
-            SetNuiFocus(true, true)
+            -- Reuse the exact /complaint and openComplaint entry point.
+            TriggerEvent('ps-mdt:client:openComplaint')
         end,
     },
 }
