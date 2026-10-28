@@ -599,6 +599,21 @@ Config.MdtAccess = {
             'management_permissions', 'management_bulletins', 'management_activity',
             'management_tags', 'management_tracking', 'management_settings',
         },
+        -- SAFR has its own permission ceiling. The initial capabilities match
+        -- the existing responder workflow to avoid breaking fire operations,
+        -- but fire and hospital role grants are evaluated independently.
+        fire = {
+            'citizens_search', 'reports_view', 'reports_create', 'reports_delete',
+            'map_patrols_view', 'map_patrols_manage', 'map_patrols_edit',
+            'dispatch_attach', 'dispatch_route', 'dispatch_assign', 'dispatch_notes',
+            'notes_edit_department', 'roster_manage_certifications', 'roster_manage_officers',
+            'ppr_view', 'ppr_manage', 'fto_view', 'fto_manage',
+            'bulletin_view', 'bulletin_post', 'bulletin_pin',
+            'training_view', 'training_create', 'training_edit', 'training_delete',
+            'ia_view', 'ia_manage', 'sop_view', 'sop_manage',
+            'management_permissions', 'management_bulletins', 'management_activity',
+            'management_tags', 'management_tracking', 'management_settings',
+        },
         doj = {
             'citizens_search', 'reports_view', 'reports_create', 'reports_delete',
             'cases_view', 'cases_create', 'cases_edit', 'cases_delete',
