@@ -254,7 +254,9 @@ end
 
 ps.registerCallback(resourceName .. ':server:getReports', function(source, page, filters)
     local src = source
-    if not CheckAuth(src) then return end
+    if not CheckAuth(src) or not CheckPermission(src, 'reports_create') then
+        return { success = false, error = 'Report editing not permitted' }
+    end
 
     local identifier = ps.getIdentifier(src)
     local job = ps.getJobName(src)
@@ -710,7 +712,7 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
     end
 
     if reportId then
-        if not checkReportAccess(src, reportId) then
+        if not checkReportWriteAccess(src, reportId, 'reports_create') then
             ps.notify(src, 'Failed to save Report: Not found or no access', 'error')
             ps.warn(('[Failed to save] Player [%s] %s tried to save a report (%s), but it was not found or they do not have access.')
                 :format(src, playerName, reportId))
@@ -948,7 +950,9 @@ end)
 
 ps.registerCallback(resourceName..':server:updateReportContent', function(source, reportid, content, reportData)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = "Unauthorized" } end
+    if not CheckAuth(src) or not CheckPermission(src, 'reports_create') then
+        return { success = false, error = 'Report editing not permitted' }
+    end
 
     if not content then
         return { success = false, error = "Missing content" }
@@ -965,8 +969,8 @@ ps.registerCallback(resourceName..':server:updateReportContent', function(source
     if not identifier then return { success = false, error = "Player not found" } end
 
     if reportId then
-        if not checkReportAccess(src, reportId) then
-            return { success = false, error = "Report not found or access denied" }
+        if not checkReportWriteAccess(src, reportId, 'reports_create') then
+            return { success = false, error = 'Report editing not permitted' }
         end
     end
 
@@ -1047,7 +1051,7 @@ ps.registerCallback(resourceName..':server:deleteReport', function(source, repor
 
     local playerName = ps.getPlayerName(src)
 
-    if not checkReportAccess(src, reportId) then
+    if not checkReportWriteAccess(src, reportId, 'reports_delete') then
         ps.notify(src, 'Failed to delete Report: Not found or no access', 'error')
         ps.warn(('[Failed to delete] Player [%s] %s tried to delete a report (%s), but it was not found or they do not have access.')
             :format(src, playerName, reportId))
