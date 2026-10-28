@@ -94,6 +94,33 @@
 	let selectedOfficer = $state<Officer | null>(null);
 	let availableTags = $state<OfficerTag[]>([]);
 	let selectedCerts = $state<string[]>([]);
+	interface StateCredential {
+		id: number;
+		credential_code: string;
+		credential_name: string;
+		credential_family: string;
+		issued_by_job: string;
+		issued_at: string;
+		expires_at: string | null;
+	}
+	let stateCredentials = $state<StateCredential[]>([]);
+	let credentialsLoading = $state(false);
+	async function loadStateCredentials(citizenid: string | undefined) {
+		stateCredentials = [];
+		if (!citizenid) return;
+		credentialsLoading = true;
+		try {
+			const data = await fetchNui<StateCredential[]>(
+				NUI_EVENTS.FTO.GET_PERSONNEL_ACCREDITATIONS,
+				{citizenid}, []
+			);
+			stateCredentials = Array.isArray(data) ? data : [];
+		} catch {
+			stateCredentials = [];
+		} finally {
+			credentialsLoading = false;
+		}
+	}
 	let isSavingCerts = $state(false);
 	let showCertModal = $state(false);
 
@@ -347,6 +374,7 @@
 
 		selectedOfficer = officer;
 		selectedCerts = [...(officer.certifications || [])];
+		void loadStateCredentials(officer.citizenid);
 		editCallsign = officer.callsign || "";
 		selectedGrade = null;
 		showFireConfirm = false;
@@ -725,6 +753,18 @@
 			</div>
 
 			<div class="modal-body">
+				<div class="boss-section">
+					<label class="boss-label">State-issued Credentials (Read-only)</label>
+					{#if credentialsLoading}
+						<p class="boss-hint">Loading credentials...</p>
+					{:else if stateCredentials.length === 0}
+						<p class="boss-hint">No state-issued credentials recorded.</p>
+					{:else}
+						{#each stateCredentials as credential}
+							<p class="boss-hint"><strong>{credential.credential_name}</strong> ({credential.credential_code}) · {credential.issued_by_job} · {credential.expires_at ? 'Expires ' + credential.expires_at : 'No expiry recorded'}</p>
+						{/each}
+					{/if}
+				</div>
 				{#if availableTags.length === 0}
 					<div class="no-tags">
 						<span class="material-icons no-tags-icon">label_off</span>
@@ -899,7 +939,19 @@
 
 				{:else if bossPanelTab === "certs"}
 					<div class="boss-section">
-						<label class="boss-label">Manage Certifications</label>
+						<label class="boss-label">State-issued Credentials (Read-only)</label>
+						{#if credentialsLoading}
+							<p class="boss-hint">Loading credentials...</p>
+						{:else if stateCredentials.length === 0}
+							<p class="boss-hint">No state-issued credentials recorded.</p>
+						{:else}
+							{#each stateCredentials as credential}
+								<p class="boss-hint"><strong>{credential.credential_name}</strong> ({credential.credential_code}) · Issued by {credential.issued_by_job} · {credential.expires_at ? 'Expires ' + credential.expires_at : 'No expiration recorded'}</p>
+							{/each}
+						{/if}
+					</div>
+					<div class="boss-section">
+						<label class="boss-label">Manage Department Tags</label>
 						{#if availableTags.length === 0}
 							<div class="no-tags">
 								<span class="material-icons no-tags-icon">label_off</span>
