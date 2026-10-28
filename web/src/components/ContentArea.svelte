@@ -203,7 +203,7 @@
 		{:else if (activeComponent as any) === "bolos"}
 			<Bolos {tabService} />
 		{:else if activeComponent === "reports"}
-			<Reports {instanceStateService} {tabService} jobType={authService.jobType} />
+			<Reports {instanceStateService} {tabService} jobType={authService.jobType} interfaceId={authService.interfaceId} />
 		{:else if activeComponent === "warrants"}
 			<Warrants {tabService} {authService} />
 		{:else if activeComponent === "charges"}
