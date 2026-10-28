@@ -8,6 +8,7 @@ export const SECURITY_CONFIG = {
 
 	// Data Storage
 	MAX_DATA_SIZE: 2048000, // Prevent large payloads (2MB per instance)
+	MAX_NUI_MESSAGE_SIZE: 2048000, // Keep NUI payload validation bounded by the same limit
 	MAX_UPLOAD_SIZE: 8000000, // Allow uploads up to ~8MB (base64 overhead)
 	MAX_TOTAL_STORAGE_SIZE: 2000000, // Total localStorage limit (2MB)
 
