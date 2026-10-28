@@ -19,6 +19,14 @@ RegisterNUICallback('getFTO', function(data, cb)
     cb(result or { success = false })
 end)
 
+-- Personal training transcript is always resolved from the current player on
+-- the server; the NUI cannot request someone else's historical file.
+RegisterNUICallback('getMyTrainingTranscript', function(_, cb)
+    if not MDTOpen then cb({}) return end
+    local result = ps.callback(resourceName .. ':server:getMyTrainingTranscript')
+    cb(result or {})
+end)
+
 RegisterNUICallback('getOfficerFTOHistory', function(data, cb)
     if not MDTOpen then cb({}) return end
     if not data or not data.officerCitizenId or data.officerCitizenId == '' then cb({}) return end
