@@ -139,7 +139,10 @@ end
 -- callbacks using only CheckAuth must not become available to new GOV users.
 function CheckAuth(source)
     local identity = runtimeIdentity(source)
-    return identity ~= nil and identity.primaryInterfaceId ~= nil and identity.jobType ~= 'gov'
+    if not identity or not identity.primaryInterfaceId or identity.jobType == 'gov' then return false end
+    -- Legacy callbacks often use CheckAuth without CheckPermission. Enforce
+    -- the same on-duty rule at that boundary rather than relying on the UI.
+    return identity.jobType == 'doj' or Config.OnlyShowOnDuty ~= true or identity.onDuty == true
 end
 
 function GetMdtAccess(source)
@@ -409,7 +412,9 @@ end)
 
 RegisterNetEvent('ps-mdt:server:trackLogout', function()
     local src = source
-    if not CheckAuth(src) then return end
+    -- Permit an eligible former on-duty user to close their session.
+    local identity = runtimeIdentity(src)
+    if not identity or not identity.primaryInterfaceId or identity.jobType == 'gov' then return end
     upsertProfileSession(src, 'logout')
     if ps.auditLog then
         ps.auditLog(src, 'mdt_logout', 'profile', ps.getIdentifier(src), {})
