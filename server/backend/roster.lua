@@ -149,15 +149,19 @@ ps.registerCallback('ps-mdt:server:getRosterList', function(source)
             return false
         end
         defaultDept = jobList[1] or 'sadoj'
-    elseif domain == 'ems' then
-        -- The shared legacy responder roster includes both QBCore families.
-        -- Access to detailed personnel mutations remains separately checked.
-        jobList = {}
-        for _, name in ipairs((Config and Config.MedicalJobs) or {}) do jobList[#jobList + 1] = name end
-        for _, name in ipairs((Config and Config.FireJobs) or {}) do jobList[#jobList + 1] = name end
-        matchFn = IsEmsJob
-        defaultDept = jobList[1] or 'pillboxmed'
-        -- No single framework job.type covers both 'fire' and 'ems'.
+    elseif access.interfaceId == 'safr' or access.interfaceId == 'sams' then
+        -- Responder data shares a legacy domain, not a common employer.
+        -- Avoid exposing other departments' staff through the roster.
+        local employer = access.agency
+        local choices = access.interfaceId == 'safr' and Config.FireJobs or Config.MedicalJobs
+        local valid = false
+        for _, candidate in ipairs(choices or {}) do
+            if candidate == employer then valid = true break end
+        end
+        if not valid then return { roster = {}, activeUnits = {} } end
+        jobList = { employer }
+        matchFn = function(name, _) return name == employer end
+        defaultDept = employer
         scopeJobType = nil
     else
         jobList = (Config and Config.PoliceJobs) or { 'police' }
