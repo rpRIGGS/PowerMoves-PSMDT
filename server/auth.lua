@@ -51,9 +51,12 @@ local function runtimeIdentity(source)
         identity.jobType, identity.primaryInterfaceId = 'doj', 'sadoj'
     elseif contains(Config.PoliceJobs, identity.job) or identity.coreJobType == Config.PoliceJobType then
         identity.jobType, identity.primaryInterfaceId = 'leo', 'sadle'
+    elseif contains(policy.FireJobs, identity.job) or identity.coreJobType == Config.FireJobType then
+        -- Fire is a distinct QBCore job type. Preserve the legacy EMS MDT
+        -- permission/domain compatibility until its backend is fully split.
+        identity.jobType, identity.primaryInterfaceId = 'ems', 'safr'
     elseif contains(Config.MedicalJobs, identity.job) or identity.coreJobType == Config.MedicalJobType then
-        identity.jobType = 'ems'
-        identity.primaryInterfaceId = contains(policy.FireJobs, identity.job) and 'safr' or 'sams'
+        identity.jobType, identity.primaryInterfaceId = 'ems', 'sams'
     end
     return identity
 end
