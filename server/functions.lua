@@ -141,9 +141,12 @@ end
 -- interface entitlement (including the AG's prosecution view) cannot change
 -- another department's employment or manufacture a new supervisory role.
 function CanManageMdtPersonnel(src, citizenid, destinationJob)
-    if not CheckAuth(src) or not citizenid then return false end
-    local actorJob = ps.getJobName(src)
-    if not actorJob or (destinationJob and destinationJob ~= actorJob) then return false end
+    if not citizenid then return false end
+    local access = GetMdtAccess(src)
+    if not access.authorized or not access.eligible or access.isCivilian then return false end
+    local actorJob, actorCid = ps.getJobName(src), ps.getIdentifier(src)
+    if not actorJob or not actorCid or access.agency ~= actorJob
+        or (destinationJob and destinationJob ~= actorJob) then return false end
 
     local player = ps.getPlayerByIdentifier(citizenid)
     local data = player and (player.PlayerData or player)
@@ -157,7 +160,11 @@ function CanManageMdtPersonnel(src, citizenid, destinationJob)
             job = row.job
         end
     end
+    -- Offline lookups can yield: never use an outdated character or duty state.
+    local current = GetMdtAccess(src)
     return type(job) == 'table' and job.name == actorJob
+        and current.authorized == true and current.eligible == true
+        and current.agency == actorJob and ps.getIdentifier(src) == actorCid
 end
 
 
