@@ -242,6 +242,8 @@ export const INTERFACE_INFO = {
 	safr: { name: "SAFR.net", title: "San Andreas Fire Rescue", subtitle: "Fire, Rescue and EMS", icon: "local_fire_department" },
 	sams: { name: "SAMS.net", title: "San Andreas Medical Service", subtitle: "Hospital and Medical Services", icon: "local_hospital" },
 	sagov: { name: "SAGOV.net", title: "San Andreas Government", subtitle: "Government Administration", icon: "account_balance" },
+	// Reserved identity only; SADOT access, routing and operations are not enabled yet.
+	sadot: { name: "SADOT.net", title: "San Andreas Department of Transportation", subtitle: "Transportation, Towing and Fleet Services", icon: "local_shipping" },
 } as const;
 
 export function getInterfaceInfo(interfaceId: InterfaceId | undefined, jobType: JobType) {
