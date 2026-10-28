@@ -722,8 +722,11 @@ ps.registerCallback(resourceName .. ':server:deleteHearing', function(source, pa
     local hearingId = tonumber(payload.hearingId)
     if not hearingId then return { success = false, error = 'Missing hearing id' } end
 
-    local existing = MySQL.single.await('SELECT category FROM mdt_court_hearings WHERE id = ?', { hearingId })
+    local existing = MySQL.single.await('SELECT category, job_type FROM mdt_court_hearings WHERE id = ?', { hearingId })
     if not existing then return { success = false, error = 'Hearing not found' } end
+    if existing.job_type ~= callerCalendarDomain(src) then
+        return { success = false, error = 'Unauthorized calendar' }
+    end
     if not CheckPermission(src, permForCategory(existing.category, 'delete')) then
         return { success = false, error = 'No permission' }
     end
@@ -753,8 +756,11 @@ ps.registerCallback(resourceName .. ':server:addHearingAttendee', function(sourc
         return { success = false, error = 'Missing data' }
     end
 
-    local existing = MySQL.single.await('SELECT category, status FROM mdt_court_hearings WHERE id = ?', { hearingId })
+    local existing = MySQL.single.await('SELECT category, status, job_type FROM mdt_court_hearings WHERE id = ?', { hearingId })
     if not existing then return { success = false, error = 'Hearing not found' } end
+    if existing.job_type ~= callerCalendarDomain(src) then
+        return { success = false, error = 'Unauthorized calendar' }
+    end
     if isLockedStatus(existing.status) then
         return { success = false, error = 'Hearing is locked' }
     end
@@ -787,10 +793,13 @@ ps.registerCallback(resourceName .. ':server:removeHearingAttendee', function(so
 
     -- Gate by the parent hearing's category
     local row = MySQL.single.await([[
-        SELECT h.category FROM mdt_court_attendees a
+        SELECT h.category, h.job_type FROM mdt_court_attendees a
         JOIN mdt_court_hearings h ON h.id = a.hearing_id
         WHERE a.id = ?
     ]], { attendeeId })
+    if not row or row.job_type ~= callerCalendarDomain(src) then
+        return { success = false, error = 'Unauthorized calendar or attendee not found' }
+    end
     if row and not CheckPermission(src, permForCategory(row.category, 'edit')) then
         return { success = false, error = 'No permission' }
     end
@@ -973,8 +982,11 @@ ps.registerCallback(resourceName .. ':server:addHearingAttendeesBulk', function(
     local list = payload.attendees
     if not hearingId or type(list) ~= 'table' then return { success = false, error = 'Missing data' } end
 
-    local existing = MySQL.single.await('SELECT category, status FROM mdt_court_hearings WHERE id = ?', { hearingId })
+    local existing = MySQL.single.await('SELECT category, status, job_type FROM mdt_court_hearings WHERE id = ?', { hearingId })
     if not existing then return { success = false, error = 'Hearing not found' } end
+    if existing.job_type ~= callerCalendarDomain(src) then
+        return { success = false, error = 'Unauthorized calendar' }
+    end
     if isLockedStatus(existing.status) then return { success = false, error = 'Hearing is locked' } end
     if not CheckPermission(src, permForCategory(existing.category, 'edit')) then
         return { success = false, error = 'No permission' }
