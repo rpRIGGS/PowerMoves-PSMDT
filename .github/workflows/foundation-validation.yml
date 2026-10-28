@@ -6,7 +6,7 @@ on:
 permissions:
   contents: read
 jobs:
-  source-and-integration-checks:
+  lua-validation:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -28,7 +28,13 @@ jobs:
           lua tests/ems_dashboard/server_regression.lua
           lua tests/phase2/government_roster_regression.lua
           lua tests/phase3/government_employment_regression.lua
-      - name: Set up pnpm
+      - name: S  frontend-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout development source
+        uses: actions/checkout@v4
+et up pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 9
