@@ -169,13 +169,24 @@ function GetMdtAccess(source)
         or (hasJudicialAuthority(identity) and 'judiciary')
         or (identity.job == 'sadoj' and (identity.grade == 5 or identity.grade == 6) and 'prosecution')
         or identity.jobType
+    -- Role retrieval can yield on mdt_permission_roles. Never return grants
+    -- calculated for a previous character, job, promotion or duty state.
+    local permissions = rolePermissions(identity)
+    local current = runtimeIdentity(source)
+    if not current or current.citizenid ~= identity.citizenid
+        or current.job ~= identity.job or current.grade ~= identity.grade
+        or current.onDuty ~= identity.onDuty
+        or current.primaryInterfaceId ~= identity.primaryInterfaceId then
+        selectedInterfaces[identity.source] = nil
+        return empty
+    end
     return {
         authorized = authorized, eligible = true, isCivilian = false, onDuty = identity.onDuty,
         jobType = selection.interfaceId == 'sadoj' and 'doj' or identity.jobType,
         coreJobType = identity.coreJobType, grade = identity.grade, role = role,
         interfaceId = selection.interfaceId, primaryInterfaceId = identity.primaryInterfaceId,
         allowedInterfaces = allowed, agency = identity.job, jurisdiction = identity.jurisdiction,
-        permissions = rolePermissions(identity), isBoss = identity.isBoss,
+        permissions = permissions, isBoss = identity.isBoss,
     }
 end
 
