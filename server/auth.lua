@@ -207,7 +207,15 @@ function CanViewStatewideLeoRoster(source)
     if not GetMdtAccess(source).authorized then return false end
     local allowedJobs = ((Config.MdtAccess or {}).LeoRosterOversightJobs) or {}
     if not contains(allowedJobs, identity.job) then return false end
-    if isAttorneyGeneral(identity) then return true end
+    if isAttorneyGeneral(identity) then
+        -- Reconfirm the AG's live job, grade, character and duty after the
+        -- authorization lookup, rather than trusting a pre-yield identity.
+        local now = runtimeIdentity(source)
+        return now ~= nil and now.citizenid == identity.citizenid
+            and now.job == identity.job and now.grade == identity.grade
+            and now.onDuty == identity.onDuty and now.gradeValid
+            and isAttorneyGeneral(now) and GetMdtAccess(source).authorized == true
+    end
     local ok, row = pcall(MySQL.single.await,
         'SELECT permissions FROM mdt_permission_roles WHERE job = ? AND grade = ?',
         {identity.job, identity.grade})
