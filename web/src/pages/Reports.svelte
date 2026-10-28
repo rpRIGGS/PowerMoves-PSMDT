@@ -17,15 +17,16 @@
 	import type { createTabService } from "../services/tabService.svelte";
 	import type { MDTTab } from "../constants";
 	import Pagination from "../components/Pagination.svelte";
-	import type { JobType } from "../interfaces/IUser";
+	import type { JobType, InterfaceId } from "../interfaces/IUser";
 
 	interface Props {
 		instanceStateService: ReturnType<typeof createInstanceStateService>;
 		tabService?: ReturnType<typeof createTabService>;
 		jobType?: JobType;
+		interfaceId?: InterfaceId;
 	}
 
-	let { instanceStateService, tabService, jobType = 'leo' }: Props = $props();
+	let { instanceStateService, tabService, jobType = 'leo', interfaceId }: Props = $props();
 
 	function navigateTo(tab: MDTTab) {
 		if (!tabService) return;
@@ -237,6 +238,7 @@
 		{instanceStateService}
 		{tabService}
 		{jobType}
+		{interfaceId}
 	/>
 {:else}
 	<div class="reports-page">
