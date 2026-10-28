@@ -129,6 +129,15 @@ export const EMS_REPORT_TYPES = [
 	"Mass Casualty Report",
 ] as const;
 
+/** Fire service reporting uses the existing report editor and record store.
+ * These are initial generic options; specialized incident workflows follow later. */
+export const FIRE_REPORT_TYPES = [
+	"Fire Incident Report",
+	"Rescue Report",
+	"Fire Investigation Report",
+	"EMS Run Report",
+] as const;
+
 export const DOJ_REPORT_TYPES = [
 	"Court Filing",
 	"Legal Brief",
@@ -137,7 +146,8 @@ export const DOJ_REPORT_TYPES = [
 	"Sentencing Report",
 ] as const;
 
-export function getReportTypesForJob(jobType: JobType): readonly string[] {
+export function getReportTypesForJob(jobType: JobType, interfaceId?: InterfaceId): readonly string[] {
+	if (interfaceId === 'safr') return FIRE_REPORT_TYPES;
 	if (jobType === 'ems') return EMS_REPORT_TYPES;
 	if (jobType === 'doj') return DOJ_REPORT_TYPES;
 	return LEO_REPORT_TYPES;
