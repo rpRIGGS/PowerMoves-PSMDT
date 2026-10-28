@@ -440,7 +440,6 @@ Config.Impound = {
 -- Job Settings
 Config.PoliceJobType = "leo"
 Config.PoliceJobs = {
-    'police',
     'post',
     'lspd',
     'lspe',
@@ -450,20 +449,17 @@ Config.PoliceJobs = {
     'sasp',
     'sadle',
     'saspa',
-    'fib',
-    'gov'
+    'fib'
 }
 
 Config.DojJobType = "doj"
 Config.DojJobs = {
     'sadoj',
     'lawyer',
-    'judge',
 }
 
 Config.MedicalJobType = "ems"
 Config.MedicalJobs = {
-    'ambulance',
     'pillboxmed',
     'sandymed',
     'paletomed',
@@ -478,6 +474,17 @@ Config.MedicalJobs = {
 -- These mappings grant entry to an interface, not access to another agency's
 -- records or authority over another branch of government.
 Config.MdtAccess = {
+    -- SADOT.net is reserved as a sixth interface. Inactive by default:
+    -- no mechanic job is granted MDT access or operational permissions yet.
+    -- Public /511 will be routed by PS-Dispatch to on-duty mechanic jobs,
+    -- with a server-side first-accept claim once implemented.
+    Transportation = {
+        Enabled = false,
+        InterfaceId = 'sadot',
+        JobType = 'mechanic',
+        PublicServiceNumber = '511',
+        FirstAcceptExclusive = true,
+    },
     FireJobs = { 'safr', 'lsfd', 'lscfd', 'bcfd' },
     GovernmentJobs = {
         sagov = 'state',
@@ -503,7 +510,6 @@ Config.MdtAccess = {
     AttorneyGeneral = { job = 'sadle', grade = 11 },
     JudicialGrades = {
         sadoj = { 8, 9, 10 },
-        judge = { 1, 2 }, -- Compatibility with existing judge-job servers.
     },
     -- Explicit permission ceilings also define the starting grants for boss
     -- grades. QBCore isboss stays unchanged; it is not universal MDT authority.
