@@ -7,6 +7,7 @@ CreateThread(function()
     Wait(2500)
     if EnsureColumn then
         EnsureColumn('mdt_ia_complaints', 'job_type', "`job_type` varchar(10) NOT NULL DEFAULT 'police'")
+        EnsureColumn('mdt_ia_complaints', 'agency', "`agency` varchar(40) DEFAULT NULL")
     end
 end)
 
