@@ -46,9 +46,15 @@ Config.Sharing = {
                 'sadle'
             },
             targets = {
+                'post',
                 'lspd',
+                'lspe',
+                'lscso',
                 'bcso',
-                'sahp'
+                'sahp',
+                'sasp',
+                'saspa',
+                'fib'
             },
             types = {
                 'reports',
