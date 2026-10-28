@@ -474,6 +474,9 @@ Config.MedicalJobs = {
 -- These mappings grant entry to an interface, not access to another agency's
 -- records or authority over another branch of government.
 Config.MdtAccess = {
+    -- 'legacy' preserves existing boss grants. Switch to 'explicit' ONLY after
+    -- setting approved MDT permissions for each active job/leadership grade.
+    BossPermissionMode = 'legacy',
     -- SADOT.net is reserved as a sixth interface. Inactive by default:
     -- no mechanic job is granted MDT access or operational permissions yet.
     -- Public /511 will be routed by PS-Dispatch to on-duty mechanic jobs,
