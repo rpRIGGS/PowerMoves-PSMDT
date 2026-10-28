@@ -46,6 +46,13 @@ export const EMS_TABS: readonly (typeof MDT_TABS)[number]["name"][] = [
 	"Settings",
 ] as const;
 
+/** Fire departments retain existing operational modules, but never inherit
+ * hospital-specific personnel navigation simply from the legacy 'ems' domain. */
+export const FIRE_TABS: readonly string[] = [
+	"Dashboard", "Citizens", "Reports", "Roster", "FTO", "SOP",
+	"Bulletin Board", "Map", "Calendar", "Preferences", "Settings",
+];
+
 /** Get filtered tabs based on job type */
 export const DOJ_TABS: readonly string[] = [
 	"Dashboard",
@@ -53,6 +60,8 @@ export const DOJ_TABS: readonly string[] = [
 	"Court Cases",
 	"Calendar",
 	"FTO",
+	"Roster",
+	"SOP",
 	"Warrant Review",
 	"Citizens",
 	"Cases",
@@ -65,8 +74,9 @@ export const DOJ_TABS: readonly string[] = [
 	"Settings",
 ] as const;
 
-export function getTabsForJob(jobType: JobType) {
+export function getTabsForJob(jobType: JobType, interfaceId?: InterfaceId) {
 	if (jobType === 'gov') return MDT_TABS.filter(tab => tab.name === 'Dashboard');
+	if (interfaceId === 'safr') return MDT_TABS.filter(tab => FIRE_TABS.includes(tab.name));
 	if (jobType === 'ems') {
 		return MDT_TABS.filter(tab => (EMS_TABS as readonly string[]).includes(tab.name));
 	}
@@ -96,7 +106,7 @@ export const NAV_GROUPS: NavGroup[] = [
 export const DOJ_NAV_GROUPS: NavGroup[] = [
 	{ id: "dashboard", tabs: ["Dashboard", "Bulletin Board"] },
 	{ id: "court", label: "Court", icon: "account_balance", tabs: ["Court Cases", "Calendar", "Warrant Review", "Court Orders"] },
-	{ id: "training", label: "Personnel Training", icon: "school", tabs: ["FTO"] },
+	{ id: "training", label: "Personnel & Training", icon: "school", tabs: ["Roster", "FTO", "SOP"] },
 	{ id: "legal", label: "Legal", icon: "description", tabs: ["Legal Documents", "Charges"] },
 	{ id: "records", label: "Records", icon: "folder_open", tabs: ["Reports", "Citizens", "Cases", "Evidence"] },
 	{ id: "bottom", tabs: ["Preferences", "Settings"] },
