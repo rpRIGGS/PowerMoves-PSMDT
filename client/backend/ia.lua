@@ -5,6 +5,9 @@ local function OpenComplaintForm()
     SetNuiFocus(true, true)
 end
 
+-- Shared entry point for public-service target desks and the original command.
+RegisterNetEvent('ps-mdt:client:openComplaint', OpenComplaintForm)
+
 -- /complaint command
 RegisterCommand('complaint', function()
     OpenComplaintForm()
