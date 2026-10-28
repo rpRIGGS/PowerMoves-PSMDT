@@ -132,10 +132,24 @@ end
 
 ps.registerCallback('ps-mdt:server:getRosterList', function(source)
     if not CheckAuth(source) then return { roster = {}, activeUnits = {} } end
-    -- Scope the roster to the caller's domain: EMS sees EMS, police sees police.
+    -- Interface-specific roster selection: DOJ is not a police agency.
+    -- Fire and hospitals still use the shared legacy responder domain.
+    local access = GetMdtAccess(source)
+    if not access or not access.authorized then return { roster = {}, activeUnits = {} } end
     local domain = GetMdtDomain(source)
     local jobList, matchFn, defaultDept, scopeJobType
-    if domain == 'ems' then
+    if access.jobType == 'doj' and access.agency ~= (Config.MdtAccess and Config.MdtAccess.AttorneyGeneral and Config.MdtAccess.AttorneyGeneral.job) then
+        jobList = (Config and Config.DojJobs) or { 'sadoj' }
+        scopeJobType = Config and Config.DojJobType and tostring(Config.DojJobType) or 'doj'
+        matchFn = function(jobName, jobType)
+            if jobType == scopeJobType then return true end
+            for _, name in ipairs(jobList) do
+                if name == jobName then return true end
+            end
+            return false
+        end
+        defaultDept = jobList[1] or 'sadoj'
+    elseif domain == 'ems' then
         -- The shared legacy responder roster includes both QBCore families.
         -- Access to detailed personnel mutations remains separately checked.
         jobList = {}
