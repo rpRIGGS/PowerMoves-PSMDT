@@ -563,6 +563,7 @@ Config.MdtAccess = {
             'evidence_view', 'evidence_create', 'evidence_transfer', 'evidence_upload',
             'warrants_view', 'warrants_close', 'charges_view', 'charges_edit',
             'notes_edit_department', 'roster_manage_certifications', 'roster_manage_officers',
+            'fto_view', 'fto_manage',
             'bulletin_view', 'bulletin_post', 'bulletin_pin',
             'court_view', 'court_create', 'court_edit', 'court_delete',
             'sop_view', 'sop_manage',
