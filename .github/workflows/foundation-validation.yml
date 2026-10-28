@@ -61,7 +61,9 @@ jobs:
         working-directory: web
         run: pnpm run check
       - name: Build production NUI
+        if: success() || failure()
         working-directory: web
         run: pnpm run build
       - name: Verify deployable NUI entry
+        if: success() || failure()
         run: test -s web/dist/index.html
