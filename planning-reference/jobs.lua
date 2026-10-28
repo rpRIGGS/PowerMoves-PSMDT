@@ -101,7 +101,7 @@ lsgov = {
 },
 
 
-	--[[police = {
+	police = {
 		label = 'Law Enforcement',
 		type = 'leo',
 		defaultDuty = true,
@@ -113,7 +113,7 @@ lsgov = {
 			['3'] = { name = 'Lieutenant', payment = 125 },
 			['4'] = { name = 'Chief', isboss = true, payment = 150 },
 		},
-	},]]--
+	},
 	post = {
 		label = 'Peace Officer Standards and Training',
 		type = 'leo',
@@ -347,7 +347,7 @@ sadoj = {
 	},
 	pillboxmed = {
 		label = 'Pillbox Hill Medical Center',
-		type = 'ems',
+		type = 'medical',
 		defaultDuty = true,
 		offDutyPay = false,
 		grades = {
@@ -369,7 +369,7 @@ sadoj = {
 	},
 	sandymed = {
 		label = 'Sandy Shores Medical Center',
-		type = 'ems',
+		type = 'medical',
 		defaultDuty = true,
 		offDutyPay = false,
 		grades = {
@@ -391,7 +391,7 @@ sadoj = {
 	},
 	paletomed = {
 		label = 'The Bay Care Center',
-		type = 'ems',
+		type = 'medical',
 		defaultDuty = true,
 		offDutyPay = false,
 		grades = {
@@ -413,7 +413,7 @@ sadoj = {
 	},
 	parsonsmed = {
 		label = 'Parsons Rehabilitation Center',
-		type = 'ems',
+		type = 'medical',
 		defaultDuty = true,
 		offDutyPay = false,
 		grades = {
@@ -435,7 +435,7 @@ sadoj = {
 	},
 	safr = {
 		label = 'San Andreas Fire Rescue',
-		type = 'ems',
+		type = 'fire',
 		defaultDuty = true,
 		offDutyPay = false,
 		grades = {
@@ -460,7 +460,7 @@ sadoj = {
 	},
 	lsfd = {
 		label = 'Los Santos Fire Department',
-		type = 'ems',
+		type = 'fire',
 		defaultDuty = true,
 		offDutyPay = false,
 		grades = {
@@ -485,7 +485,7 @@ sadoj = {
 	},
 	lscfd = {
 		label = 'Los Santos County Fire Department',
-		type = 'ems',
+		type = 'fire',
 		defaultDuty = true,
 		offDutyPay = false,
 		grades = {
@@ -510,7 +510,7 @@ sadoj = {
 	},
 	bcfd = {
 		label = 'Blaine County Fire Department',
-		type = 'ems',
+		type = 'fire',
 		defaultDuty = true,
 		offDutyPay = false,
 		grades = {
