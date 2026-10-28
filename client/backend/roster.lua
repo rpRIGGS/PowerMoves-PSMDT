@@ -4,6 +4,17 @@ RegisterNUICallback('getRoster', function(data, cb)
     cb(rosterList)
 end)
 
+-- Government uses a separate read-only projection; operational roster and
+-- personnel mutation callbacks keep their existing authorization guards.
+RegisterNUICallback('getGovernmentRoster', function(data, cb)
+    local denied = { success = false, error = 'Government roster unavailable', roster = {}, departments = {} }
+    if not MDTOpen then cb(denied) return end
+    local result = ps.callback(tostring(GetCurrentResourceName()) .. ':server:getGovernmentRoster', {
+        department = type(data) == 'table' and data.department or nil,
+    })
+    cb(result or denied)
+end)
+
 RegisterNUICallback('getOfficerTags', function(data, cb)
     if not MDTOpen then cb({}) return end
     local tags = ps.callback('ps-mdt:server:getOfficerTags')

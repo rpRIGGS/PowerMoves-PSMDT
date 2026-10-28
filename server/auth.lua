@@ -18,6 +18,11 @@ local function runtimeIdentity(source)
         local gradeValue = type(grade) == 'table'
             and (grade.level or grade.grade or grade.rank or grade.value or grade.id)
             or grade
+        local gradeNumber = tonumber(gradeValue)
+        -- Keep the legacy zero fallback, but distinguish an actual valid grade
+        -- from missing/corrupt data before evaluating government role grants.
+        local gradeValid = gradeNumber ~= nil and gradeNumber >= 0
+            and gradeNumber < math.huge and gradeNumber % 1 == 0
         local boss = job.isboss == true or job.isBoss == true
             or (type(grade) == 'table' and (grade.isboss == true or grade.isBoss == true or grade.boss == true))
             or (ps.isBoss and ps.isBoss(src) == true)
@@ -28,7 +33,8 @@ local function runtimeIdentity(source)
             citizenid = ps.getIdentifier(src),
             job = ps.getJobName(src),
             coreJobType = ps.getJobType(src),
-            grade = tonumber(gradeValue) or 0,
+            grade = gradeNumber or 0,
+            gradeValid = gradeValid,
             isBoss = boss == true,
             onDuty = duty == true,
         }
@@ -166,6 +172,62 @@ end
 function CheckMdtInterfaceAccess(source, interfaceId)
     local access = GetMdtAccess(source)
     return access.authorized and contains(access.allowedInterfaces, interfaceId)
+end
+
+-- Separate, read-only government personnel scope. This deliberately does not
+-- use CheckAuth/CheckPermission or boss-derived operational permission sets.
+function GetGovernmentRosterAccess(source)
+    local identity = runtimeIdentity(source)
+    if not identity or identity.gradeValid ~= true or identity.jobType ~= 'gov' or not identity.jurisdiction then return nil end
+    local access = GetMdtAccess(source)
+    if not access.authorized or access.isCivilian or access.interfaceId ~= 'sagov' then return nil end
+
+    local ok, row = pcall(MySQL.single.await,
+        'SELECT permissions FROM mdt_permission_roles WHERE job = ? AND grade = ?',
+        { identity.job, identity.grade }
+    )
+    if not ok then return nil end
+    local permissions = {}
+    if row then
+        -- A stored empty or malformed value does not revive config defaults.
+        if type(row.permissions) == 'table' then
+            permissions = row.permissions
+        elseif type(row.permissions) == 'string' then
+            local decodedOk, decoded = pcall(json.decode, row.permissions)
+            if decodedOk and type(decoded) == 'table' then permissions = decoded end
+        end
+    else
+        local defaults = (Config.PermissionDefaults or {})[identity.job] or {}
+        local configured = defaults[tostring(identity.grade)]
+        if type(configured) == 'table' then permissions = configured end
+    end
+
+    -- The role lookup can yield. Never return a previous character's or job's
+    -- scope after a disconnect, duty update, promotion or employment change.
+    local current = runtimeIdentity(source)
+    if not current or current.gradeValid ~= true or current.citizenid ~= identity.citizenid or current.job ~= identity.job
+        or current.grade ~= identity.grade or current.onDuty ~= identity.onDuty
+        or current.jobType ~= 'gov' or current.jurisdiction ~= identity.jurisdiction then return nil end
+    local currentAccess = GetMdtAccess(source)
+    if not currentAccess.authorized or currentAccess.isCivilian or currentAccess.interfaceId ~= 'sagov' then return nil end
+
+    local policy = Config.MdtAccess or {}
+    local permission = (policy.GovernmentPersonnel or {}).OversightPermission
+    local hasOversight = current.job == 'sagov' and type(permission) == 'string'
+        and permission ~= '' and contains(permissions, permission)
+    local allowedJobs = { current.job }
+    if hasOversight then
+        local otherJobs = {}
+        for jobName in pairs(policy.GovernmentJobs or {}) do
+            if jobName ~= current.job then otherJobs[#otherJobs + 1] = jobName end
+        end
+        table.sort(otherJobs)
+        for _, jobName in ipairs(otherJobs) do allowedJobs[#allowedJobs + 1] = jobName end
+    end
+    return {
+        citizenid = current.citizenid, agency = current.job, grade = current.grade,
+        jurisdiction = current.jurisdiction, allowedJobs = allowedJobs, hasOversight = hasOversight == true,
+    }
 end
 
 function CheckPermission(source, permName)

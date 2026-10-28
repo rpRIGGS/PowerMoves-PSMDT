@@ -485,6 +485,21 @@ Config.MdtAccess = {
         lscgov = 'los_santos_county',
         lsgov = 'los_santos_city',
     },
+    -- Organizational metadata only. Parent jurisdictions do not inherit access
+    -- to another government's personnel or unpublished records.
+    GovernmentJurisdictions = {
+        state = { label = 'State of San Andreas' },
+        blaine_county = { label = 'Blaine County', parent = 'state' },
+        los_santos_county = { label = 'Los Santos County', parent = 'state' },
+        los_santos_city = { label = 'City of Los Santos', parent = 'los_santos_county' },
+    },
+    GovernmentPersonnel = {
+        -- Read-only oversight requires this exact permission on a sagov
+        -- job/grade row in mdt_permission_roles, or Config.PermissionDefaults
+        -- when no stored row exists. Boss status grants nothing here. No grade
+        -- is assigned by default; the owner must decide those grants separately.
+        OversightPermission = 'government_roster_oversight',
+    },
     AttorneyGeneral = { job = 'sadle', grade = 11 },
     JudicialGrades = {
         sadoj = { 8, 9, 10 },
@@ -492,7 +507,8 @@ Config.MdtAccess = {
     },
     -- Explicit permission ceilings also define the starting grants for boss
     -- grades. QBCore isboss stays unchanged; it is not universal MDT authority.
-    -- Government currently has an interface shell and no operational grants.
+    -- Government personnel reads use their separate scoped authorization;
+    -- government roles receive no legacy operational grants here.
     PermissionSets = {
         leo = {
             'citizens_search', 'citizens_edit_licenses',
