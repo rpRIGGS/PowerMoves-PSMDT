@@ -973,6 +973,25 @@ ps.registerCallback(resourceName..':server:updateReportContent', function(source
             return { success = false, error = "Failed to save content" }
         end
 
+        -- Draft creation is also report creation. Apply the employer marker
+        -- and original jobtype visibility together, or discard this new draft.
+        local employer = ps.getJobName(src)
+        local frameworkType = ps.getJobType(src)
+        if not employer or employer == '' or not frameworkType then
+            MySQL.update.await('DELETE FROM mdt_reports WHERE id = ?', { insertResult })
+            return { success = false, error = 'Missing agency or job type' }
+        end
+        local saved = MySQL.transaction.await({
+            { query = "INSERT INTO mdt_reports_restrictions (reportid, type, identifier) VALUES (?, 'owner', ?)",
+              values = { insertResult, employer } },
+            { query = "INSERT INTO mdt_reports_restrictions (reportid, type, identifier) VALUES (?, 'jobtype', ?)",
+              values = { insertResult, frameworkType } },
+        })
+        if not saved then
+            MySQL.update.await('DELETE FROM mdt_reports WHERE id = ?', { insertResult })
+            return { success = false, error = 'Failed to secure new report' }
+        end
+
         return {
             success = true,
             reportId = insertResult,
