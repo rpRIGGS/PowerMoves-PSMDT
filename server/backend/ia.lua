@@ -276,9 +276,12 @@ ps.registerCallback(resourceName .. ':server:getIAComplaints', function(source, 
     local clauses = {}
     local values = {}
 
-    -- Domain scope: each side only sees its own internal-affairs cases.
-    clauses[#clauses + 1] = 'job_type = ?'
+    -- Restrict list results to the actual responsible employer. The
+    -- authorized SADLE IA team may triage police records statewide.
+    clauses[#clauses + 1] = "job_type = ? AND (agency = ? OR (? = 'sadle' AND job_type = 'police'))"
     values[#values + 1] = GetMdtDomain(src)
+    values[#values + 1] = ps.getJobName(src)
+    values[#values + 1] = ps.getJobName(src)
 
     if filters.status and filters.status ~= '' then
         clauses[#clauses + 1] = 'status = ?'
@@ -334,7 +337,7 @@ ps.registerCallback(resourceName .. ':server:getIAComplaint', function(source, d
     end
 
     local complaint = MySQL.single.await('SELECT * FROM mdt_ia_complaints WHERE id = ?', { complaintId })
-    if not complaint or complaint.job_type ~= GetMdtDomain(src) then
+    if not canAccessIARecord(src, complaint) then
         return { success = false, error = 'Complaint not found or access denied' }
     end
 
@@ -371,6 +374,7 @@ ps.registerCallback(resourceName .. ':server:getIAHistoryForOfficer', function(s
         SELECT id, complaint_number, category, status, created_at
         FROM mdt_ia_complaints
         WHERE job_type = ?
+          AND (agency = ? OR (? = 'sadle' AND job_type = 'police'))
           AND (
                 (officer_citizenid IS NOT NULL AND officer_citizenid = ?)
              OR (officer_citizenid IS NULL AND ? <> '' AND officer_name LIKE ?)
@@ -379,6 +383,8 @@ ps.registerCallback(resourceName .. ':server:getIAHistoryForOfficer', function(s
         LIMIT 50
     ]], {
         GetMdtDomain(src),
+        ps.getJobName(src),
+        ps.getJobName(src),
         officerCid or '',
         officerName or '',
         '%' .. (officerName or '') .. '%',
