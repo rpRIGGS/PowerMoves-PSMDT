@@ -76,19 +76,22 @@ function IsPoliceJob(jobName, jobType)
     return false
 end
 
---- Check if a job is a medical/EMS job based on Config.MedicalJobs and Config.MedicalJobType
+--- Check if a job belongs to the shared legacy Fire/EMS MDT domain.
+--- QBCore fire and ems remain separate job types and interface identities.
 ---@param jobName string|nil
 ---@param jobType string|nil
 ---@return boolean
 function IsEmsJob(jobName, jobType)
-    if jobType and Config and Config.MedicalJobType and tostring(jobType) == tostring(Config.MedicalJobType) then
-        return true
+    if jobType and Config then
+        local checkType = tostring(jobType)
+        if Config.MedicalJobType and checkType == tostring(Config.MedicalJobType) then return true end
+        if Config.FireJobType and checkType == tostring(Config.FireJobType) then return true end
     end
-    if jobName and Config and Config.MedicalJobs then
+    if jobName and Config then
         local check = tostring(jobName)
-        for _, job in ipairs(Config.MedicalJobs) do
-            if tostring(job) == check then
-                return true
+        for _, list in ipairs({ Config.MedicalJobs or {}, Config.FireJobs or {} }) do
+            for _, job in ipairs(list) do
+                if tostring(job) == check then return true end
             end
         end
     end
