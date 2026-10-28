@@ -75,6 +75,10 @@ local function buildRosterFromQbx(jobList, matchFn, defaultDept)
         if player and player.PlayerData then
             local data = player.PlayerData
             local job = data.job or {}
+            -- A multijob/Qbox group membership is not proof that the employee
+            -- is currently assigned to that department. Do not return another
+            -- employer's employee just because they retain secondary membership.
+            if matchFn(job.name, job.type) then
             local callsign = data.metadata and data.metadata.callsign or 'N/A'
             local fullname = data.charinfo and (data.charinfo.firstname .. ' ' .. data.charinfo.lastname) or 'Unknown'
             local rank = job.grade and job.grade.name or 'Officer'
@@ -107,6 +111,7 @@ local function buildRosterFromQbx(jobList, matchFn, defaultDept)
                     lastName = rosterList[#rosterList].lastName,
                 }
             end
+            end -- current employing job matches this roster
         end
     end
 
