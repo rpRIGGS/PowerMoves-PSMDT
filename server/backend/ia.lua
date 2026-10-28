@@ -10,6 +10,25 @@ CreateThread(function()
     end
 end)
 
+-- Confidential investigative records are not general MDT records.
+-- State-level disclosure to agency command should use explicitly restricted
+-- reports, never unrestricted access to the underlying investigation.
+local function canViewIA(src)
+    return CheckAuth(src) and CheckPermission(src, 'ia_view')
+end
+
+local function canManageIA(src)
+    return CheckAuth(src) and CheckPermission(src, 'ia_manage')
+end
+
+local function ownsIAComplaint(src, complaintId)
+    local domain = MySQL.scalar.await(
+        'SELECT job_type FROM mdt_ia_complaints WHERE id = ? LIMIT 1',
+        {complaintId}
+    )
+    return domain ~= nil and domain == GetMdtDomain(src)
+end
+
 local function buildComplaintNumber(id)
     local year = os.date('%Y')
     return ('IA-%s-%05d'):format(year, id)
@@ -205,7 +224,7 @@ ps.registerCallback(resourceName .. ':server:getIAComplaints', function(source, 
     local src = source
     filters = filters or {}
 
-    if not CheckAuth(src) then
+    if not canViewIA(src) then
         ps.debug('getIAComplaints: CheckAuth failed for source ' .. tostring(src))
         return { complaints = {}, hasMore = false }
     end
@@ -267,7 +286,7 @@ end)
 -- Get single IA complaint with notes
 ps.registerCallback(resourceName .. ':server:getIAComplaint', function(source, data)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not canViewIA(src) then return { success = false, error = 'Unauthorized' } end
 
     local complaintId = tonumber(data)
     if not complaintId then
@@ -275,8 +294,8 @@ ps.registerCallback(resourceName .. ':server:getIAComplaint', function(source, d
     end
 
     local complaint = MySQL.single.await('SELECT * FROM mdt_ia_complaints WHERE id = ?', { complaintId })
-    if not complaint then
-        return { success = false, error = 'Complaint not found' }
+    if not complaint or complaint.job_type ~= GetMdtDomain(src) then
+        return { success = false, error = 'Complaint not found or access denied' }
     end
 
     local nOk, notes = pcall(MySQL.query.await, [[
@@ -302,7 +321,7 @@ end)
 -- never managed to assign) don't vanish from the profile.
 ps.registerCallback(resourceName .. ':server:getIAHistoryForOfficer', function(source, officerName, officerCid)
     local src = source
-    if not CheckAuth(src) then return {} end
+    if not canViewIA(src) then return {} end
 
     if (not officerName or officerName == '') and (not officerCid or officerCid == '') then
         return {}
@@ -332,13 +351,14 @@ end)
 -- Update IA complaint details (officer, badge, date, location)
 ps.registerCallback(resourceName .. ':server:updateIAComplaintInfo', function(source, complaintId, updates)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not canManageIA(src) then return { success = false, error = 'Unauthorized' } end
 
     complaintId = tonumber(complaintId)
     updates = updates or {}
     if not complaintId then
         return { success = false, error = 'Invalid complaint id' }
     end
+    if not ownsIAComplaint(src, complaintId) then return { success = false, error = 'Complaint access denied' } end
 
     local sets = {}
     local vals = {}
@@ -383,12 +403,13 @@ end)
 -- Update IA complaint status
 ps.registerCallback(resourceName .. ':server:updateIAStatus', function(source, complaintId, status)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not canManageIA(src) then return { success = false, error = 'Unauthorized' } end
 
     complaintId = tonumber(complaintId)
     if not complaintId or not status then
         return { success = false, error = 'Invalid complaint id or status' }
     end
+    if not ownsIAComplaint(src, complaintId) then return { success = false, error = 'Complaint access denied' } end
 
     local ok, err = pcall(MySQL.update.await, 'UPDATE mdt_ia_complaints SET status = ? WHERE id = ?', { status, complaintId })
     if not ok then
@@ -404,12 +425,13 @@ end)
 -- Assign an investigator to an IA complaint (or unassign with '__unassign__')
 ps.registerCallback(resourceName .. ':server:assignIAComplaint', function(source, complaintId, assigneeCitizenId)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not canManageIA(src) then return { success = false, error = 'Unauthorized' } end
 
     complaintId = tonumber(complaintId)
     if not complaintId or not assigneeCitizenId then
         return { success = false, error = 'Invalid complaint or assignee' }
     end
+    if not ownsIAComplaint(src, complaintId) then return { success = false, error = 'Complaint access denied' } end
 
     -- Handle unassign
     if assigneeCitizenId == '__unassign__' then
@@ -432,12 +454,13 @@ end)
 -- Add a note to an IA complaint
 ps.registerCallback(resourceName .. ':server:addIANote', function(source, complaintId, content)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not canManageIA(src) then return { success = false, error = 'Unauthorized' } end
 
     complaintId = tonumber(complaintId)
     if not complaintId or not content or content == '' then
         return { success = false, error = 'Invalid complaint or empty note' }
     end
+    if not ownsIAComplaint(src, complaintId) then return { success = false, error = 'Complaint access denied' } end
 
     local citizenId = ps.getIdentifier(src)
     local profile = MySQL.single.await('SELECT fullname FROM mdt_profiles WHERE citizenid = ?', { citizenId })
@@ -454,13 +477,14 @@ end)
 -- Delete a note from an IA complaint
 ps.registerCallback(resourceName .. ':server:deleteIANote', function(source, noteId, complaintId)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not canManageIA(src) then return { success = false, error = 'Unauthorized' } end
 
     noteId = tonumber(noteId)
     complaintId = tonumber(complaintId)
     if not noteId or not complaintId then
         return { success = false, error = 'Invalid note or complaint' }
     end
+    if not ownsIAComplaint(src, complaintId) then return { success = false, error = 'Complaint access denied' } end
 
     MySQL.query.await('DELETE FROM mdt_ia_notes WHERE id = ? AND complaint_id = ?', { noteId, complaintId })
     return { success = true }
