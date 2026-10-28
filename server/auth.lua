@@ -392,7 +392,10 @@ end
 
 RegisterNetEvent('ps-mdt:server:trackLogin', function()
     local src = source
-    if not CheckAuth(src) then return end
+    -- Login tracking is an operational action: reject off-duty sessions.
+    -- Logout intentionally remains available to close an existing session.
+    local access = GetMdtAccess(src)
+    if not access.authorized or not access.eligible or access.isCivilian then return end
     upsertProfileSession(src, 'login')
     if ps.auditLog then
         ps.auditLog(src, 'mdt_login', 'profile', ps.getIdentifier(src), {})
