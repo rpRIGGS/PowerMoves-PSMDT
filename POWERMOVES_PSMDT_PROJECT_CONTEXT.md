@@ -6,15 +6,16 @@
 
 ## Goal
 
-Extend the existing PS-MDT resource into **one shared system with five interfaces**, reusing existing capabilities rather than rebuilding them. The five interfaces share a backend/database as appropriate but enforce distinct agency, role, jurisdiction, and record-visibility permissions.
+Extend the existing PS-MDT resource into **one shared system with six interfaces**, reusing existing capabilities rather than rebuilding them. The six interfaces share a backend/database as appropriate but enforce distinct agency, role, jurisdiction, and record-visibility permissions.
 
 1. **SADLE.net** — San Andreas Division of Law Enforcement; LEO interface and statewide oversight, investigations, internal affairs, training, FTO, certifications, agency records, and appropriate restricted cross-agency access.
 2. **SADOJ.net** — San Andreas Department of Justice; courts, cases, motions, hearings, orders, legal personnel, and judicial review. Separate from SADLE oversight.
 3. **SAFR.net** — San Andreas Fire Rescue; fire departments and EMS operations, personnel, training/certifications, incident and EMS reports.
 4. **SAMS.net** — San Andreas Medical Service; hospital and medical personnel, certifications/training, patient records and medical charting, subject to medical access controls.
 5. **SAGOV.net** — San Andreas Government; statewide, county, and municipal government administration, legislation, records, budgets, taxes, licensing, permits, appointments, and jurisdiction-specific workflows.
+6. **SADOT.net** — San Andreas Department of Transportation; transportation oversight, licensed mechanic/towing companies, fleet management, 511 recovery records, towing/impound audit histories and authorized vehicle/accident report views. The interface remains inactive until agency-scoped permission and license checks are implemented.
 
-These are five interfaces **within one PS-MDT system**, not five unrelated resources. Keep the established QBCore framework; do not pursue a custom FiveM framework.
+These are six interfaces **within one PS-MDT system**, not five unrelated resources. Keep the established QBCore framework; do not pursue a custom FiveM framework.
 
 ## Start with existing QBCore jobs.lua
 
@@ -89,3 +90,28 @@ The owner will supply the actual `jobs.lua` (or relevant jobs configuration). **
 - Older planning notes in the READMEs of `https://github.com/PowerMoves-Development/ps-realtor` and `https://github.com/PowerMoves-Development/ps-housing`. Do not delete or assume those README plans are implemented.
 
 **Important:** This is a summary of the discussions and should guide investigation, not substitute for source review. Where a requirement is uncertain, ask the owner before deciding or coding.
+
+## Six-interface shared-service boundaries (updated October 28, 2026)
+All six interfaces extend the existing shared MDT capability; do not clone scripts or create parallel record stores merely to build an interface.
+
+- **SADLE.net**: original operational law enforcement MDT. Keep its reports, evidence, cases, warrants, LEO agencies, dispatch/callsigns, internal affairs, training/FTO and certifications. The Attorney General heads SADLE, but special statewide investigative/oversight privileges require explicit authorization. State/federal visibility must be audited against existing FIB/government restrictions, not assumed for every boss or employee.
+- **SADOJ.net**: judges, prosecutors, court staff, litigation and evidence intake from LEO and permitted other sources. Chief Justice heads SADOJ; judicial authority is not the same as statewide prosecutor/investigator access. Extend the existing FTO-like program to legal training with own phases and competency rubric when scoped agency data is ready.
+- **SAFR.net**: fire/rescue departmental operations and statewide fire professional accreditation; reuses appropriately scoped personnel, callsigns, dispatch, incident reports, training/FTO engine, certifications, bulletin/SOP systems. `fire` remains the QBCore job type, distinct from `ems`.
+- **SAMS.net**: hospitals/medical personnel and statewide medical professional accreditation; same shared components with medical training stages, certification, EMS dispatch where appropriate, and restricted medical charts. `ems` remains the QBCore medical job type.
+- **SAGOV.net**: state, county, and municipal agencies, personnel, appointments, decisions, public service requests, property/business assessment, business registration and licensing. Government approval never automatically grants unrelated operational police or transportation access.
+- **SADOT.net**: public 511 towing/roadside operations, licensed mechanic-shop and fleet personnel, agency-authorized tow/recovery and vehicle inspections, permitted accident/vehicle information, transport compliance and accreditation. `mechanic` is a broad framework job type but not by itself an operational license or full MDT authorization.
+
+### Tow-operator establishment and authorizations
+1. Real estate/property system records the selected/owned commercial property.
+2. Appropriate local government receives and approves a business proposal and business license in SAGOV.net, within jurisdiction rules. This does not automatically issue a towing permit.
+3. SADOT verifies the business's specific **tow operator permit** and qualified personnel/vehicles. Only compliant licensed operators receive transportation operations access and eligibility for public 511 tow assignments, subject to on-duty status.
+4. A tow assignment is dispatched by PS-Dispatch but assigned/recorded by PSMDT; the operator uses **existing MDT report templates**, not a separate /towreport form, to submit vehicle condition/recovery documentation.
+5. If police tow or impound a vehicle during an investigation, its authorized vehicle/tow report links to the **original criminal case and related SADOJ court file** by reference, retaining evidence custody and immutable history. Do not copy inconsistent report histories across agencies.
+6. Towing to garages, storing, deleting, or impounding physical vehicles requires validated integration with the actual vehicle/storage scripts. No such integration has been established yet.
+
+### Shared component strategy, not code duplication
+Dispatch, callsigns, report templates, personnel roster, SOPs/bulletins, training/FTO, certifications and ordinary case/document links should each have one implementation with agency/service configuration and **server-enforced ownership/oversight policy**. Six labels, navigation routes and future specialized templates are appropriate placeholders; copying entire CRUD workflows is not.
+
+**Verified technical limitation:** The existing FTO backend stores assignments with broad `job_type` domain (`police` or `ems`) and phases/competencies by actual `job`. Tight domain isolation for direct reads/writes was added as a first safeguard, but true employer/agency-level FTO isolation and scoped statewide accreditation still require new data ownership and authorization controls. Do not enable a sixth interface before these are available.
+
+**Correction:** SADOT ledger schema/record exports now reside in PSMDT `server/backend/sadot_records.lua`; PS-Dispatch forwards lifecycle events via `exports['ps-mdt']:RecordSadotTowEvent`. The dispatch-side tow journal and duplicate `/towreport` form were removed; existing database data was **not deleted**. This integration is not yet runtime-tested and loses durable transitions while PSMDT is stopped. The full SADOT browser UI, licensing enforcement and records/report integration are not implemented.
