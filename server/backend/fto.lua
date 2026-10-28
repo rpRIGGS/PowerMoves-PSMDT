@@ -1,5 +1,19 @@
 local resourceName = tostring(GetCurrentResourceName())
 
+-- Preserve the proven FTO engine, but separate its operational training
+-- families by the actual QBCore type. Legacy police and hospital rows keep
+-- their existing values. New DOJ and fire assignments have their own domains.
+local function getFTODomain(src)
+    local jobType = ps.getJobType(src)
+    local jobName = ps.getJobName(src)
+    if jobType == 'fire' then return 'fire' end
+    if jobType == 'doj' then return 'doj' end
+    for _, name in ipairs(Config.DojJobs or {}) do
+        if jobName == name then return 'doj' end
+    end
+    return GetMdtDomain(src)
+end
+
 -- Phase 2: FTO assignments are domain-scoped so EMS sees its own trainees and
 -- police see theirs. Phases/competencies are already scoped by exact job name.
 -- Existing assignment rows default to 'police'; new ones take the creator's domain.
@@ -85,7 +99,7 @@ ps.registerCallback(resourceName .. ':server:getFTOList', function(source, pageN
 
     -- Domain scope: each side only sees its own FTO assignments.
     clauses[#clauses + 1] = 'a.job_type = ?'
-    values[#values + 1] = GetMdtDomain(src)
+    values[#values + 1] = getFTODomain(src)
 
     if not hasFTOView then
         clauses[#clauses + 1] = '(a.trainee_citizenid = ? OR a.trainer_citizenid = ?)'
@@ -138,7 +152,7 @@ local function canAccessFTORecord(src, assignmentId)
         'SELECT job_type FROM mdt_fto_assignments WHERE id = ? LIMIT 1',
         {assignmentId}
     )
-    return row ~= nil and row.job_type == GetMdtDomain(src)
+    return row ~= nil and row.job_type == getFTODomain(src)
 end
 
 -- Get single FTO assignment with DORs
@@ -156,7 +170,7 @@ ps.registerCallback(resourceName .. ':server:getFTO', function(source, data)
         WHERE a.id = ?
     ]], { assignmentId })
     if not entry then return { success = false, error = 'Not found' } end
-    if entry.job_type ~= GetMdtDomain(src) then return { success = false, error = 'Unauthorized' } end
+    if entry.job_type ~= getFTODomain(src) then return { success = false, error = 'Unauthorized' } end
 
     local citizenId = ps.getIdentifier(src)
     local hasFTOView = CheckPermission(src, 'fto_view')
@@ -203,7 +217,7 @@ ps.registerCallback(resourceName .. ':server:getOfficerFTOHistory', function(sou
         LEFT JOIN mdt_fto_phases p ON a.current_phase_id = p.id
         WHERE a.job_type = ? AND (a.trainee_citizenid = ? OR a.trainer_citizenid = ?)
         ORDER BY a.created_at DESC
-    ]], { GetMdtDomain(src), officerCitizenId, officerCitizenId })
+    ]], { getFTODomain(src), officerCitizenId, officerCitizenId })
 
     return (ok and rows) or {}
 end)
@@ -253,7 +267,7 @@ ps.registerCallback(resourceName .. ':server:createFTOAssignment', function(sour
         phaseId,
         data.start_date or os.date('%Y-%m-%d'),
         data.notes or nil,
-        GetMdtDomain(src),
+        getFTODomain(src),
     })
 
     if not assignmentId then return { success = false, error = 'Failed to create assignment' } end
