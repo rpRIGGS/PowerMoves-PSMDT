@@ -62,13 +62,16 @@ local function checkReportAccess(src, reportId)
                   AND mrr_private.type = 'jobtype'
                   AND mrr_private.identifier IN ('ems', 'fire')
             ))
-            OR mrr_check.reportid IS NULL
+            -- Match the report-list default: an unrestricted report is
+            -- visible only to operational LEO/EMS families, never an
+            -- arbitrary authenticated interface (including DOJ).
+            OR (mrr_check.reportid IS NULL AND (? = 'leo' OR ? = 'ems' OR ? = 'fire'))
             OR (mrr_check.type = 'citizenid' AND mrr_check.identifier = ?)
             OR (mrr_check.type = 'job' AND mrr_check.identifier = ?)
             OR (mrr_check.type = 'jobtype' AND mrr_check.identifier = ?)
         )
         GROUP BY mr.id
-    ]], {reportId, jobType, identifier, job, jobType})
+    ]], {reportId, jobType, jobType, jobType, jobType, identifier, job, jobType})
 
     return hasAccess and hasAccess[1] ~= nil
 end
