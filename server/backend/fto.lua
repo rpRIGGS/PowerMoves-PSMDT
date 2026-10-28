@@ -231,6 +231,29 @@ ps.registerCallback(resourceName .. ':server:getOfficerFTOHistory', function(sou
     return (ok and rows) or {}
 end)
 
+-- A training record follows its citizen, not their current employer.
+-- This read-only transcript deliberately excludes DOR notes and ratings:
+-- former employers' private evaluations stay within their authorized agency.
+-- The caller can read their own milestones even after transfer or promotion.
+ps.registerCallback(resourceName .. ':server:getMyTrainingTranscript', function(source)
+    local src = source
+    if not CheckAuth(src) then return {} end
+    local citizenid = ps.getIdentifier(src)
+    if type(citizenid) ~= 'string' or citizenid == '' then return {} end
+
+    local ok, history = pcall(MySQL.query.await, [[
+        SELECT a.fto_number, a.job_type, a.agency_job, a.status,
+               a.start_date, a.end_date, a.created_at,
+               p.name AS current_phase
+        FROM mdt_fto_assignments a
+        LEFT JOIN mdt_fto_phases p ON p.id = a.current_phase_id
+        WHERE a.trainee_citizenid = ?
+        ORDER BY a.created_at DESC, a.id DESC
+        LIMIT 150
+    ]], { citizenid })
+    return ok and history or {}
+end)
+
 -- Create FTO assignment
 ps.registerCallback(resourceName .. ':server:createFTOAssignment', function(source, data)
     local src = source
