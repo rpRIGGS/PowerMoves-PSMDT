@@ -139,16 +139,16 @@ ps.registerCallback('ps-mdt:server:getRosterList', function(source)
     local domain = GetMdtDomain(source)
     local jobList, matchFn, defaultDept, scopeJobType
     if access.jobType == 'doj' and access.agency ~= (Config.MdtAccess and Config.MdtAccess.AttorneyGeneral and Config.MdtAccess.AttorneyGeneral.job) then
-        jobList = (Config and Config.DojJobs) or { 'sadoj' }
-        scopeJobType = Config and Config.DojJobType and tostring(Config.DojJobType) or 'doj'
-        matchFn = function(jobName, jobType)
-            if jobType == scopeJobType then return true end
-            for _, name in ipairs(jobList) do
-                if name == jobName then return true end
-            end
-            return false
+        -- DOJ's court interface includes different employers (SADOJ and law
+        -- firms). A shared service interface is not roster-wide jurisdiction.
+        local employer = access.agency
+        if type(employer) ~= 'string' or employer == '' then
+            return { roster = {}, activeUnits = {} }
         end
-        defaultDept = jobList[1] or 'sadoj'
+        jobList = { employer }
+        matchFn = function(jobName, _) return jobName == employer end
+        defaultDept = employer
+        scopeJobType = nil
     elseif access.interfaceId == 'safr' or access.interfaceId == 'sams' then
         -- Responder data shares a legacy domain, not a common employer.
         -- Avoid exposing other departments' staff through the roster.
