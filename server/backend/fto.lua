@@ -213,7 +213,16 @@ end)
 ps.registerCallback(resourceName .. ':server:getOfficerFTOHistory', function(source, officerCitizenId)
     local src = source
     if not CheckAuth(src) then return {} end
-    if not officerCitizenId or officerCitizenId == '' then return {} end
+    if type(officerCitizenId) ~= 'string' or officerCitizenId == '' then return {} end
+    -- A person's milestone summary follows them across employment changes.
+    -- Managers may see it only for someone currently employed by their own
+    -- agency; other persons' records are not discoverable by arbitrary ID.
+    local isSelf = officerCitizenId == ps.getIdentifier(src)
+    if not isSelf then
+        if not CheckPermission(src, 'fto_view') or not CanManageMdtPersonnel(src, officerCitizenId) then
+            return {}
+        end
+    end
 
     local ok, rows = pcall(MySQL.query.await, [[
         SELECT a.id, a.fto_number, a.status, a.trainer_name, a.trainee_name,
@@ -223,10 +232,10 @@ ps.registerCallback(resourceName .. ':server:getOfficerFTOHistory', function(sou
             (SELECT d2.overall_rating FROM mdt_fto_dors d2 WHERE d2.assignment_id = a.id ORDER BY d2.created_at DESC LIMIT 1) AS latest_rating
         FROM mdt_fto_assignments a
         LEFT JOIN mdt_fto_phases p ON a.current_phase_id = p.id
-        WHERE a.job_type = ? AND (a.agency_job = ? OR a.agency_job IS NULL)
-          AND (a.trainee_citizenid = ? OR a.trainer_citizenid = ?)
+        WHERE a.trainee_citizenid = ?
         ORDER BY a.created_at DESC
-    ]], { getFTODomain(src), ps.getJobName(src), officerCitizenId, officerCitizenId })
+        LIMIT 150
+    ]], { officerCitizenId })
 
     return (ok and rows) or {}
 end)
