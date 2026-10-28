@@ -47,21 +47,28 @@ local function checkReportAccess(src, reportId)
         return false
     end
 
-    if jobType == 'doj' then return true end
-
+    -- DOJ may read ordinary operational reports, but not restricted fire or
+    -- hospital reports merely by knowing the report ID. Explicitly shared
+    -- reports remain accessible through the normal restriction checks.
     local hasAccess = MySQL.query.await([[
         SELECT mr.id
         FROM mdt_reports mr
         LEFT JOIN mdt_reports_restrictions mrr_check ON mr.id = mrr_check.reportid
         WHERE mr.id = ?
         AND (
-            mrr_check.reportid IS NULL
+            (? = 'doj' AND NOT EXISTS (
+                SELECT 1 FROM mdt_reports_restrictions mrr_private
+                WHERE mrr_private.reportid = mr.id
+                  AND mrr_private.type = 'jobtype'
+                  AND mrr_private.identifier IN ('ems', 'fire')
+            ))
+            OR mrr_check.reportid IS NULL
             OR (mrr_check.type = 'citizenid' AND mrr_check.identifier = ?)
             OR (mrr_check.type = 'job' AND mrr_check.identifier = ?)
             OR (mrr_check.type = 'jobtype' AND mrr_check.identifier = ?)
         )
         GROUP BY mr.id
-    ]], {reportId, identifier, job, jobType})
+    ]], {reportId, jobType, identifier, job, jobType})
 
     return hasAccess and hasAccess[1] ~= nil
 end
@@ -285,6 +292,7 @@ end)
 ps.registerCallback(resourceName..':server:getReport', function(source, reportid)
     local src = source
 	if not CheckAuth(src) then return end
+    if not checkReportAccess(src, tonumber(reportid)) then return nil end
 
 	local identifier = ps.getIdentifier(src)
     local job = ps.getJobName(src)
