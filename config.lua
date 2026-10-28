@@ -154,6 +154,44 @@ Config.IA = {
 }
 
 
+
+-- PUBLIC SERVICE ACCESS (inside the existing PSMDT resource) -----------------
+-- Civilians access configured agency services at actual in-world service desks
+-- via qb-target; no government/LEO/medical MDT entitlement is required.
+-- This is deliberately independent of government property-jurisdiction logic.
+--
+-- Available now: 'ia_complaint' reuses the existing civilian complaint form.
+-- Future services (public-records requests, licensing applications, etc.)
+-- must be implemented before their IDs are enabled at a location.
+Config.PublicServices = {
+    Enabled = true,
+    TargetResource = 'qb-target',
+    Debug = false,
+    DefaultDistance = 2.0,
+    Locations = {
+        -- Configure actual MLO coordinates before use. Examples:
+        -- {
+        --     id = 'ag_office_front_desk',
+        --     label = "Attorney General's Office",
+        --     agency = 'sadle',
+        --     shape = 'circle',
+        --     coords = vector3(0.0, 0.0, 0.0),
+        --     radius = 1.5,
+        --     services = { 'ia_complaint' },
+        -- },
+        -- {
+        --     id = 'county_service_counter',
+        --     label = 'County Services',
+        --     agency = 'bcgov',
+        --     shape = 'poly',
+        --     points = { vector2(0.0, 0.0), vector2(2.0, 0.0), vector2(2.0, 2.0) },
+        --     minZ = 30.0,
+        --     maxZ = 33.0,
+        --     services = { 'ia_complaint' },
+        -- },
+    },
+}
+
 -- Housing / Properties Integration
 -- The MDT shows the properties a citizen owns on their profile. Every housing
 -- resource stores this in a different table with different column names, so
