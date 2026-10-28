@@ -22,12 +22,25 @@ local function canManageIA(src)
     return CheckAuth(src) and CheckPermission(src, 'ia_manage')
 end
 
+-- Separate the legacy service-family marker from actual agency ownership.
+-- Only the originating employer sees ordinary IA records. SADLE's authorized
+-- IA roles can investigate police-family complaints statewide and triage
+-- unassigned legacy police complaints; unknown EMS-era records stay withheld
+-- until they are explicitly reconciled with a responsible fire/hospital agency.
+local function canAccessIARecord(src, record)
+    if not record or not canViewIA(src) then return false end
+    if record.job_type ~= GetMdtDomain(src) then return false end
+    local actorJob = ps.getJobName(src)
+    return (record.agency ~= nil and record.agency == actorJob)
+        or (actorJob == 'sadle' and record.job_type == 'police')
+end
+
 local function ownsIAComplaint(src, complaintId)
-    local domain = MySQL.scalar.await(
-        'SELECT job_type FROM mdt_ia_complaints WHERE id = ? LIMIT 1',
+    local record = MySQL.single.await(
+        'SELECT job_type, agency FROM mdt_ia_complaints WHERE id = ? LIMIT 1',
         {complaintId}
     )
-    return domain ~= nil and domain == GetMdtDomain(src)
+    return canAccessIARecord(src, record)
 end
 
 -- The alleged employee's configured current employer is a provisional routing
