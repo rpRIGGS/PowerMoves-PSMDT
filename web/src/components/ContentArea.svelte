@@ -37,6 +37,7 @@
 	import type { createInstanceStateService } from "../services/instanceStateService.svelte";
 	import type { createTabService } from "../services/tabService.svelte";
 	import BulletInBoard from "@/pages/BulletInBoard.svelte";
+	import Government from "../pages/Government.svelte";
 
 	interface Props {
 		authService: AuthService;
@@ -68,7 +69,7 @@
 
 	// Check SOP agreement when auth becomes authorized
 	$effect(() => {
-		if (authService.isAuthorized && !sopChecked) {
+		if (authService.isAuthorized && !authService.isCivilian && authService.interfaceId !== 'sagov' && !sopChecked) {
 			checkSOPAgreement();
 		}
 	});
@@ -130,7 +131,7 @@
 	const DOJ_SHARED_PAGES = ["reports", "citizens", "cases", "evidence", "charges"];
 
 	function canAccessPage(pageId: string): boolean {
-		if (authService.jobType === "doj" && DOJ_SHARED_PAGES.includes(pageId)) return true;
+		if (authService.jobType === "doj" && authService.role !== "attorney_general" && DOJ_SHARED_PAGES.includes(pageId)) return true;
 		const requiredPerms = PAGE_PERMISSIONS[pageId];
 		if (!requiredPerms) return true;
 		return authService.hasAnyPermission(...requiredPerms);
@@ -163,6 +164,8 @@
 <div class="content-area" style="zoom: {contentZoom};">
 	{#if authService.isCivilian}
 		<CivilianView {authService} />
+	{:else if authService.isAuthorized && authService.interfaceId === 'sagov'}
+		<Government {authService} />
 	{:else if authService.isAuthorized}
 		{#if sopChecked && !sopAgreed}
 			<SOPAgreementOverlay

@@ -18,7 +18,10 @@
 		return authService.hasRawPermission(key);
 	}
 
-	let visibleTabs = $derived(getTabsForJob(jobType).filter(t => !isTabHidden(t.name)));
+	let visibleTabs = $derived(getTabsForJob(jobType).filter(t => {
+		if (isTabHidden(t.name)) return false;
+		return true;
+	}));
 	let visibleTabNames = $derived(new Set(visibleTabs.map(t => t.name)));
 
 	let collapsed = $state(false);

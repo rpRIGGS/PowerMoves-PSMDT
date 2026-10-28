@@ -3,7 +3,9 @@ import { fetchNui } from "@/utils/fetchNui";
 import { debugError } from "@/utils/debug";
 import { TIMING } from "@/constants/index";
 import { NUI_EVENTS } from "@/constants/nuiEvents";
-import type { AuthUpdateData, JobType } from "@/interfaces/IUser";
+import type { AuthUpdateData, InterfaceId, JobType } from "@/interfaces/IUser";
+import { isEnvBrowser } from "@/utils/misc";
+import { ALL_PERMISSION_KEYS } from "@/constants/management";
 
 export interface PlayerInfo {
 	rank: string;
@@ -29,9 +31,16 @@ export const MOCK_AUTH_DATA: AuthUpdateData = {
 	},
 	isLEO: true,
 	onDuty: true,
-	permissions: [],
+	permissions: ALL_PERMISSION_KEYS.filter(permission => !permission.startsWith('tab_hidden_')),
 	isBoss: true,
 	jobType: "leo",
+	interfaceId: "sadle",
+	allowedInterfaces: ["sadle"],
+};
+
+const DENIED_AUTH_DATA: AuthUpdateData = {
+	authorized: false, eligible: false, isCivilian: false, onDuty: false,
+	jobType: 'civilian', permissions: [], allowedInterfaces: [], isBoss: false,
 };
 
 /** Creates the authentication service */
@@ -49,6 +58,13 @@ export function createAuthService() {
 	let jobType = $state<JobType>("leo");
 	let isCivilian = $state(false);
 	let isLoadingPermissions = $state(false);
+	let interfaceId = $state<InterfaceId | undefined>();
+	let allowedInterfaces = $state<InterfaceId[]>([]);
+	let agency = $state("");
+	let jurisdiction = $state("");
+	let role = $state("");
+	let isSwitchingInterface = $state(false);
+	let authRevision = 0;
 
 	const playerInfo = $derived((): PlayerInfo => {
 		if (!playerData) {
@@ -81,21 +97,26 @@ export function createAuthService() {
 	}
 
 	function processAuthData(data: AuthUpdateData): void {
-		if (!data.playerData) {
+		if (!data.playerData && !playerData) {
 			isAuthorized = false;
 			authError = "Failed to load player data.";
 			return;
 		}
 
 		// Update player data
-		playerData = data.playerData;
-		isLEO = data.isLEO || false;
-		onDuty = data.onDuty || false;
+		playerData = data.playerData ?? playerData;
+		isLEO = data.isLEO ?? (data.eligible === true && !data.isCivilian);
+		onDuty = data.onDuty ?? playerData?.job?.onduty ?? false;
 		isAuthorized = data.authorized || false;
 		permissions = data.permissions || [];
 		isBoss = data.isBoss || false;
 		jobType = data.jobType || "leo";
 		isCivilian = data.isCivilian || false;
+		interfaceId = data.interfaceId;
+		allowedInterfaces = data.allowedInterfaces || (interfaceId ? [interfaceId] : []);
+		agency = data.agency || playerData?.job?.name || "";
+		jurisdiction = data.jurisdiction || "";
+		role = data.role || "";
 
 		// Civilians are always authorized for their limited view
 		if (isCivilian) {
@@ -107,7 +128,7 @@ export function createAuthService() {
 		if (!isCivilian) {
 			authError = getAuthErrorMessage(
 				data.authorized || false,
-				data.isLEO || false,
+				isLEO || data.authorized || false,
 			);
 		} else {
 			authError = "";
@@ -116,6 +137,7 @@ export function createAuthService() {
 
 	/** Updates authentication state from NUI event data */
 	function updateAuthState(data: AuthUpdateData): void {
+		authRevision++;
 		processAuthData(data);
 		isCheckingAuth = false;
 		handleAuthComplete();
@@ -123,21 +145,25 @@ export function createAuthService() {
 
 	/** Performs initial authentication check with server */
 	async function checkAuth(): Promise<void> {
+		const revision = ++authRevision;
 		try {
 			isCheckingAuth = true;
 			const response: AuthUpdateData = await fetchNui(
 				NUI_EVENTS.AUTH.CHECK_AUTH,
 				{},
-				MOCK_AUTH_DATA,
+				isEnvBrowser() ? MOCK_AUTH_DATA : DENIED_AUTH_DATA,
 			);
-			processAuthData(response);
+			if (revision === authRevision) processAuthData(response);
 		} catch (error) {
+			if (revision !== authRevision) return;
 			debugError("Auth check failed:", error);
 			authError = "Failed to verify authorization.";
 			isAuthorized = false;
 		} finally {
-			isCheckingAuth = false;
-			handleAuthComplete();
+			if (revision === authRevision) {
+				isCheckingAuth = false;
+				handleAuthComplete();
+			}
 		}
 	}
 
@@ -151,8 +177,8 @@ export function createAuthService() {
 		showInterface: boolean;
 		showLoadingScreen: boolean;
 	} {
-		// Authorized and on duty - show main interface
-		if (authorized && onDuty) {
+		// The server applies duty policy, including DOJ and configured exceptions.
+		if (authorized) {
 			return { showInterface: true, showLoadingScreen: false };
 		}
 
@@ -192,8 +218,9 @@ export function createAuthService() {
 
 		if (
 			isAuthorized &&
-			onDuty &&
 			!isLoadingPermissions &&
+			!isCivilian &&
+			jobType !== 'gov' &&
 			permissions.length === 0
 		) {
 			loadPermissions();
@@ -203,25 +230,46 @@ export function createAuthService() {
 	/** Fetches the current player's permissions from the server */
 	async function loadPermissions(force = false): Promise<void> {
 		if (isLoadingPermissions || (!force && permissions.length > 0)) return;
+		const revision = authRevision;
 
 		try {
 			isLoadingPermissions = true;
-			const response = await fetchNui<{
-				permissions?: string[];
-				isBoss?: boolean;
-			}>(
-				NUI_EVENTS.AUTH.GET_MY_PERMISSIONS,
+			const response = await fetchNui<AuthUpdateData>(
+				NUI_EVENTS.AUTH.GET_INTERFACE_ACCESS,
 				{},
-				{ permissions: [], isBoss: true },
+				isEnvBrowser() ? MOCK_AUTH_DATA : DENIED_AUTH_DATA,
 			);
-			permissions = response?.permissions || [];
-			isBoss = response?.isBoss || false;
+			if (revision === authRevision) {
+				processAuthData(response);
+				handleAuthComplete();
+			}
 		} catch (error) {
+			if (revision !== authRevision) return;
 			debugError("Failed to load permissions:", error);
 			permissions = [];
 			isBoss = false;
 		} finally {
 			isLoadingPermissions = false;
+		}
+	}
+
+	async function selectInterface(nextInterface: InterfaceId): Promise<void> {
+		if (isSwitchingInterface || nextInterface === interfaceId) return;
+		if (!allowedInterfaces.includes(nextInterface)) throw new Error("Interface access denied.");
+		const revision = ++authRevision;
+		isSwitchingInterface = true;
+		try {
+			const response = await fetchNui<AuthUpdateData & { success?: boolean; message?: string; error?: string }>(
+				NUI_EVENTS.AUTH.SET_INTERFACE, { interfaceId: nextInterface }, { ...DENIED_AUTH_DATA, success: false },
+			);
+			if (revision !== authRevision) return;
+			if (response.success === false || !response.authorized || response.interfaceId !== nextInterface) {
+				throw new Error(response.error || response.message || "Unable to switch interfaces.");
+			}
+			processAuthData(response);
+			handleAuthComplete();
+		} finally {
+			isSwitchingInterface = false;
 		}
 	}
 
@@ -257,13 +305,11 @@ export function createAuthService() {
 
 	/** Check if the current user has a specific permission */
 	function hasPermission(perm: string): boolean {
-		if (isBoss) return true;
 		return permissions.includes(perm);
 	}
 
 	/** Check if the current user has any of the given permissions */
 	function hasAnyPermission(...perms: string[]): boolean {
-		if (isBoss) return true;
 		return perms.some((p) => permissions.includes(p));
 	}
 
@@ -316,6 +362,12 @@ export function createAuthService() {
 		get isCivilian() {
 			return isCivilian;
 		},
+		get interfaceId() { return interfaceId; },
+		get allowedInterfaces() { return allowedInterfaces; },
+		get agency() { return agency; },
+		get jurisdiction() { return jurisdiction; },
+		get role() { return role; },
+		get isSwitchingInterface() { return isSwitchingInterface; },
 
 		// Actions
 		/** Updates authentication state from NUI event data */
@@ -340,6 +392,8 @@ export function createAuthService() {
 		hasAnyPermission,
 
 		hasRawPermission,
+		selectInterface,
+		handleAuthComplete,
 	};
 }
 
@@ -359,6 +413,12 @@ export interface AuthService {
 	readonly isBoss: boolean;
 	readonly jobType: JobType;
 	readonly isCivilian: boolean;
+	readonly interfaceId: InterfaceId | undefined;
+	readonly allowedInterfaces: InterfaceId[];
+	readonly agency: string;
+	readonly jurisdiction: string;
+	readonly role: string;
+	readonly isSwitchingInterface: boolean;
 
 	// Actions
 	updateAuthState: (data: AuthUpdateData) => void;
@@ -370,4 +430,5 @@ export interface AuthService {
 	hasPermission: (perm: string) => boolean;
 	hasAnyPermission: (...perms: string[]) => boolean;
 	hasRawPermission: (perm: string) => boolean;
+	selectInterface: (interfaceId: InterfaceId) => Promise<void>;
 }

@@ -367,6 +367,12 @@ ps.registerCallback(resourceName .. ':server:createHearing', function(source, pa
     payload = payload or {}
     local category = normalizeCategory(payload.category)
     local domain = callerCalendarDomain(src)
+    if category == 'court' and not HasMdtJudicialAuthority(src) then
+        if (payload.status ~= nil and normalizeStatus(payload.status) ~= 'scheduled') or
+            (payload.judge_cid and payload.judge_cid ~= '') or (payload.judge_name and payload.judge_name ~= '') then
+            return { success = false, error = 'Judicial authority required for judge assignments or court status' }
+        end
+    end
     if not categoryAllowedForDomain(category, domain) then
         return { success = false, error = 'Category not allowed for this department' }
     end
@@ -623,8 +629,22 @@ ps.registerCallback(resourceName .. ':server:updateHearing', function(source, pa
     local data = payload.data or {}
 
     -- Gate by the hearing's CURRENT category
-    local existing = MySQL.single.await('SELECT category, status FROM mdt_court_hearings WHERE id = ?', { hearingId })
+    local existing = MySQL.single.await('SELECT category, status, job_type, judge_cid, judge_name FROM mdt_court_hearings WHERE id = ?', { hearingId })
     if not existing then return { success = false, error = 'Hearing not found' } end
+    if existing.job_type ~= callerCalendarDomain(src) then return { success = false, error = 'Unauthorized calendar' } end
+    local targetCategory = data.category ~= nil and normalizeCategory(data.category) or existing.category
+    if not categoryAllowedForDomain(targetCategory, callerCalendarDomain(src)) then
+        return { success = false, error = 'Category not allowed for this department' }
+    end
+    local canEditJudicialFields = (existing.category ~= 'court' and targetCategory ~= 'court') or HasMdtJudicialAuthority(src)
+    if not canEditJudicialFields then
+        local statusChanged = data.status ~= nil and normalizeStatus(data.status) ~= existing.status
+        local judgeChanged = (data.judge_cid ~= nil and tostring(data.judge_cid or '') ~= tostring(existing.judge_cid or ''))
+            or (data.judge_name ~= nil and tostring(data.judge_name or '') ~= tostring(existing.judge_name or ''))
+        if statusChanged or judgeChanged then
+            return { success = false, error = 'Judicial authority required for judge assignments or court status' }
+        end
+    end
     if not CheckPermission(src, permForCategory(existing.category, 'edit')) then
         return { success = false, error = 'No permission' }
     end
@@ -659,9 +679,14 @@ ps.registerCallback(resourceName .. ':server:updateHearing', function(source, pa
     if data.scheduled_at ~= nil then add('scheduled_at', data.scheduled_at) end
     if data.duration_minutes ~= nil then add('duration_minutes', tonumber(data.duration_minutes) or 30) end
     if data.location ~= nil then add('location', data.location) end
-    if data.judge_cid ~= nil then add('judge_cid', data.judge_cid) end
-    if data.judge_name ~= nil then add('judge_name', data.judge_name) end
-    if data.status ~= nil then add('status', normalizeStatus(data.status)) end
+    -- The form sends unchanged judge/status fields with ordinary edits. Leave
+    -- those columns untouched for nonjudicial court editors so a stale form
+    -- cannot overwrite a judge's concurrent assignment or status change.
+    if canEditJudicialFields then
+        if data.judge_cid ~= nil then add('judge_cid', data.judge_cid) end
+        if data.judge_name ~= nil then add('judge_name', data.judge_name) end
+        if data.status ~= nil then add('status', normalizeStatus(data.status)) end
+    end
     if data.notes ~= nil then add('notes', data.notes) end
 
     if #updates == 0 then return { success = false, error = 'No updates provided' } end
@@ -788,8 +813,12 @@ ps.registerCallback(resourceName .. ':server:setHearingStatus', function(source,
     local target = payload.status and normalizeStatus(payload.status) or nil
     if not hearingId or not target then return { success = false, error = 'Missing data' } end
 
-    local existing = MySQL.single.await('SELECT category, status, warrant_reportid, defendant_cid FROM mdt_court_hearings WHERE id = ?', { hearingId })
+    local existing = MySQL.single.await('SELECT category, status, warrant_reportid, defendant_cid, job_type FROM mdt_court_hearings WHERE id = ?', { hearingId })
     if not existing then return { success = false, error = 'Hearing not found' } end
+    if existing.job_type ~= callerCalendarDomain(src) then return { success = false, error = 'Unauthorized calendar' } end
+    if existing.category == 'court' and not HasMdtJudicialAuthority(src) then
+        return { success = false, error = 'Judicial authority required for court status' }
+    end
     if not CheckPermission(src, permForCategory(existing.category, 'edit')) then
         return { success = false, error = 'No permission' }
     end

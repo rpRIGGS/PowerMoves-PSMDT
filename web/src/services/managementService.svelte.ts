@@ -96,7 +96,6 @@ export function createManagementService() {
 	function roleHasPermission(roleKey: string, permission: string): boolean {
 		const role = roles.find((r) => r.key === roleKey);
 		if (!role) return false;
-		if (role.isBoss) return true;
 		return (role.permissions || []).includes(permission);
 	}
 
@@ -126,11 +125,12 @@ export function createManagementService() {
 
 		try {
 			isSaving = true;
-			await fetchNui(NUI_EVENTS.MANAGEMENT.UPDATE_PERMISSION_ROLE, {
+			const result = await fetchNui<{ success: boolean; message?: string }>(NUI_EVENTS.MANAGEMENT.UPDATE_PERMISSION_ROLE, {
 				job: jobName,
 				grade: roleKey,
 				permissions: role.permissions || [],
-			});
+			}, { success: isEnvBrowser() });
+			if (!result.success) throw new Error(result.message || "Permission update denied");
 			showStatus(`Permissions saved for ${role.label}`);
 		} catch {
 			showStatus("Failed to save permissions", "error");
@@ -144,11 +144,12 @@ export function createManagementService() {
 			isSaving = true;
 			for (const role of roles) {
 				if (role.isBoss) continue;
-				await fetchNui(NUI_EVENTS.MANAGEMENT.UPDATE_PERMISSION_ROLE, {
+				const result = await fetchNui<{ success: boolean; message?: string }>(NUI_EVENTS.MANAGEMENT.UPDATE_PERMISSION_ROLE, {
 					job: jobName,
 					grade: role.key,
 					permissions: role.permissions || [],
-				});
+				}, { success: isEnvBrowser() });
+				if (!result.success) throw new Error(result.message || "Permission update denied");
 			}
 			savedSnapshot = rolesSnapshot();
 			showStatus("All permissions saved");

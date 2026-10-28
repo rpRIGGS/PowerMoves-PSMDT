@@ -1,53 +1,46 @@
 local resourceName = tostring(GetCurrentResourceName())
 
-local function _isDojJob(jobName)
-    if not jobName or not Config.DojJobs then return false end
-    for _, name in ipairs(Config.DojJobs) do
-        if name == jobName then return true end
-    end
-    return false
+-- Staff eligibility and interface selection are resolved on the server. Keep
+-- the existing auth payload fields for the established NUI pages.
+local function withPlayerData(access)
+    access = type(access) == 'table' and access or { authorized = false, allowedInterfaces = {} }
+    access.isLEO = access.eligible == true and access.isCivilian ~= true
+    local playerData = ps.getPlayerData()
+    access.playerData = type(playerData) == 'table' and {
+        citizenid = playerData.citizenid,
+        job = playerData.job,
+        charinfo = playerData.charinfo,
+        metadata = type(playerData.metadata) == 'table' and {
+            callsign = playerData.metadata.callsign or '',
+        } or nil,
+    } or nil
+    return access
 end
 
--- Match the server's IsEmsJob: an EMS job is recognised by its TYPE
--- (Config.MedicalJobType) OR its NAME (Config.MedicalJobs). The client used to
--- check the type only, so on servers whose EMS job type isn't literally "ems"
--- the NUI received jobType 'leo' for medics (breaking EMS-specific UI/text).
-local function _isEmsJob(jobName, jobType)
-    if jobType and Config.MedicalJobType and jobType == Config.MedicalJobType then return true end
-    if jobName and Config.MedicalJobs then
-        for _, name in ipairs(Config.MedicalJobs) do
-            if name == jobName then return true end
-        end
-    end
-    return false
+function GetMdtAuthData()
+    return withPlayerData(ps.callback(resourceName .. ':server:getInterfaceAccess'))
 end
 
 RegisterNUICallback('checkAuth', function(_, cb)
-    local jobType = ps.getJobType()
-    local jobName = ps.getJob() and ps.getJob().name or ''
-    local isDoj = _isDojJob(jobName) or (Config.DojJobType and jobType == Config.DojJobType)
-    local isAuthorized = jobType == Config.PoliceJobType or _isEmsJob(jobName, jobType) or isDoj
-    local mdtJobType = isDoj and 'doj' or (_isEmsJob(jobName, jobType) and 'ems' or 'leo')
-    local onDuty = ps.getJobDuty() or false
-    local playerData = ps.getPlayerData()
+    cb(GetMdtAuthData())
+end)
 
-    local isCivilian = false
-    if not isAuthorized and Config.CivilianAccess and Config.CivilianAccess.enabled then
-        isCivilian = true
-    end
+RegisterNUICallback('getInterfaceAccess', function(_, cb)
+    cb(GetMdtAuthData())
+end)
 
-    cb({
-        authorized = isCivilian or (isAuthorized and (isDoj or onDuty)),
-        playerData = type(playerData) == 'table' and {
-            citizenid = playerData.citizenid,
-            job = playerData.job,
-            charinfo = playerData.charinfo,
-        } or nil,
-        isLEO = isAuthorized,
-        onDuty = isCivilian or isDoj or onDuty or false,
-        jobType = isCivilian and 'civilian' or mdtJobType,
-        isCivilian = isCivilian,
+RegisterNUICallback('setInterface', function(data, cb)
+    if not MDTOpen then cb({ success = false, error = 'MDT is not open' }) return end
+    local access = ps.callback(resourceName .. ':server:setInterface', {
+        interfaceId = type(data) == 'table' and data.interfaceId or nil,
     })
+    if type(access) ~= 'table' or access.success == false then
+        cb(access or { success = false, error = 'Interface unavailable' })
+        return
+    end
+    access = withPlayerData(access)
+    SendNUI('updateAuth', access)
+    cb(access)
 end)
 
 -- Separate NUI callback for fetching permissions (non-blocking)
@@ -62,26 +55,7 @@ RegisterNUICallback('getMyPermissions', function(_, cb)
 end)
 
 function NUIUpdateAuth()
-    local jobType = ps.getJobType()
-    local jobName = ps.getJob() and ps.getJob().name or ''
-    local isDoj = _isDojJob(jobName) or (Config.DojJobType and jobType == Config.DojJobType)
-    local isAuthorized = jobType == Config.PoliceJobType or _isEmsJob(jobName, jobType) or isDoj
-    local mdtJobType = isDoj and 'doj' or (_isEmsJob(jobName, jobType) and 'ems' or 'leo')
-    local playerData = ps.getPlayerData()
-    SendNUI('updateAuth', {
-        authorized = isAuthorized and (ps.getJobDuty() or false),
-        playerData = type(playerData) == 'table' and {
-            citizenid = playerData.citizenid,
-            job = playerData.job,
-            charinfo = playerData.charinfo,
-            metadata = type(playerData.metadata) == 'table' and {
-                callsign = playerData.metadata.callsign or '',
-            } or nil,
-        } or nil,
-        isLEO = isAuthorized,
-        onDuty = ps.getJobDuty() or false,
-        jobType = mdtJobType,
-    })
+    SendNUI('updateAuth', GetMdtAuthData())
 end
 
 RegisterNUICallback('closeUI', function(_, cb)

@@ -5,6 +5,7 @@
 	import type { JobType } from "@/interfaces/IUser";
 
 	let { jobType = 'leo' }: { jobType?: JobType } = $props();
+	const mgmt = createManagementService();
 
 	/** Permission categories hidden for EMS */
 	const EMS_HIDDEN_CATEGORIES = ['bolos', 'vehicles', 'weapons', 'cases', 'evidence', 'warrants', 'charges'];
@@ -23,7 +24,7 @@
 	const DOJ_HIDDEN_PERMISSIONS = ['management_bulletins', 'management_activity', 'management_tags', 'management_tracking', 'management_settings', 'citizens_edit_licenses', 'weapons_add', 'training_view', 'training_create', 'training_edit', 'training_delete'];
 
 	let visibleCategories = $derived(
-		jobType === 'ems'
+		(jobType === 'ems'
 			? PERMISSION_CATEGORIES
 				.filter(c => !EMS_HIDDEN_CATEGORIES.includes(c.key))
 				.map(c => ({
@@ -39,10 +40,10 @@
 						permissions: c.permissions.filter(p => !DOJ_HIDDEN_PERMISSIONS.includes(p.key))
 					}))
 					.filter(c => c.permissions.length > 0)
-				: PERMISSION_CATEGORIES
+				: PERMISSION_CATEGORIES)
+			.map(category => ({ ...category, permissions: category.permissions.filter(permission => mgmt.permissions.includes(permission.key)) }))
+			.filter(category => category.permissions.length > 0)
 	);
-
-	const mgmt = createManagementService();
 
 	let selectedRole = $state<string | null>(null);
 
@@ -50,21 +51,21 @@
 
 	function categoryAllEnabled(catKey: string): boolean {
 		if (!currentRole) return false;
-		const cat = PERMISSION_CATEGORIES.find((c) => c.key === catKey);
+		const cat = visibleCategories.find((c) => c.key === catKey);
 		if (!cat) return false;
 		return cat.permissions.every((p) => mgmt.roleHasPermission(currentRole!.key, p.key));
 	}
 
 	function categoryNoneEnabled(catKey: string): boolean {
 		if (!currentRole) return true;
-		const cat = PERMISSION_CATEGORIES.find((c) => c.key === catKey);
+		const cat = visibleCategories.find((c) => c.key === catKey);
 		if (!cat) return true;
 		return cat.permissions.every((p) => !mgmt.roleHasPermission(currentRole!.key, p.key));
 	}
 
 	function toggleCategory(catKey: string) {
 		if (!currentRole || currentRole.isBoss) return;
-		const cat = PERMISSION_CATEGORIES.find((c) => c.key === catKey);
+		const cat = visibleCategories.find((c) => c.key === catKey);
 		if (!cat) return;
 		const keys = cat.permissions.map((p) => p.key);
 		if (categoryAllEnabled(catKey)) {
@@ -116,7 +117,7 @@
 					>
 						<span class="role-name">{role.label}</span>
 						{#if role.isBoss}
-							<span class="boss-tag">All</span>
+							<span class="boss-tag">Admin</span>
 						{/if}
 					</button>
 				{/each}
@@ -127,7 +128,7 @@
 					<div class="role-title-row">
 						<span class="role-title">{currentRole.label}</span>
 						{#if currentRole.isBoss}
-							<span class="boss-note">Boss roles have all permissions enabled</span>
+							<span class="boss-note">Boss role permissions remain subject to interface access rules</span>
 						{:else}
 							{#if mgmt.isDirty}
 								<span class="dirty-hint">Unsaved changes</span>

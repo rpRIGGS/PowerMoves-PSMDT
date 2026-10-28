@@ -16,6 +16,7 @@
 	}
 
 	let { tabService, authService }: Props = $props();
+	let canManageCase = $derived(authService.hasPermission("judicial_authority"));
 
 	type CourtCaseStatus = "pending" | "scheduled" | "in_trial" | "closed" | "dismissed";
 	type CaseType = "criminal" | "civil" | "appeal" | "motion";
@@ -132,6 +133,7 @@
 
 	async function handleCreateDocument() {
 		if (!newDocData.title.trim() || !selectedCase) return;
+		if (!canManageCase && ["ruling", "opinion", "sentencing"].includes(newDocData.type)) return;
 		try {
 			const result = await fetchNui<{ success: boolean; error?: string }>(
 				NUI_EVENTS.DOJ.CREATE_LEGAL_DOCUMENT,
@@ -303,13 +305,14 @@
 	}
 
 	async function handleUpdateCase(update: Record<string, unknown>) {
-		if (!selectedCase) return;
+		if (!selectedCase || !canManageCase) return;
 		try {
-			await fetchNui(
+			const result = await fetchNui<{ success: boolean; error?: string }>(
 				NUI_EVENTS.DOJ.UPDATE_COURT_CASE,
 				{ id: selectedCase.court_case.id, payload: update },
 				{ success: true },
 			);
+			if (!result.success) throw new Error(result.error || "Case update denied");
 			await selectCase(selectedCase.court_case.id);
 			globalNotifications.success("Court case updated");
 		} catch {
@@ -376,8 +379,8 @@
 							<div class="field-group" style="flex:1;">
 								<span class="field-label">Hearing Date</span>
 								<div class="inline-edit-row">
-									<input type="datetime-local" class="form-input" bind:value={editingHearingDate} />
-									<button class="save-field-btn" onclick={saveHearingDate}>Save</button>
+									<input type="datetime-local" class="form-input" bind:value={editingHearingDate} readonly={!canManageCase} />
+									{#if canManageCase}<button class="save-field-btn" onclick={saveHearingDate}>Save</button>{/if}
 								</div>
 							</div>
 						</div>
@@ -403,22 +406,24 @@
 				</div>
 
 				<div class="detail-side">
-					<div class="section">
+					{#if canManageCase}<div class="section">
 						<div class="section-title">Update Status</div>
 						<select class="form-select" value={selectedCase.court_case.status} onchange={(e) => handleUpdateCase({ status: (e.target as HTMLSelectElement).value })}>
 							{#each statusOptions.filter((s) => s !== "all") as opt}
 								<option value={opt}>{formatLabel(opt)}</option>
 							{/each}
 						</select>
-					</div>
+					</div>{/if}
 
 					<div class="section">
 						<div class="section-header-row">
 							<span class="section-title">Judge</span>
+							{#if canManageCase}
 							{#if selectedCase.court_case.presiding_judge_name}
 								<button class="add-btn" onclick={() => clearParty("judge")}>x Remove</button>
 							{:else}
 								<button class="add-btn" onclick={() => (partySearchTarget = "judge")}>+ Add</button>
+							{/if}
 							{/if}
 						</div>
 						{#if selectedCase.court_case.presiding_judge_name}
@@ -428,10 +433,12 @@
 					<div class="section">
 						<div class="section-header-row">
 							<span class="section-title">Prosecutor</span>
+							{#if canManageCase}
 							{#if selectedCase.court_case.prosecutor_name}
 								<button class="add-btn" onclick={() => clearParty("prosecutor")}>x Remove</button>
 							{:else}
 								<button class="add-btn" onclick={() => (partySearchTarget = "prosecutor")}>+ Add</button>
+							{/if}
 							{/if}
 						</div>
 						{#if selectedCase.court_case.prosecutor_name}
@@ -441,10 +448,12 @@
 					<div class="section">
 						<div class="section-header-row">
 							<span class="section-title">Defense</span>
+							{#if canManageCase}
 							{#if selectedCase.court_case.defense_attorney_name}
 								<button class="add-btn" onclick={() => clearParty("defense")}>x Remove</button>
 							{:else}
 								<button class="add-btn" onclick={() => (partySearchTarget = "defense")}>+ Add</button>
+							{/if}
 							{/if}
 						</div>
 						{#if selectedCase.court_case.defense_attorney_name}
@@ -595,10 +604,9 @@
 				<select class="form-select" bind:value={newDocData.type}>
 					<option value="brief">Brief</option>
 					<option value="motion">Motion</option>
-					<option value="ruling">Ruling</option>
-					<option value="opinion">Opinion</option>
+					{#if canManageCase}<option value="ruling">Ruling</option><option value="opinion">Opinion</option>{/if}
 					<option value="plea_deal">Plea Deal</option>
-					<option value="sentencing">Sentencing</option>
+					{#if canManageCase}<option value="sentencing">Sentencing</option>{/if}
 					<option value="other">Other</option>
 				</select>
 			</div>

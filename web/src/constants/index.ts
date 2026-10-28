@@ -1,3 +1,5 @@
+import type { InterfaceId, JobType } from "../interfaces/IUser";
+
 /** MDT tab definitions */
 export const MDT_TABS = [
 	{ name: "Dashboard", icon: "dashboard" },
@@ -59,7 +61,8 @@ export const DOJ_TABS: readonly string[] = [
 	"Settings",
 ] as const;
 
-export function getTabsForJob(jobType: 'leo' | 'ems' | 'doj') {
+export function getTabsForJob(jobType: JobType) {
+	if (jobType === 'gov') return MDT_TABS.filter(tab => tab.name === 'Dashboard');
 	if (jobType === 'ems') {
 		return MDT_TABS.filter(tab => (EMS_TABS as readonly string[]).includes(tab.name));
 	}
@@ -119,7 +122,7 @@ export const DOJ_REPORT_TYPES = [
 	"Sentencing Report",
 ] as const;
 
-export function getReportTypesForJob(jobType: 'leo' | 'ems' | 'doj'): readonly string[] {
+export function getReportTypesForJob(jobType: JobType): readonly string[] {
 	if (jobType === 'ems') return EMS_REPORT_TYPES;
 	if (jobType === 'doj') return DOJ_REPORT_TYPES;
 	return LEO_REPORT_TYPES;
@@ -230,6 +233,20 @@ export const APP_INFO = {
 		icon: "account_balance",
 	},
 } as const;
+
+/** Interface identity is independent of the framework's shared job type. */
+export const INTERFACE_INFO = {
+	sadle: { name: "SADLE.net", title: "San Andreas Division of Law Enforcement", subtitle: "Law Enforcement", icon: "local_police" },
+	sadoj: { name: "SADOJ.net", title: "San Andreas Department of Justice", subtitle: "Justice and Courts", icon: "account_balance" },
+	safr: { name: "SAFR.net", title: "San Andreas Fire Rescue", subtitle: "Fire, Rescue and EMS", icon: "local_fire_department" },
+	sams: { name: "SAMS.net", title: "San Andreas Medical Service", subtitle: "Hospital and Medical Services", icon: "local_hospital" },
+	sagov: { name: "SAGOV.net", title: "San Andreas Government", subtitle: "Government Administration", icon: "account_balance" },
+} as const;
+
+export function getInterfaceInfo(interfaceId: InterfaceId | undefined, jobType: JobType) {
+	const id = interfaceId ?? (jobType === 'doj' ? 'sadoj' : jobType === 'ems' ? 'sams' : jobType === 'gov' ? 'sagov' : 'sadle');
+	return { ...INTERFACE_INFO[id], version: INTERFACE_INFO[id].name, footerSubtext: "Authorized Personnel Only" };
+}
 
 export const TIME_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
 	hour12: false,

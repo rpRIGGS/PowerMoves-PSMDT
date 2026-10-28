@@ -131,6 +131,7 @@ local function checkDuty(citizenid, matchFn)
 end
 
 ps.registerCallback('ps-mdt:server:getRosterList', function(source)
+    if not CheckAuth(source) then return { roster = {}, activeUnits = {} } end
     -- Scope the roster to the caller's domain: EMS sees EMS, police sees police.
     local domain = GetMdtDomain(source)
     local jobList, matchFn, defaultDept, scopeJobType
@@ -257,6 +258,10 @@ ps.registerCallback('ps-mdt:server:updateOfficerCertifications', function(source
         return { success = false, message = 'Invalid payload' }
     end
 
+    if not CanManageMdtPersonnel(src, citizenid) then
+        return { success = false, message = 'Personnel administration is limited to your department' }
+    end
+
     EnsureProfileExists(citizenid)
 
     local encoded = json.encode(certifications)
@@ -272,7 +277,8 @@ ps.registerCallback('ps-mdt:server:getJobGrades', function(source, payload)
     if not CheckPermission(src, 'roster_manage_officers') then return {} end
 
     payload = payload or {}
-    local jobName = payload.job or 'police'
+    local jobName = payload.job or ps.getJobName(src)
+    if jobName ~= ps.getJobName(src) then return {} end
 
     local jobData = ps.getSharedJob(jobName)
     if not jobData or not jobData.grades then return {} end
@@ -335,6 +341,10 @@ ps.registerCallback('ps-mdt:server:promoteOfficer', function(source, payload)
         return { success = false, message = 'Missing required fields' }
     end
 
+    if not CanManageMdtPersonnel(src, citizenid, jobName) then
+        return { success = false, message = 'Personnel administration is limited to your department' }
+    end
+
     -- Validate the grade exists
     local gradeData = ps.getSharedJobGrade(jobName, newGrade)
     if not gradeData then
@@ -387,6 +397,10 @@ ps.registerCallback('ps-mdt:server:fireOfficer', function(source, payload)
 
     if not citizenid then
         return { success = false, message = 'Missing citizen ID' }
+    end
+
+    if not CanManageMdtPersonnel(src, citizenid) then
+        return { success = false, message = 'Personnel administration is limited to your department' }
     end
 
     local targetPlayer = ps.getPlayerByIdentifier(citizenid)
@@ -449,6 +463,10 @@ ps.registerCallback('ps-mdt:server:updateOfficerCallsign', function(source, payl
 
     if not citizenid or not newCallsign or newCallsign == '' then
         return { success = false, message = 'Missing citizen ID or callsign' }
+    end
+
+    if not CanManageMdtPersonnel(src, citizenid) then
+        return { success = false, message = 'Personnel administration is limited to your department' }
     end
 
     -- Use the existing setCallsign callback logic

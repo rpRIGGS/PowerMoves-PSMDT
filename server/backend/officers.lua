@@ -4,6 +4,7 @@ if not ok then QBCore = nil end
  
 -- Get player source ID by citizenId
 ps.registerCallback(resourceName .. ':server:GetPlayerSourceId', function(source, targetCitizenId)
+    if not CheckAuth(source) then return nil end
     if not targetCitizenId then return nil end
     local targetPlayer = ps.getPlayerByIdentifier(targetCitizenId)
     if not targetPlayer then
@@ -23,6 +24,10 @@ ps.registerCallback(resourceName .. ':server:setCallsign', function(source, payl
  
     if not cid or not newCallsign then
         return { success = false, message = 'Missing citizen ID or callsign' }
+    end
+    if cid ~= ps.getIdentifier(src) and
+        (not CheckPermission(src, 'roster_manage_officers') or not CanManageMdtPersonnel(src, cid)) then
+        return { success = false, message = 'Personnel administration is limited to your department' }
     end
     if not QBCore then return { success = false, message = 'Core framework not available' } end
 

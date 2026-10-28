@@ -170,6 +170,16 @@ ps.registerCallback(resourceName .. ':server:updateCourtCase', function(source, 
     if not caseId then return { success = false, error = 'Invalid case id' } end
 
     payload = payload or {}
+    if IsMdtAttorneyGeneral(src) then
+        return { success = false, error = 'Prosecution access does not include judicial case administration' }
+    end
+    if not HasMdtJudicialAuthority(src) then
+        for _, field in ipairs({ 'status', 'closed_date', 'presiding_judge', 'presiding_judge_name', 'defense_attorney', 'defense_attorney_name' }) do
+            if payload[field] ~= nil then
+                return { success = false, error = 'Judicial authority is required for this case change' }
+            end
+        end
+    end
     local updates = {}
     local values = {}
 
@@ -314,6 +324,7 @@ end)
 ps.registerCallback(resourceName .. ':server:reviewWarrantRequest', function(source, request_id, decision, reason)
     local src = source
     if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not HasMdtJudicialAuthority(src) then return { success = false, error = 'Judicial authority required' } end
 
     request_id = tonumber(request_id)
     if not request_id then return { success = false, error = 'Invalid request id' } end
@@ -584,6 +595,7 @@ end)
 ps.registerCallback(resourceName .. ':server:createCourtOrder', function(source, payload)
     local src = source
     if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not HasMdtJudicialAuthority(src) then return { success = false, error = 'Judicial authority required' } end
 
     payload = payload or {}
     local title = payload.title
@@ -633,6 +645,7 @@ end)
 ps.registerCallback(resourceName .. ':server:updateCourtOrder', function(source, orderId, payload)
     local src = source
     if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not HasMdtJudicialAuthority(src) then return { success = false, error = 'Judicial authority required' } end
 
     orderId = tonumber(orderId)
     if not orderId then return { success = false, error = 'Invalid order id' } end
@@ -678,6 +691,7 @@ end)
 ps.registerCallback(resourceName .. ':server:revokeCourtOrder', function(source, orderId)
     local src = source
     if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not HasMdtJudicialAuthority(src) then return { success = false, error = 'Judicial authority required' } end
 
     orderId = tonumber(orderId)
     if not orderId then return { success = false, error = 'Invalid order id' } end
@@ -710,6 +724,10 @@ ps.registerCallback(resourceName .. ':server:getLegalDocuments', function(source
 
     local clauses = {}
     local values = {}
+    if IsMdtAttorneyGeneral(src) then
+        clauses[#clauses + 1] = "(status != 'draft' OR author_citizenid = ?)"
+        values[#values + 1] = ps.getIdentifier(src)
+    end
 
     if docType and docType ~= '' and docType ~= 'all' then
         clauses[#clauses + 1] = 'type = ?'
@@ -757,8 +775,26 @@ ps.registerCallback(resourceName .. ':server:getLegalDocument', function(source,
     if not docId then return nil end
 
     local row = MySQL.single.await('SELECT * FROM mdt_legal_documents WHERE id = ?', { docId })
+    if row and IsMdtAttorneyGeneral(src) and row.status == 'draft' and row.author_citizenid ~= ps.getIdentifier(src) then return nil end
     return row
 end)
+
+local prosecutionDocumentTypes = { brief = true, motion = true, plea_deal = true, other = true }
+local judicialDocumentTypes = { ruling = true, opinion = true, sentencing = true }
+
+local function canWriteLegalDocument(src, payload, existing)
+    local docType = payload.type or (existing and existing.type)
+    local status = payload.status or (existing and existing.status) or 'draft'
+    if not HasMdtJudicialAuthority(src) and
+        (judicialDocumentTypes[docType] or (existing and judicialDocumentTypes[existing.type]) or
+         status == 'approved' or status == 'rejected' or
+         (existing and (existing.status == 'approved' or existing.status == 'rejected'))) then return false end
+    if IsMdtAttorneyGeneral(src) then
+        if not prosecutionDocumentTypes[docType] or (status ~= 'draft' and status ~= 'filed') then return false end
+        if existing and (existing.author_citizenid ~= ps.getIdentifier(src) or existing.status ~= 'draft') then return false end
+    end
+    return true
+end
 
 ps.registerCallback(resourceName .. ':server:createLegalDocument', function(source, payload)
     local src = source
@@ -771,6 +807,9 @@ ps.registerCallback(resourceName .. ':server:createLegalDocument', function(sour
 
     if not title or not docType then
         return { success = false, error = 'Missing required fields (title, type)' }
+    end
+    if not canWriteLegalDocument(src, payload) then
+        return { success = false, error = 'This document action is outside your authority' }
     end
 
     local citizenid = ps.getIdentifier(src)
@@ -810,6 +849,11 @@ ps.registerCallback(resourceName .. ':server:updateLegalDocument', function(sour
     if not docId then return { success = false, error = 'Invalid document id' } end
 
     payload = payload or {}
+    local existing = MySQL.single.await('SELECT type, status, author_citizenid FROM mdt_legal_documents WHERE id = ?', { docId })
+    if not existing then return { success = false, error = 'Document not found' } end
+    if not canWriteLegalDocument(src, payload, existing) then
+        return { success = false, error = 'This document action is outside your authority' }
+    end
     local updates = {}
     local values = {}
 
@@ -851,13 +895,16 @@ ps.registerCallback(resourceName .. ':server:deleteLegalDocument', function(sour
     if not docId then return { success = false, error = 'Invalid document id' } end
 
     -- Only allow deleting drafts
-    local doc = MySQL.single.await('SELECT status FROM mdt_legal_documents WHERE id = ?', { docId })
+    local doc = MySQL.single.await('SELECT type, status, author_citizenid FROM mdt_legal_documents WHERE id = ?', { docId })
     if not doc then
         return { success = false, error = 'Document not found' }
     end
 
     if doc.status ~= 'draft' then
         return { success = false, error = 'Only draft documents can be deleted' }
+    end
+    if not canWriteLegalDocument(src, {}, doc) then
+        return { success = false, error = 'This document action is outside your authority' }
     end
 
     MySQL.query.await('DELETE FROM mdt_legal_documents WHERE id = ?', { docId })

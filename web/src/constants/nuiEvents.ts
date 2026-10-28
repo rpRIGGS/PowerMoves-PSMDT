@@ -77,6 +77,8 @@ export const NUI_EVENTS = {
 		SIGN_OUT: "signOut",
 		GO_ON_DUTY: "toggleDuty",
 		GET_MY_PERMISSIONS: "getMyPermissions",
+		GET_INTERFACE_ACCESS: "getInterfaceAccess",
+		SET_INTERFACE: "setInterface",
 	},
 	REPORT: {
 		CREATE_REPORT: "createReport",

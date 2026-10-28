@@ -6,12 +6,15 @@
 		DEFAULT_TIME,
 		DEFAULT_DATE,
 		TIMING,
-		APP_INFO,
+		INTERFACE_INFO,
+		getInterfaceInfo,
 	} from "../constants";
 	import { formatTime, formatDate } from "../utils/datetime";
 
-	let info = $derived(APP_INFO[authService.jobType] || APP_INFO.leo);
+	let info = $derived(getInterfaceInfo(authService.interfaceId, authService.jobType));
 	import type { AuthService } from "../services/authService.svelte";
+	import type { InterfaceId } from "../interfaces/IUser";
+	import { globalNotifications } from "../services/notificationService.svelte";
 
 	interface Props {
 		authService: AuthService;
@@ -24,6 +27,15 @@
 	let currentDate = $state(DEFAULT_DATE);
 	let opacityTimeout: ReturnType<typeof setTimeout> | null = $state(null);
 	let documentOpacity = $state(1);
+
+	async function switchInterface(event: Event) {
+		try {
+			await authService.selectInterface((event.target as HTMLSelectElement).value as InterfaceId);
+		} catch (error) {
+			(event.target as HTMLSelectElement).value = authService.interfaceId || "";
+			globalNotifications.error(error instanceof Error ? error.message : "Unable to switch interfaces.");
+		}
+	}
 
 	/**
 	 * Reactive statement for the opacity style string.
@@ -82,6 +94,7 @@
 	onmouseleave={handleTopBarLeave}
 >
 	<div class="user-info">
+		<span class="interface-name">{info.name}</span>
 		{#if authService.isAuthorized}
 			{authService.playerInfo().rank}
 			{authService.playerInfo().firstName}
@@ -91,6 +104,13 @@
 			{info.title} - {info.subtitle}
 		{/if}
 	</div>
+	{#if authService.isAuthorized && authService.allowedInterfaces.length > 1}
+		<select class="interface-switch" aria-label="Active interface" value={authService.interfaceId} disabled={authService.isSwitchingInterface} onchange={switchInterface}>
+			{#each authService.allowedInterfaces as interfaceId}
+				<option value={interfaceId}>{INTERFACE_INFO[interfaceId].name}</option>
+			{/each}
+		</select>
+	{/if}
 	<div class="time-info">
 		{currentTime} | {currentDate}
 	</div>
@@ -127,4 +147,7 @@
 	.time-info {
 		color: var(--primary-text);
 	}
+
+	.interface-name { margin-right: 14px; font-weight: 700; }
+	.interface-switch { margin: 0 16px; padding: 6px 9px; border: 1px solid var(--border-primary); border-radius: 4px; background: #1a1d23; color: var(--primary-text); font: inherit; }
 </style>

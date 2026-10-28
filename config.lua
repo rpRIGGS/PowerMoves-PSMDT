@@ -440,15 +440,23 @@ Config.Impound = {
 -- Job Settings
 Config.PoliceJobType = "leo"
 Config.PoliceJobs = {
+    'police',
+    'post',
     'lspd',
+    'lspe',
+    'lscso',
     'bcso',
     'sahp',
+    'sasp',
+    'sadle',
+    'saspa',
     'fib',
     'gov'
 }
 
 Config.DojJobType = "doj"
 Config.DojJobs = {
+    'sadoj',
     'lawyer',
     'judge',
 }
@@ -456,6 +464,82 @@ Config.DojJobs = {
 Config.MedicalJobType = "ems"
 Config.MedicalJobs = {
     'ambulance',
+    'pillboxmed',
+    'sandymed',
+    'paletomed',
+    'parsonsmed',
+    'safr',
+    'lsfd',
+    'lscfd',
+    'bcfd',
+}
+
+-- Interface identity is separate from the legacy police/EMS calendar domain.
+-- These mappings grant entry to an interface, not access to another agency's
+-- records or authority over another branch of government.
+Config.MdtAccess = {
+    FireJobs = { 'safr', 'lsfd', 'lscfd', 'bcfd' },
+    GovernmentJobs = {
+        sagov = 'state',
+        bcgov = 'blaine_county',
+        lscgov = 'los_santos_county',
+        lsgov = 'los_santos_city',
+    },
+    AttorneyGeneral = { job = 'sadle', grade = 11 },
+    JudicialGrades = {
+        sadoj = { 8, 9, 10 },
+        judge = { 1, 2 }, -- Compatibility with existing judge-job servers.
+    },
+    -- Explicit permission ceilings also define the starting grants for boss
+    -- grades. QBCore isboss stays unchanged; it is not universal MDT authority.
+    -- Government currently has an interface shell and no operational grants.
+    PermissionSets = {
+        leo = {
+            'citizens_search', 'citizens_edit_licenses',
+            'bolos_view', 'bolos_create', 'vehicles_search', 'vehicles_edit_dmv',
+            'weapons_search', 'weapons_add',
+            'cases_view', 'cases_create', 'cases_edit', 'cases_delete',
+            'evidence_view', 'evidence_create', 'evidence_transfer', 'evidence_upload',
+            'reports_view', 'reports_create', 'reports_delete',
+            'warrants_view', 'warrants_issue', 'warrants_close', 'charges_view', 'charges_edit',
+            'map_patrols_view', 'map_patrols_manage', 'map_patrols_edit',
+            'dispatch_attach', 'dispatch_route', 'dispatch_assign', 'dispatch_notes',
+            'vehicle_impound', 'vehicle_impound_release', 'vehicle_impound_override',
+            'cameras_view', 'bodycams_view', 'dashcams_view', 'notes_edit_department',
+            'roster_manage_certifications', 'roster_manage_officers',
+            'ppr_view', 'ppr_manage', 'fto_view', 'fto_manage',
+            'bulletin_view', 'bulletin_post', 'bulletin_pin',
+            'court_view', 'court_create', 'court_edit', 'court_delete',
+            'training_view', 'training_create', 'training_edit', 'training_delete',
+            'ia_view', 'ia_manage', 'sop_view', 'sop_manage',
+            'management_permissions', 'management_bulletins', 'management_activity',
+            'management_tags', 'management_tracking', 'management_settings',
+        },
+        ems = {
+            'citizens_search', 'reports_view', 'reports_create', 'reports_delete',
+            'map_patrols_view', 'map_patrols_manage', 'map_patrols_edit',
+            'dispatch_attach', 'dispatch_route', 'dispatch_assign', 'dispatch_notes',
+            'notes_edit_department', 'roster_manage_certifications', 'roster_manage_officers',
+            'ppr_view', 'ppr_manage', 'fto_view', 'fto_manage',
+            'bulletin_view', 'bulletin_post', 'bulletin_pin',
+            'training_view', 'training_create', 'training_edit', 'training_delete',
+            'ia_view', 'ia_manage', 'sop_view', 'sop_manage',
+            'management_permissions', 'management_bulletins', 'management_activity',
+            'management_tags', 'management_tracking', 'management_settings',
+        },
+        doj = {
+            'citizens_search', 'reports_view', 'reports_create', 'reports_delete',
+            'cases_view', 'cases_create', 'cases_edit', 'cases_delete',
+            'evidence_view', 'evidence_create', 'evidence_transfer', 'evidence_upload',
+            'warrants_view', 'warrants_close', 'charges_view', 'charges_edit',
+            'notes_edit_department', 'roster_manage_certifications', 'roster_manage_officers',
+            'bulletin_view', 'bulletin_post', 'bulletin_pin',
+            'court_view', 'court_create', 'court_edit', 'court_delete',
+            'sop_view', 'sop_manage',
+            'management_permissions', 'management_activity', 'management_settings',
+        },
+        gov = {},
+    },
 }
 
 Config.Uploads = {

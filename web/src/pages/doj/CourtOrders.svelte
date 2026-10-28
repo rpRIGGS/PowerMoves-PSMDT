@@ -16,6 +16,7 @@
 	}
 
 	let { tabService, authService }: Props = $props();
+	let canManageOrders = $derived(authService.hasPermission("judicial_authority"));
 
 	type OrderType = "restraining_order" | "subpoena" | "bail_conditions" | "search_warrant" | "arrest_warrant" | "other";
 	type OrderStatus = "active" | "expired" | "revoked";
@@ -184,7 +185,7 @@
 	}
 
 	async function handleCreateOrder() {
-		if (!newOrder.title.trim()) return;
+		if (!canManageOrders || !newOrder.title.trim()) return;
 		isLoading = true;
 		try {
 			const result = await fetchNui<{ success: boolean; id?: number; error?: string }>(
@@ -214,7 +215,7 @@
 	}
 
 	async function handleRevokeOrder() {
-		if (!selectedOrder) return;
+		if (!canManageOrders || !selectedOrder) return;
 		isLoading = true;
 		try {
 			const result = await fetchNui<{ success: boolean; error?: string }>(
@@ -308,7 +309,7 @@
 						</div>
 					</div>
 
-					{#if selectedOrder.status === "active"}
+					{#if canManageOrders && selectedOrder.status === "active"}
 						<div class="section">
 							<div class="section-title">Actions</div>
 							<button class="danger-btn" onclick={handleRevokeOrder} disabled={isLoading}>
@@ -340,7 +341,7 @@
 			<div class="topbar-actions">
 				<span class="result-count">{allFilteredOrders.length} order{allFilteredOrders.length !== 1 ? "s" : ""}</span>
 				<button class="action-btn" onclick={loadOrders} disabled={isLoading}>{isLoading ? "Loading..." : "Refresh"}</button>
-				<button class="primary-btn" onclick={() => (showCreateModal = true)}>New Court Order</button>
+				{#if canManageOrders}<button class="primary-btn" onclick={() => (showCreateModal = true)}>New Court Order</button>{/if}
 			</div>
 		</div>
 
@@ -384,7 +385,7 @@
 </div>
 
 <!-- CREATE MODAL -->
-{#if showCreateModal}
+{#if showCreateModal && canManageOrders}
 	<div class="modal-backdrop" onclick={() => (showCreateModal = false)} role="presentation">
 		<div class="modal" onclick={(e) => e.stopPropagation()} role="dialog">
 			<div class="modal-header">

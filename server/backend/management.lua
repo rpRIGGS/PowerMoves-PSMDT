@@ -86,7 +86,7 @@ local function normalizePermissionList(list)
     local result = {}
     local seen = {}
     for _, perm in ipairs(list or {}) do
-        if perm and not seen[perm] then
+        if type(perm) == 'string' and not seen[perm] then
             seen[perm] = true
             result[#result + 1] = perm
         end
@@ -95,14 +95,65 @@ local function normalizePermissionList(list)
     return result
 end
 
-local function getDefaultRolePermissions(jobName, gradeKey, isBoss)
-    if isBoss then
-        return normalizePermissionList(getAllPermissions())
+local function hasValue(list, value)
+    for _, entry in ipairs(list or {}) do
+        if entry == value then return true end
     end
+    return false
+end
 
+-- Visibility flags are presentation settings, not capability grants. Keep
+-- their established keys available while rejecting arbitrary unknown grants.
+local hiddenTabs = {}
+for _, tab in ipairs({
+    'reports', 'cases', 'evidence', 'bolos', 'warrants', 'citizens', 'vehicles',
+    'weapons', 'charges', 'awards', 'roster', 'map', 'cameras', 'bodycams',
+    'ia', 'ppr', 'fto', 'sop', 'bulletin_board', 'calendar',
+}) do
+    hiddenTabs['tab_hidden_' .. tab] = true
+end
+
+local function roleDomain(jobName, job)
+    local policy = Config.MdtAccess or {}
+    local jobType = job and job.type
+    if (policy.GovernmentJobs or {})[jobName] or jobType == 'gov' then return 'gov' end
+    if hasValue(Config.DojJobs, jobName) or jobType == Config.DojJobType then return 'doj' end
+    if hasValue(Config.PoliceJobs, jobName) or jobType == Config.PoliceJobType then return 'leo' end
+    if hasValue(Config.MedicalJobs, jobName) or jobType == Config.MedicalJobType then return 'ems' end
+    return nil
+end
+
+local function domainPermissions(jobName, job)
+    return ((Config.MdtAccess or {}).PermissionSets or {})[roleDomain(jobName, job)] or {}
+end
+
+local function rolePermissionAllowed(jobName, job, gradeKey, permission)
+    if type(permission) ~= 'string' or permission == 'judicial_authority' or permission == 'warrants_approve' then
+        return false -- Judicial capabilities are computed from the live role.
+    end
+    local ag = (Config.MdtAccess or {}).AttorneyGeneral or {}
+    if jobName == ag.job and tonumber(gradeKey) == tonumber(ag.grade) then
+        if (permission:sub(1, 6) == 'court_' and permission ~= 'court_view')
+            or permission == 'warrants_issue' or permission == 'warrants_close' then return false end
+    end
+    return hiddenTabs[permission] == true or hasValue(domainPermissions(jobName, job), permission)
+end
+
+local function filterRolePermissions(jobName, job, gradeKey, list)
+    local result = {}
+    for _, permission in ipairs(type(list) == 'table' and list or {}) do
+        if rolePermissionAllowed(jobName, job, gradeKey, permission) then result[#result + 1] = permission end
+    end
+    return normalizePermissionList(result)
+end
+
+local function getDefaultRolePermissions(jobName, gradeKey, isBoss, job)
+    if isBoss then
+        return filterRolePermissions(jobName, job, gradeKey, domainPermissions(jobName, job))
+    end
     local defaults = Config and Config.PermissionDefaults and Config.PermissionDefaults[jobName]
     if defaults and defaults[tostring(gradeKey)] then
-        return normalizePermissionList(defaults[tostring(gradeKey)])
+        return filterRolePermissions(jobName, job, gradeKey, defaults[tostring(gradeKey)])
     end
 
     return {}
@@ -113,26 +164,12 @@ ps.registerCallback(resourceName .. ':server:getPermissionRoles', function(sourc
     if not CheckAuth(src) then return {} end
 
     local jobName, job = getPoliceJobDefinition(src)
-    local hasBossAccess = false
-    if ps and ps.getJobData then
-        local jobData = ps.getJobData(src)
-        if jobData and jobData.grade then
-            if type(jobData.grade) == 'table' then
-                hasBossAccess = jobData.grade.isboss == true or jobData.grade.isBoss == true or jobData.grade.boss == true
-            else
-                local grades = job and job.grades and normalizeGrades(job.grades) or nil
-                if grades then
-                    local gradeData = grades[tostring(jobData.grade)]
-                    hasBossAccess = isBossGrade(gradeData)
-                end
-            end
-        end
-    end
     ps.debug('[getPermissionRoles] jobName', jobName, 'job', job and job.label or 'nil')
     if not job or not job.grades then
         ps.debug('[getPermissionRoles] no job grades, using fallback')
         local isBoss = ps and ps.isBoss and ps.isBoss(src) or false
-        local fallbackPermissions = getDefaultRolePermissions(jobName, 0, isBoss)
+        local fallbackJob = ps.getJobData and ps.getJobData(src) or job
+        local fallbackPermissions = getDefaultRolePermissions(jobName, 0, isBoss, fallbackJob)
         return {
             job = jobName,
             label = 'Law Enforcement',
@@ -144,7 +181,7 @@ ps.registerCallback(resourceName .. ':server:getPermissionRoles', function(sourc
                     permissions = fallbackPermissions,
                 }
             },
-            permissions = getAllPermissions(),
+            permissions = filterRolePermissions(jobName, fallbackJob, nil, getAllPermissions()),
         }
     end
 
@@ -155,7 +192,7 @@ ps.registerCallback(resourceName .. ':server:getPermissionRoles', function(sourc
     for _, row in ipairs(storedRows) do
         if row.grade ~= nil then
             local ok, decoded = pcall(json.decode, row.permissions)
-            storedByGrade[tostring(row.grade)] = ok and decoded or {}
+            storedByGrade[tostring(row.grade)] = ok and type(decoded) == 'table' and decoded or {}
         end
     end
 
@@ -166,12 +203,12 @@ ps.registerCallback(resourceName .. ':server:getPermissionRoles', function(sourc
     end
     ps.debug('[getPermissionRoles] grade count', gradeCount)
     for gradeKeyString, gradeData in pairs(grades) do
-        local isBoss = hasBossAccess or isBossGrade(gradeData)
+        local isBoss = isBossGrade(gradeData)
         local permissions = storedByGrade[gradeKeyString]
-        if not permissions or #permissions == 0 then
-            permissions = getDefaultRolePermissions(jobName, gradeKeyString, isBoss)
+        if permissions == nil or isBoss then
+            permissions = getDefaultRolePermissions(jobName, gradeKeyString, isBoss, job)
         end
-        permissions = normalizePermissionList(permissions)
+        permissions = filterRolePermissions(jobName, job, gradeKeyString, permissions)
 
         roles[#roles + 1] = {
             key = gradeKeyString,
@@ -195,10 +232,10 @@ ps.registerCallback(resourceName .. ':server:getPermissionRoles', function(sourc
             gradeValue = gradeValue or 0
             local gradeKeyString = tostring(gradeValue)
             local permissions = storedByGrade[gradeKeyString]
-            if not permissions or #permissions == 0 then
-                permissions = getDefaultRolePermissions(jobName, gradeKeyString, isBoss)
+            if permissions == nil or isBoss then
+                permissions = getDefaultRolePermissions(jobName, gradeKeyString, isBoss, job)
             end
-            permissions = normalizePermissionList(permissions)
+            permissions = filterRolePermissions(jobName, job, gradeKeyString, permissions)
             roles[#roles + 1] = {
                 key = gradeKeyString,
                 label = gradeLabel or ('Grade ' .. gradeKeyString),
@@ -221,7 +258,7 @@ ps.registerCallback(resourceName .. ':server:getPermissionRoles', function(sourc
         job = jobName,
         label = job.label or 'Law Enforcement',
         roles = roles,
-        permissions = getAllPermissions(),
+        permissions = filterRolePermissions(jobName, job, nil, getAllPermissions()),
     }
 end)
 
@@ -232,32 +269,37 @@ ps.registerCallback(resourceName .. ':server:updatePermissionRole', function(sou
         return { success = false, message = 'Insufficient permissions' }
     end
 
-    payload = payload or {}
+    if type(payload) ~= 'table' then return { success = false, message = 'Invalid payload' } end
     if not payload.job or payload.grade == nil or type(payload.permissions) ~= 'table' then
         return { success = false, message = 'Invalid payload' }
     end
 
     local jobName, job = getPoliceJobDefinition(src)
-    local isBoss = false
-    if job and job.grades then
-        local grades = normalizeGrades(job.grades)
-        local gradeData = grades[tostring(payload.grade)]
-        if gradeData then
-            isBoss = isBossGrade(gradeData)
+    if payload.job ~= jobName then
+        return { success = false, message = 'Permission administration is limited to your department' }
+    end
+    local grade = (type(payload.grade) == 'number' or type(payload.grade) == 'string') and tonumber(payload.grade) or nil
+    local grades = job and job.grades and normalizeGrades(job.grades) or {}
+    if not grade or grade % 1 ~= 0 or not grades[tostring(grade)] then
+        return { success = false, message = 'Invalid grade for this department' }
+    end
+    for key, permission in pairs(payload.permissions) do
+        if type(key) ~= 'number' or key % 1 ~= 0 or key < 1 or key > #payload.permissions
+            or not rolePermissionAllowed(jobName, job, grade, permission) then
+            return { success = false, message = 'Permission is outside this role\'s allowed capabilities' }
         end
     end
 
     local permissions = normalizePermissionList(payload.permissions)
-    if isBoss then
-        permissions = normalizePermissionList(getAllPermissions())
-    end
+    -- Keep the configured role grants; a framework boss flag is not an
+    -- instruction to replace them with every MDT capability.
 
     local updatedBy = ps.getIdentifier(src)
     MySQL.update.await([[
         INSERT INTO mdt_permission_roles (job, grade, permissions, updated_by)
         VALUES (?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE permissions = VALUES(permissions), updated_by = VALUES(updated_by)
-    ]], { payload.job, tonumber(payload.grade), json.encode(permissions), updatedBy })
+    ]], { jobName, grade, json.encode(permissions), updatedBy })
 
     return { success = true }
 end)

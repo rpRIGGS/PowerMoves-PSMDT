@@ -1,86 +1,177 @@
--- Authorisation --
+-- Authorisation. Interface entry, role capabilities and record authorization
+-- are separate: selecting a screen never changes the player's real job.
+local selectedInterfaces = {}
 
-local function isDojJob(jobName)
-    if not jobName or not Config.DojJobs then return false end
-    for _, name in ipairs(Config.DojJobs) do
-        if name == jobName then return true end
+local function contains(list, value)
+    for _, entry in ipairs(list or {}) do
+        if entry == value then return true end
     end
     return false
 end
 
-function CheckAuth(source)
-    -- Never feed an invalid/offline source into the framework bridge: some
-    -- bridges index the player object without a nil-check and raise a non-string
-    -- error ("attempt to index a nil value (local player)"). If that happens
-    -- inside a NUI callback it never replies, and the UI hangs until it times
-    -- out. Fail closed instead of crashing.
-    if not source or (tonumber(source) or 0) <= 0 then
-        return false
-    end
-
-    local ok, jobType, jobName = pcall(function()
-        return ps.getJobType(source), ps.getJobName(source)
+local function runtimeIdentity(source)
+    local src = tonumber(source)
+    if not src or src <= 0 then return nil end
+    local ok, identity = pcall(function()
+        local job = ps.getJobData and ps.getJobData(src) or {}
+        local grade = job.grade
+        local gradeValue = type(grade) == 'table'
+            and (grade.level or grade.grade or grade.rank or grade.value or grade.id)
+            or grade
+        local boss = job.isboss == true or job.isBoss == true
+            or (type(grade) == 'table' and (grade.isboss == true or grade.isBoss == true or grade.boss == true))
+            or (ps.isBoss and ps.isBoss(src) == true)
+        local duty = job.onduty
+        if ps.getJobDuty then duty = ps.getJobDuty(src) end
+        return {
+            source = src,
+            citizenid = ps.getIdentifier(src),
+            job = ps.getJobName(src),
+            coreJobType = ps.getJobType(src),
+            grade = tonumber(gradeValue) or 0,
+            isBoss = boss == true,
+            onDuty = duty == true,
+        }
     end)
-    if not ok then
-        return false
+    if not ok or not identity.job or not identity.citizenid then return nil end
+    local policy = Config.MdtAccess or {}
+    identity.jurisdiction = (policy.GovernmentJobs or {})[identity.job]
+    if identity.jurisdiction then
+        identity.jobType, identity.primaryInterfaceId = 'gov', 'sagov'
+    elseif identity.coreJobType == 'gov' then
+        -- An unmapped government job must never fall through to police access.
+        return identity
+    elseif contains(Config.DojJobs, identity.job) or identity.coreJobType == Config.DojJobType then
+        identity.jobType, identity.primaryInterfaceId = 'doj', 'sadoj'
+    elseif contains(Config.PoliceJobs, identity.job) or identity.coreJobType == Config.PoliceJobType then
+        identity.jobType, identity.primaryInterfaceId = 'leo', 'sadle'
+    elseif contains(Config.MedicalJobs, identity.job) or identity.coreJobType == Config.MedicalJobType then
+        identity.jobType = 'ems'
+        identity.primaryInterfaceId = contains(policy.FireJobs, identity.job) and 'safr' or 'sams'
     end
-
-    ps.debug('Checking MDT Authorization')
-    local dojCheck = isDojJob(jobName) or (Config.DojJobType and jobType == Config.DojJobType)
-    if jobType ~= Config.PoliceJobType and jobType ~= Config.MedicalJobType and not dojCheck then
-        ps.debug('Access Denied for ID: ' .. tostring(source) .. ', not an authorized job type')
-        return false
-    end
-    ps.debug('Access Granted for ID: ' .. tostring(source) .. ', job type: ' .. tostring(jobType))
-    return true
+    return identity
 end
 
--- Check if a player has a specific permission (by job + grade lookup)
+local function isAttorneyGeneral(identity)
+    local rule = (Config.MdtAccess or {}).AttorneyGeneral or {}
+    return identity and identity.job == rule.job and identity.grade == tonumber(rule.grade)
+end
+
+local function hasJudicialAuthority(identity)
+    local rules = (Config.MdtAccess or {}).JudicialGrades or {}
+    return identity ~= nil and identity.jobType == 'doj' and contains(rules[identity.job], identity.grade)
+end
+
+function IsMdtAttorneyGeneral(source)
+    return isAttorneyGeneral(runtimeIdentity(source)) == true
+end
+
+function HasMdtJudicialAuthority(source)
+    return hasJudicialAuthority(runtimeIdentity(source)) == true
+end
+
+local function rolePermissions(identity)
+    local ceiling = ((Config.MdtAccess or {}).PermissionSets or {})[identity.jobType] or {}
+    -- Government has no operational callbacks in phase 1. Stored roles or a
+    -- QBCore boss flag cannot turn interface entry into police/medical access.
+    if identity.jobType == 'gov' then return {} end
+    local granted = ceiling
+    if not identity.isBoss then
+        granted = nil
+        local row = MySQL.single.await(
+            'SELECT permissions FROM mdt_permission_roles WHERE job = ? AND grade = ?',
+            { identity.job, identity.grade }
+        )
+        if row and row.permissions then
+            local ok, decoded = pcall(json.decode, row.permissions)
+            if ok and type(decoded) == 'table' then granted = decoded end
+        end
+        if not granted then
+            local defaults = (Config.PermissionDefaults or {})[identity.job] or {}
+            granted = defaults[tostring(identity.grade)] or {}
+        end
+    end
+    local permissions, seen = {}, {}
+    for _, permission in ipairs(granted) do
+        local allowed = contains(ceiling, permission)
+            or (type(permission) == 'string' and permission:sub(1, 11) == 'tab_hidden_')
+        if permission == 'judicial_authority' or permission == 'warrants_approve' then
+            allowed = false -- Added below only from the exact live judicial role.
+        end
+        -- AG heads SADLE and supervises prosecution; neither boss nor stored
+        -- permissions may confer court scheduling/modification or adjudication.
+        if isAttorneyGeneral(identity) and type(permission) == 'string'
+            and permission:sub(1, 6) == 'court_' and permission ~= 'court_view' then
+            allowed = false
+        end
+        if isAttorneyGeneral(identity) and (permission == 'warrants_issue' or permission == 'warrants_close') then
+            allowed = false
+        end
+        if allowed and not seen[permission] then
+            permissions[#permissions + 1], seen[permission] = permission, true
+        end
+    end
+    -- These capabilities derive only from the exact judicial role mapping.
+    if hasJudicialAuthority(identity) then
+        permissions[#permissions + 1] = 'judicial_authority'
+        permissions[#permissions + 1] = 'warrants_approve'
+    end
+    return permissions
+end
+
+-- Legacy operational eligibility deliberately excludes government. Existing
+-- callbacks using only CheckAuth must not become available to new GOV users.
+function CheckAuth(source)
+    local identity = runtimeIdentity(source)
+    return identity ~= nil and identity.primaryInterfaceId ~= nil and identity.jobType ~= 'gov'
+end
+
+function GetMdtAccess(source)
+    local identity = runtimeIdentity(source)
+    local empty = {
+        authorized = false, eligible = false, isCivilian = false, onDuty = false,
+        jobType = 'civilian', allowedInterfaces = {}, permissions = {}, isBoss = false,
+    }
+    if not identity then return empty end
+    if not identity.primaryInterfaceId then
+        selectedInterfaces[identity.source] = nil
+        empty.authorized = Config.CivilianAccess and Config.CivilianAccess.enabled == true or false
+        empty.isCivilian, empty.onDuty = empty.authorized, empty.authorized
+        empty.agency = identity.job
+        return empty
+    end
+    local allowed = { identity.primaryInterfaceId }
+    if isAttorneyGeneral(identity) then allowed[#allowed + 1] = 'sadoj' end
+    local fingerprint = table.concat({ identity.citizenid, identity.job, tostring(identity.grade) }, ':')
+    local selection = selectedInterfaces[identity.source]
+    if not selection or selection.fingerprint ~= fingerprint or not contains(allowed, selection.interfaceId) then
+        selection = { fingerprint = fingerprint, interfaceId = identity.primaryInterfaceId }
+        selectedInterfaces[identity.source] = selection
+    end
+    local authorized = identity.jobType == 'doj' or Config.OnlyShowOnDuty ~= true or identity.onDuty
+    local role = isAttorneyGeneral(identity) and 'attorney_general'
+        or (hasJudicialAuthority(identity) and 'judiciary')
+        or (identity.job == 'sadoj' and (identity.grade == 5 or identity.grade == 6) and 'prosecution')
+        or identity.jobType
+    return {
+        authorized = authorized, eligible = true, isCivilian = false, onDuty = identity.onDuty,
+        jobType = selection.interfaceId == 'sadoj' and 'doj' or identity.jobType,
+        coreJobType = identity.coreJobType, grade = identity.grade, role = role,
+        interfaceId = selection.interfaceId, primaryInterfaceId = identity.primaryInterfaceId,
+        allowedInterfaces = allowed, agency = identity.job, jurisdiction = identity.jurisdiction,
+        permissions = rolePermissions(identity), isBoss = identity.isBoss,
+    }
+end
+
+function CheckMdtInterfaceAccess(source, interfaceId)
+    local access = GetMdtAccess(source)
+    return access.authorized and contains(access.allowedInterfaces, interfaceId)
+end
+
 function CheckPermission(source, permName)
-    if not source or not permName then return false end
-
-    -- Boss always has all permissions
-    if ps.isBoss and ps.isBoss(source) then return true end
-
-    local jobData = ps.getJobData and ps.getJobData(source) or nil
-    local isBoss = false
-    local gradeValue = 0
-
-    if jobData and jobData.grade then
-        if type(jobData.grade) == 'table' then
-            gradeValue = jobData.grade.level or jobData.grade.grade or jobData.grade.rank or jobData.grade.value or jobData.grade.id or 0
-            isBoss = jobData.grade.isboss == true or jobData.grade.isBoss == true or jobData.grade.boss == true
-        else
-            gradeValue = jobData.grade
-        end
-    end
-
-    if isBoss then return true end
-
-    local jobName = ps.getJobName(source) or 'police'
-    local gradeStr = tostring(gradeValue)
-
-    -- Check database
-    local row = MySQL.single.await('SELECT permissions FROM mdt_permission_roles WHERE job = ? AND grade = ?', { jobName, tonumber(gradeStr) })
-    if row and row.permissions then
-        local ok, decoded = pcall(json.decode, row.permissions)
-        if ok and type(decoded) == 'table' then
-            for _, p in ipairs(decoded) do
-                if p == permName then return true end
-            end
-            return false
-        end
-    end
-
-    -- Check config defaults
-    local defaults = Config and Config.PermissionDefaults and Config.PermissionDefaults[jobName]
-    if defaults and defaults[gradeStr] then
-        for _, p in ipairs(defaults[gradeStr]) do
-            if p == permName then return true end
-        end
-    end
-
-    return false
+    if not permName or not CheckAuth(source) then return false end
+    local access = GetMdtAccess(source)
+    return contains(access.permissions, permName)
 end
 
 local function upsertProfileSession(src, action)
@@ -176,6 +267,7 @@ end
 
 RegisterNetEvent('ps-mdt:server:trackLogin', function()
     local src = source
+    if not CheckAuth(src) then return end
     upsertProfileSession(src, 'login')
     if ps.auditLog then
         ps.auditLog(src, 'mdt_login', 'profile', ps.getIdentifier(src), {})
@@ -189,6 +281,7 @@ end)
 
 RegisterNetEvent('ps-mdt:server:trackLogout', function()
     local src = source
+    if not CheckAuth(src) then return end
     upsertProfileSession(src, 'logout')
     if ps.auditLog then
         ps.auditLog(src, 'mdt_logout', 'profile', ps.getIdentifier(src), {})
@@ -202,66 +295,49 @@ end)
 
 AddEventHandler('playerDropped', function()
     local src = source
+    selectedInterfaces[tonumber(src)] = nil
     upsertProfileSession(src, 'logout')
 end)
 
 ps.registerCallback(tostring(GetCurrentResourceName())..':server:checkAuth', function(source)
-    local civAccess = Config.CivilianAccess and Config.CivilianAccess.enabled
-    local isAuthed = CheckAuth(source)
-    if isAuthed then
-        return isAuthed
-    end
-
-    -- If not LEO/EMS but civilian access is enabled, return civilian flag
-    if civAccess then
-        return { isCivilian = true }
-    end
-
+    local access = GetMdtAccess(source)
+    -- Preserve the tablet-opening callback's existing boolean/civilian shape.
+    -- Staff may open the duty screen without being authorized for operations.
+    if access.eligible then return true end
+    if access.isCivilian then return { isCivilian = true } end
     return false
 end)
 
--- Get the current player's permissions based on their job + grade
+ps.registerCallback(tostring(GetCurrentResourceName())..':server:getInterfaceAccess', function(source)
+    return GetMdtAccess(source)
+end)
+
+ps.registerCallback(tostring(GetCurrentResourceName())..':server:setInterface', function(source, payload)
+    local interfaceId = type(payload) == 'table' and payload.interfaceId or payload
+    local access = GetMdtAccess(source)
+    if type(interfaceId) ~= 'string' or not access.authorized or not contains(access.allowedInterfaces, interfaceId) then
+        access.success, access.error = false, 'Interface access denied'
+        return access
+    end
+    -- Loading role permissions can yield on MySQL. Recheck the live identity
+    -- before changing selection in case the player changed jobs or disconnected.
+    local identity = runtimeIdentity(source)
+    local selection = selectedInterfaces[tonumber(source)]
+    local fingerprint = identity and table.concat({ identity.citizenid, identity.job, tostring(identity.grade) }, ':')
+    if not identity or not selection or selection.fingerprint ~= fingerprint then
+        access = GetMdtAccess(source)
+        access.success, access.error = false, 'Identity changed; refresh interface access'
+        return access
+    end
+    selection.interfaceId = interfaceId
+    access = GetMdtAccess(source)
+    access.success = access.authorized and access.interfaceId == interfaceId
+    return access
+end)
+
+-- Existing consumers keep their permission response fields, with explicit
+-- effective grants rather than an unrestricted boss override.
 ps.registerCallback(tostring(GetCurrentResourceName())..':server:getMyPermissions', function(source)
-    local src = source
-    if not CheckAuth(src) then return { permissions = {} } end
-
-    local jobName = ps.getJobName(src) or 'police'
-    local jobData = ps.getJobData and ps.getJobData(src) or nil
-    local gradeValue = 0
-    local isBoss = false
-
-    if jobData and jobData.grade then
-        if type(jobData.grade) == 'table' then
-            gradeValue = jobData.grade.level or jobData.grade.grade or jobData.grade.rank or jobData.grade.value or jobData.grade.id or 0
-            isBoss = jobData.grade.isboss == true or jobData.grade.isBoss == true or jobData.grade.boss == true
-        else
-            gradeValue = jobData.grade
-        end
-    end
-
-    -- Boss gets all permissions
-    if isBoss or (ps.isBoss and ps.isBoss(src)) then
-        local allPerms = (Config and Config.ManagementPermissions) or {}
-        return { permissions = allPerms, isBoss = true }
-    end
-
-    local gradeStr = tostring(gradeValue)
-
-    -- Check database for stored permissions
-    local row = MySQL.single.await('SELECT permissions FROM mdt_permission_roles WHERE job = ? AND grade = ?', { jobName, tonumber(gradeStr) })
-    if row and row.permissions then
-        local ok, decoded = pcall(json.decode, row.permissions)
-        if ok and type(decoded) == 'table' then
-            return { permissions = decoded, isBoss = false }
-        end
-    end
-
-    -- Check config defaults
-    local defaults = Config and Config.PermissionDefaults and Config.PermissionDefaults[jobName]
-    if defaults and defaults[gradeStr] then
-        return { permissions = defaults[gradeStr], isBoss = false }
-    end
-
-    -- No permissions found for this grade
-    return { permissions = {}, isBoss = false }
+    local access = GetMdtAccess(source)
+    return { permissions = access.permissions, isBoss = access.isBoss }
 end)

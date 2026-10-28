@@ -27,11 +27,17 @@
     }
 
     onMount(() => {
-        authService.checkAuth();
-        settingsService.loadColorConfig();
+        initializeInterface();
         setupInstanceCoordination();
-        loadMissedHearings();
     });
+
+    async function initializeInterface(): Promise<void> {
+        await authService.checkAuth();
+        if (authService.isAuthorized && !authService.isCivilian && authService.interfaceId !== 'sagov') {
+            settingsService.loadColorConfig();
+            loadMissedHearings();
+        }
+    }
 
     // Global court reminder toast — shows on any tab, not just the calendar
     useNuiEvent<{ title?: string; scheduled_at?: string | number; location?: string }>(
@@ -133,8 +139,10 @@
     }
 </script>
 
-<main class="mdt-container" data-job-type={authService.jobType}>
-    <RadioPTT />
+<main class="mdt-container" data-job-type={authService.jobType} data-interface={authService.interfaceId}>
+    {#if authService.isAuthorized && !authService.isCivilian && authService.interfaceId !== 'sagov'}
+        <RadioPTT />
+    {/if}
     <div class="mdt-window" style={opacityStyle}>
         <div class="mdt-interface">
             <TopBar
@@ -151,14 +159,16 @@
                     </div>
                 {/if}
                 <div class="mdt-main-content">
-                    {#if !authService.isCivilian}
+                    {#if !authService.isCivilian && authService.interfaceId !== 'sagov'}
                         <InstanceTabs {tabService}/>
                     {/if}
+                    {#key authService.interfaceId}
                     <ContentArea
                             {authService}
                             {tabService}
                             {instanceStateService}
                     />
+                    {/key}
                 </div>
             </div>
         </div>

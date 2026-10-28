@@ -39,7 +39,7 @@
 	<div class="role-header">
 		<span class="role-name">{role.label}</span>
 		{#if isBoss}
-			<span class="boss-tag">All</span>
+			<span class="boss-tag">Boss</span>
 		{/if}
 	</div>
 	<div class="permission-list">
@@ -51,7 +51,7 @@
 				<span class="perm-label">{formatPermissionName(permission)}</span>
 				<input
 					type="checkbox"
-					checked={selected.has(permission) || isBoss}
+					checked={selected.has(permission)}
 					disabled={isBoss}
 					onchange={() => togglePermission(permission)}
 				/>

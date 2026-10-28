@@ -98,6 +98,7 @@ end)
 ps.registerCallback(resourceName .. ':server:issueWarrant', function(source, data)
     local src = source
     if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if IsMdtAttorneyGeneral(src) then return { success = false, error = 'Prosecution access cannot issue warrants' } end
     if not CheckPermission(src, 'warrants_issue') then
         return { success = false, error = 'Insufficient permissions' }
     end

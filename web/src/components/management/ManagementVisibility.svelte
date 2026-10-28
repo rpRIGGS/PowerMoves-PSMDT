@@ -38,7 +38,6 @@
 
 	function isTabVisible(tabName: string): boolean {
 		if (!currentRole) return true;
-		if (currentRole.isBoss) return true;
 		return !mgmt.roleHasPermission(currentRole.key, getHiddenKey(tabName));
 	}
 
@@ -112,7 +111,7 @@
 					>
 						<span class="role-name">{role.label}</span>
 						{#if role.isBoss}
-							<span class="boss-tag">All</span>
+							<span class="boss-tag">Admin</span>
 						{/if}
 					</button>
 				{/each}
@@ -123,7 +122,7 @@
 					<div class="role-title-row">
 						<span class="role-title">{currentRole.label}</span>
 						{#if currentRole.isBoss}
-							<span class="boss-note">Boss roles always see all tabs</span>
+							<span class="boss-note">Department admins see the tabs available to their interface and role</span>
 						{:else}
 							{#if mgmt.isDirty}
 								<span class="dirty-hint">Unsaved changes</span>

@@ -134,6 +134,29 @@ function GetMdtDomain(src)
     return GetDomainForJob(jobName, jobType)
 end
 
+-- Personnel administration is scoped to the actor's actual employer. An
+-- interface entitlement (including the AG's prosecution view) cannot change
+-- another department's employment or manufacture a new supervisory role.
+function CanManageMdtPersonnel(src, citizenid, destinationJob)
+    if not CheckAuth(src) or not citizenid then return false end
+    local actorJob = ps.getJobName(src)
+    if not actorJob or (destinationJob and destinationJob ~= actorJob) then return false end
+
+    local player = ps.getPlayerByIdentifier(citizenid)
+    local data = player and (player.PlayerData or player)
+    local job = data and data.job
+    if not job then
+        local row = MySQL.single.await('SELECT job FROM players WHERE citizenid = ? LIMIT 1', { citizenid })
+        if row and type(row.job) == 'string' then
+            local ok, decoded = pcall(json.decode, row.job)
+            if ok then job = decoded end
+        elseif row then
+            job = row.job
+        end
+    end
+    return type(job) == 'table' and job.name == actorJob
+end
+
 
 --- Ensure an MDT profile exists for a citizen. Resolves name from online player or DB if offline.
 ---@param citizenid string -- The citizen ID to ensure a profile for

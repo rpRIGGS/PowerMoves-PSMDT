@@ -14,6 +14,9 @@
 	}
 
 	let { tabService, authService }: Props = $props();
+	const judicialTypes = ["ruling", "opinion", "sentencing"];
+	let canAdjudicate = $derived(authService.hasPermission("judicial_authority"));
+	let isProsecutionView = $derived(authService.agency === "sadle" && authService.interfaceId === "sadoj");
 
 	type DocType = "brief" | "motion" | "ruling" | "opinion" | "plea_deal" | "sentencing" | "other";
 	type DocStatus = "draft" | "filed" | "approved" | "rejected";
@@ -26,6 +29,8 @@
 		content: string;
 		author_name: string;
 		author_citizenid: string;
+		court_case_id?: number;
+		court_case_number?: string;
 		linked_court_case_id?: number;
 		linked_court_case_number?: string;
 		created_at: string;
@@ -60,6 +65,20 @@
 	];
 
 	const statusOptions = ["all", "draft", "filed", "approved", "rejected"];
+	let creatableTypes = $derived(typeOptions.filter(opt => opt.value !== "all" && (canAdjudicate || !judicialTypes.includes(opt.value))));
+	let canEditSelected = $derived(!!selectedDocument &&
+		(canAdjudicate || (!judicialTypes.includes(selectedDocument.type) && !["approved", "rejected"].includes(selectedDocument.status))) &&
+		(!isProsecutionView || (selectedDocument.author_citizenid === authService.playerData?.citizenid && selectedDocument.status === "draft"))
+	);
+	let canDeleteSelected = $derived(canEditSelected && selectedDocument?.status === 'draft');
+
+	function normalizeDocument(document: LegalDocument): LegalDocument {
+		return {
+			...document,
+			linked_court_case_id: document.court_case_id ?? document.linked_court_case_id,
+			linked_court_case_number: document.court_case_number ?? document.linked_court_case_number,
+		};
+	}
 
 	function getStatusPillClass(status: string): string {
 		switch (status) {
@@ -144,7 +163,7 @@
 				{ status: statusFilter === "all" ? "" : statusFilter, type: typeFilter === "all" ? "" : typeFilter, search: searchQuery.trim() || "" },
 				{ documents: [] },
 			);
-			documents = data.documents || [];
+			documents = (data.documents || []).map(normalizeDocument);
 		} catch {
 			globalNotifications.error("Failed to load legal documents");
 		}
@@ -154,12 +173,12 @@
 	async function selectDocument(id: number) {
 		isLoading = true;
 		try {
-			const response = await fetchNui<{ success: boolean; data?: LegalDocument }>(
+			const response = await fetchNui<LegalDocument | null>(
 				NUI_EVENTS.DOJ.GET_LEGAL_DOCUMENT,
 				{ id },
-				{ success: true, data: documents.find((d) => d.id === id) },
+				documents.find((d) => d.id === id) || null,
 			);
-			selectedDocument = response?.data || documents.find((d) => d.id === id) || null;
+			selectedDocument = response?.id ? normalizeDocument(response) : null;
 			editContent = selectedDocument?.content || "";
 		} catch {
 			globalNotifications.error("Failed to load document");
@@ -174,7 +193,7 @@
 	}
 
 	async function handleCreateDocument() {
-		if (!newDoc.title.trim()) return;
+		if (!newDoc.title.trim() || !creatableTypes.some(opt => opt.value === newDoc.type)) return;
 		isLoading = true;
 		try {
 			const result = await fetchNui<{ success: boolean; id?: number; error?: string }>(
@@ -182,7 +201,7 @@
 				{
 					type: newDoc.type,
 					title: newDoc.title.trim(),
-					linked_court_case_id: newDoc.linked_court_case_id ? Number(newDoc.linked_court_case_id) : undefined,
+					court_case_id: newDoc.linked_court_case_id ? Number(newDoc.linked_court_case_id) : undefined,
 					content: newDoc.content.trim(),
 				},
 				{ success: true, id: Math.floor(Math.random() * 1000) },
@@ -202,13 +221,14 @@
 	}
 
 	async function handleSaveContent() {
-		if (!selectedDocument) return;
+		if (!selectedDocument || !canEditSelected) return;
 		try {
-			await fetchNui(
+			const result = await fetchNui<{ success: boolean; error?: string }>(
 				NUI_EVENTS.DOJ.UPDATE_LEGAL_DOCUMENT,
-				{ id: selectedDocument.id, content: editContent },
+				{ id: selectedDocument.id, payload: { content: editContent } },
 				{ success: true },
 			);
+			if (!result.success) throw new Error(result.error || "Unable to save document");
 			selectedDocument.content = editContent;
 			globalNotifications.success("Document saved");
 		} catch {
@@ -217,13 +237,14 @@
 	}
 
 	async function handleUpdateStatus(newStatus: DocStatus) {
-		if (!selectedDocument) return;
+		if (!selectedDocument || !canEditSelected || (!canAdjudicate && !["draft", "filed"].includes(newStatus))) return;
 		try {
-			await fetchNui(
+			const result = await fetchNui<{ success: boolean; error?: string }>(
 				NUI_EVENTS.DOJ.UPDATE_LEGAL_DOCUMENT,
-				{ id: selectedDocument.id, status: newStatus },
+				{ id: selectedDocument.id, payload: { status: newStatus } },
 				{ success: true },
 			);
+			if (!result.success) throw new Error(result.error || "Unable to update status");
 			selectedDocument.status = newStatus;
 			globalNotifications.success("Status updated");
 		} catch {
@@ -232,7 +253,7 @@
 	}
 
 	async function handleDeleteDocument() {
-		if (!selectedDocument) return;
+		if (!selectedDocument || !canDeleteSelected) return;
 		try {
 			const result = await fetchNui<{ success: boolean; error?: string }>(
 				NUI_EVENTS.DOJ.DELETE_LEGAL_DOCUMENT,
@@ -263,7 +284,7 @@
 			<span class="pill {getTypePillClass(selectedDocument.type)}">{formatLabel(selectedDocument.type)}</span>
 			<span class="pill {getStatusPillClass(selectedDocument.status)}">{formatLabel(selectedDocument.status)}</span>
 			<div class="topbar-actions">
-				<button class="action-btn" onclick={handleSaveContent} disabled={isLoading}>Save</button>
+				{#if canEditSelected}<button class="action-btn" onclick={handleSaveContent} disabled={isLoading}>Save</button>{/if}
 			</div>
 		</div>
 
@@ -282,10 +303,10 @@
 								<span class="field-label">Created</span>
 								<span class="field-value">{formatDateValue(selectedDocument.created_at)}</span>
 							</div>
-							{#if selectedDocument.linked_court_case_number}
+							{#if selectedDocument.linked_court_case_number || selectedDocument.linked_court_case_id}
 								<div class="field-group">
 									<span class="field-label">Court Case</span>
-									<span class="field-value link">{selectedDocument.linked_court_case_number}</span>
+									<span class="field-value link">{selectedDocument.linked_court_case_number || `#${selectedDocument.linked_court_case_id}`}</span>
 								</div>
 							{/if}
 						</div>
@@ -293,27 +314,28 @@
 
 					<div class="section editor-section">
 						<div class="section-title">Content</div>
-						<textarea class="editor-textarea" bind:value={editContent} placeholder="Document content..."></textarea>
+						<textarea class="editor-textarea" bind:value={editContent} readonly={!canEditSelected} placeholder="Document content..."></textarea>
 					</div>
 				</div>
 
 				<div class="detail-side">
 					<div class="section">
 						<div class="section-title">Status</div>
+						{#if canEditSelected}
 						<select class="form-select" value={selectedDocument.status} onchange={(e) => handleUpdateStatus((e.target as HTMLSelectElement).value as DocStatus)}>
 							<option value="draft">Draft</option>
 							<option value="filed">Filed</option>
-							<option value="approved">Approved</option>
-							<option value="rejected">Rejected</option>
+							{#if canAdjudicate}<option value="approved">Approved</option><option value="rejected">Rejected</option>{/if}
 						</select>
+						{:else}<span class="pill {getStatusPillClass(selectedDocument.status)}">{formatLabel(selectedDocument.status)}</span>{/if}
 					</div>
 
-					<div class="section">
+					{#if canDeleteSelected}<div class="section">
 						<div class="section-title">Actions</div>
 						<button class="danger-btn" onclick={handleDeleteDocument} disabled={isLoading}>
 							Delete Document
 						</button>
-					</div>
+					</div>{/if}
 				</div>
 			</div>
 		</div>
@@ -369,7 +391,7 @@
 							<span><span class="pill {getTypePillClass(item.type)}">{formatLabel(item.type)}</span></span>
 							<span><span class="pill {getStatusPillClass(item.status)}">{formatLabel(item.status)}</span></span>
 							<span>{item.author_name}</span>
-							<span class="row-case">{item.linked_court_case_number || "-"}</span>
+							<span class="row-case">{item.linked_court_case_number || (item.linked_court_case_id ? `#${item.linked_court_case_id}` : "-")}</span>
 							<span>{formatDateValue(item.created_at)}</span>
 						</button>
 					{/each}
@@ -393,13 +415,7 @@
 				<div class="form-group">
 					<label class="form-label">Type</label>
 					<select class="form-select" bind:value={newDoc.type}>
-						<option value="brief">Brief</option>
-						<option value="motion">Motion</option>
-						<option value="ruling">Ruling</option>
-						<option value="opinion">Opinion</option>
-						<option value="plea_deal">Plea Deal</option>
-						<option value="sentencing">Sentencing</option>
-						<option value="other">Other</option>
+						{#each creatableTypes as opt}<option value={opt.value}>{opt.label}</option>{/each}
 					</select>
 				</div>
 				<div class="form-group">
