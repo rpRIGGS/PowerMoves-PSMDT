@@ -458,12 +458,17 @@ Config.DojJobs = {
     'lawyer',
 }
 
+-- QBCore job families. Hospital staff use 'ems'; fire departments use 'fire'.
+-- Shared legacy EMS features are retained through explicit compatibility checks.
 Config.MedicalJobType = "ems"
 Config.MedicalJobs = {
     'pillboxmed',
     'sandymed',
     'paletomed',
     'parsonsmed',
+}
+Config.FireJobType = "fire"
+Config.FireJobs = {
     'safr',
     'lsfd',
     'lscfd',
@@ -488,7 +493,7 @@ Config.MdtAccess = {
         PublicServiceNumber = '511',
         FirstAcceptExclusive = true,
     },
-    FireJobs = { 'safr', 'lsfd', 'lscfd', 'bcfd' },
+    FireJobs = Config.FireJobs,
     GovernmentJobs = {
         sagov = 'state',
         bcgov = 'blaine_county',
@@ -975,7 +980,7 @@ Config.Court = {
     -- domain:     'police' (police + DOJ share a calendar) or 'ems' (separate)
     -- jobType:    match against the framework job.type (leo / doj / ems ...)
     -- jobs:       optional explicit job-name whitelist (overrides jobType)
-    -- maxGrade:   optional grade-level ceiling (e.g. rookies = grade 0-1)
+    -- minGrade / maxGrade: optional grade limits (e.g. sadoj judges = grades 8–10)
     -- onlyOnDuty: only include players currently on duty
     Groups = {
         -- Police / DOJ domain
@@ -983,10 +988,14 @@ Config.Court = {
         { id = 'rookies',      label = 'Rookies',       role = 'officer',  domain = 'police', jobType = Config.PoliceJobType, maxGrade = 1 },
         { id = 'on_duty',      label = 'On-Duty Units', role = 'officer',  domain = 'police', jobType = Config.PoliceJobType, onlyOnDuty = true },
         { id = 'all_doj',      label = 'All DOJ',       role = 'attendee', domain = 'police', jobType = Config.DojJobType },
-        { id = 'judges',       label = 'Judges',        role = 'judge',    domain = 'police', jobs = { 'judge' } },
+        { id = 'judges',       label = 'Judges',        role = 'judge',    domain = 'police', jobs = { 'sadoj' }, minGrade = 8, maxGrade = 10 },
         { id = 'lawyers',      label = 'Lawyers',       role = 'attendee', domain = 'police', jobs = { 'lawyer' } },
 
-        -- EMS domain (separate calendar)
+        -- Fire Rescue uses the shared legacy EMS calendar domain, but is a
+        -- distinct QBCore job type. Keep fire-specific quick-add audiences.
+        { id = 'all_fire',       label = 'All Fire Rescue', role = 'attendee', domain = 'ems', jobType = Config.FireJobType },
+        { id = 'fire_on_duty',   label = 'On-Duty Fire',     role = 'attendee', domain = 'ems', jobType = Config.FireJobType, onlyOnDuty = true },
+        -- Hospital EMS domain
         { id = 'all_ems',       label = 'All EMS',        role = 'attendee', domain = 'ems', jobType = Config.MedicalJobType },
         { id = 'ems_rookies',   label = 'EMS Rookies',    role = 'trainee',  domain = 'ems', jobType = Config.MedicalJobType, maxGrade = 1 },
         { id = 'ems_on_duty',   label = 'On-Duty EMS',    role = 'attendee', domain = 'ems', jobType = Config.MedicalJobType, onlyOnDuty = true },
