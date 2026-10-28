@@ -41,10 +41,9 @@ Config.Sharing = {
     -- One-Way Sharing (Unidirectional)
     -- Viewers can see target department data, but not vice versa
     OneWay = {
-        { -- Example: FIB and GOV 
+        { -- SADLE: statewide law-enforcement oversight visibility
             viewers = {
-                'fib',
-                'gov'
+                'sadle'
             },
             targets = {
                 'lspd',
@@ -556,7 +555,7 @@ Config.MdtAccess = {
     -- Eligibility only: these jobs may be granted a separate, explicit
     -- 'leo_roster_oversight' stored job/grade permission. Being a boss in one
     -- of these jobs does NOT itself grant cross-agency roster visibility.
-    LeoRosterOversightJobs = { 'sadle', 'fib' },
+    LeoRosterOversightJobs = { 'sadle' },
     AttorneyGeneral = { job = 'sadle', grade = 11 },
     JudicialGrades = {
         sadoj = { 8, 9, 10 },
