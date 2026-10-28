@@ -425,8 +425,18 @@ ps.registerCallback(resourceName .. ':server:updateIAComplaintInfo', function(so
             'SELECT officer_name, officer_badge FROM mdt_ia_complaints WHERE id = ?', { complaintId })
         local name  = updates.officer_name  ~= nil and updates.officer_name  or (existing and existing.officer_name)
         local badge = updates.officer_badge ~= nil and updates.officer_badge or (existing and existing.officer_badge)
+        local correctedCid = resolveOfficer(name, badge)
+        local correctedAgency, correctedDomain = allegedEmployeeAgency(correctedCid)
+        if correctedAgency and correctedDomain ~= GetMdtDomain(src) then
+            return { success = false, error = 'Accused employee belongs to a different IA service' }
+        end
+        if correctedAgency and ps.getJobName(src) ~= correctedAgency and ps.getJobName(src) ~= 'sadle' then
+            return { success = false, error = 'Cannot transfer complaint to another agency' }
+        end
         sets[#sets + 1] = 'officer_citizenid = ?'
-        vals[#vals + 1] = resolveOfficer(name, badge)
+        vals[#vals + 1] = correctedCid
+        sets[#sets + 1] = 'agency = ?'
+        vals[#vals + 1] = correctedAgency
     end
     if updates.incident_date ~= nil then
         sets[#sets + 1] = 'incident_date = ?'
