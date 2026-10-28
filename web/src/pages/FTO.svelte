@@ -100,6 +100,19 @@
 	let showTrainerSearch = $state(false);
 	let personSearchQuery = $state("");
 
+	// Same proven FTO component, agency-appropriate terminology.
+	// Training programs and permissions continue to come from the active job.
+	let trainingService = $derived(authService?.jobType === 'doj' ? 'doj' :
+		authService?.interfaceId === 'safr' ? 'fire' :
+		authService?.interfaceId === 'sams' ? 'medical' : 'leo');
+	let trainingTitle = $derived(trainingService === 'doj' ? 'Legal Training' :
+		trainingService === 'fire' ? 'Fire & Rescue Training' :
+		trainingService === 'medical' ? 'Medical Training' : 'Field Training');
+	let trainerTitle = $derived(trainingService === 'doj' ? 'Legal Mentor' :
+		trainingService === 'fire' ? 'Training Instructor' :
+		trainingService === 'medical' ? 'Clinical Preceptor' : 'Field Training Officer (FTO)');
+	let recordTitle = $derived(trainingService === 'doj' ? 'Training File' :
+		trainingService === 'medical' ? 'Clinical Training File' : 'FTO Assignment');
 	let canManage = $derived(authService?.hasPermission('fto_manage') ?? false);
 	let mounted = false;
 
@@ -581,7 +594,7 @@
 		<div class="topbar">
 			<button class="back-btn" onclick={goBack}>
 				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-				Back to FTO List
+				Back to {trainingTitle} List
 			</button>
 			<span class="topbar-case-number">{selectedDetail.assignment.fto_number}</span>
 			<span class="pill {getStatusPillClass(selectedDetail.assignment.status)}">{formatLabel(selectedDetail.assignment.status)}</span>
@@ -611,7 +624,7 @@
 								<span class="field-value">{selectedDetail.assignment.trainee_name || '-'}</span>
 							</div>
 							<div class="field-group">
-								<span class="field-label">Trainer (FTO)</span>
+								<span class="field-label">{trainerTitle}</span>
 								<span class="field-value">{selectedDetail.assignment.trainer_name || '-'}</span>
 							</div>
 							<div class="field-group">
@@ -1015,12 +1028,12 @@
 		<div class="topbar">
 			<button class="back-btn" onclick={() => { showCreateForm = false; resetCreateForm(); }}>
 				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-				Back to FTO List
+				Back to {trainingTitle} List
 			</button>
 		</div>
 
 		<div class="create-form">
-			<h3>New FTO Assignment</h3>
+			<h3>New {recordTitle}</h3>
 
 			<div class="form-group">
 				<span class="form-label">Trainee</span>
@@ -1034,7 +1047,7 @@
 			</div>
 
 			<div class="form-group">
-				<span class="form-label">Trainer (FTO)</span>
+				<span class="form-label">{trainerTitle}</span>
 				<button
 					class="officer-search-trigger"
 					class:placeholder={!newTrainerName}
@@ -1110,13 +1123,13 @@
 			{#if loading && assignments.length === 0}
 				<div class="center-state">
 					<div class="loading-spinner"></div>
-					<p>Loading FTO assignments...</p>
+					<p>Loading {trainingTitle.toLowerCase()} assignments...</p>
 				</div>
 			{:else if paginatedAssignments.length === 0}
 				<div class="center-state">
 					<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-					<h3>No FTO Assignments Found</h3>
-					<p>{searchQuery ? "No assignments match your search criteria." : "No FTO assignments have been created yet."}</p>
+					<h3>No {trainingTitle} Assignments Found</h3>
+					<p>{searchQuery ? "No assignments match your search criteria." : "No training assignments have been created yet."}</p>
 				</div>
 			{:else}
 				<div class="table-header">
