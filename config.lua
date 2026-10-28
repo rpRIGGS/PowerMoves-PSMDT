@@ -553,6 +553,10 @@ Config.MdtAccess = {
         -- is assigned by default; the owner must decide those grants separately.
         OversightPermission = 'government_roster_oversight',
     },
+    -- Eligibility only: these jobs may be granted a separate, explicit
+    -- 'leo_roster_oversight' stored job/grade permission. Being a boss in one
+    -- of these jobs does NOT itself grant cross-agency roster visibility.
+    LeoRosterOversightJobs = { 'sadle', 'fib' },
     AttorneyGeneral = { job = 'sadle', grade = 11 },
     JudicialGrades = {
         sadoj = { 8, 9, 10 },
