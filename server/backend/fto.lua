@@ -21,6 +21,9 @@ CreateThread(function()
     Wait(2500)
     if EnsureColumn then
         EnsureColumn('mdt_fto_assignments', 'job_type', "`job_type` varchar(10) NOT NULL DEFAULT 'police'")
+        -- Existing records remain NULL until explicitly reconciled to their
+        -- historical employer. New assignments are always agency-keyed.
+        EnsureColumn('mdt_fto_assignments', 'agency_job', "`agency_job` varchar(64) NULL DEFAULT NULL")
     end
 end)
 
@@ -98,8 +101,9 @@ ps.registerCallback(resourceName .. ':server:getFTOList', function(source, pageN
     local values = {}
 
     -- Domain scope: each side only sees its own FTO assignments.
-    clauses[#clauses + 1] = 'a.job_type = ?'
+    clauses[#clauses + 1] = 'a.job_type = ? AND (a.agency_job = ? OR a.agency_job IS NULL)'
     values[#values + 1] = getFTODomain(src)
+    values[#values + 1] = ps.getJobName(src)
 
     if not hasFTOView then
         clauses[#clauses + 1] = '(a.trainee_citizenid = ? OR a.trainer_citizenid = ?)'
@@ -149,10 +153,11 @@ end)
 -- separate step before cross-agency accreditation access is enabled.
 local function canAccessFTORecord(src, assignmentId)
     local row = MySQL.single.await(
-        'SELECT job_type FROM mdt_fto_assignments WHERE id = ? LIMIT 1',
+        'SELECT job_type, agency_job FROM mdt_fto_assignments WHERE id = ? LIMIT 1',
         {assignmentId}
     )
     return row ~= nil and row.job_type == getFTODomain(src)
+        and (row.agency_job == nil or row.agency_job == ps.getJobName(src))
 end
 
 -- Get single FTO assignment with DORs
@@ -170,7 +175,10 @@ ps.registerCallback(resourceName .. ':server:getFTO', function(source, data)
         WHERE a.id = ?
     ]], { assignmentId })
     if not entry then return { success = false, error = 'Not found' } end
-    if entry.job_type ~= getFTODomain(src) then return { success = false, error = 'Unauthorized' } end
+    if entry.job_type ~= getFTODomain(src)
+        or (entry.agency_job ~= nil and entry.agency_job ~= ps.getJobName(src)) then
+        return { success = false, error = 'Unauthorized' }
+    end
 
     local citizenId = ps.getIdentifier(src)
     local hasFTOView = CheckPermission(src, 'fto_view')
@@ -215,9 +223,10 @@ ps.registerCallback(resourceName .. ':server:getOfficerFTOHistory', function(sou
             (SELECT d2.overall_rating FROM mdt_fto_dors d2 WHERE d2.assignment_id = a.id ORDER BY d2.created_at DESC LIMIT 1) AS latest_rating
         FROM mdt_fto_assignments a
         LEFT JOIN mdt_fto_phases p ON a.current_phase_id = p.id
-        WHERE a.job_type = ? AND (a.trainee_citizenid = ? OR a.trainer_citizenid = ?)
+        WHERE a.job_type = ? AND (a.agency_job = ? OR a.agency_job IS NULL)
+          AND (a.trainee_citizenid = ? OR a.trainer_citizenid = ?)
         ORDER BY a.created_at DESC
-    ]], { getFTODomain(src), officerCitizenId, officerCitizenId })
+    ]], { getFTODomain(src), ps.getJobName(src), officerCitizenId, officerCitizenId })
 
     return (ok and rows) or {}
 end)
@@ -259,8 +268,8 @@ ps.registerCallback(resourceName .. ':server:createFTOAssignment', function(sour
     local assignmentId = MySQL.insert.await([[
         INSERT INTO mdt_fto_assignments
         (fto_number, trainee_citizenid, trainee_name, trainer_citizenid, trainer_name,
-         current_phase_id, status, start_date, notes, job_type)
-        VALUES ('', ?, ?, ?, ?, ?, 'active', ?, ?, ?)
+         current_phase_id, status, start_date, notes, job_type, agency_job)
+        VALUES ('', ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?)
     ]], {
         data.trainee_citizenid, data.trainee_name or '',
         data.trainer_citizenid, data.trainer_name or '',
@@ -268,6 +277,7 @@ ps.registerCallback(resourceName .. ':server:createFTOAssignment', function(sour
         data.start_date or os.date('%Y-%m-%d'),
         data.notes or nil,
         getFTODomain(src),
+        ps.getJobName(src),
     })
 
     if not assignmentId then return { success = false, error = 'Failed to create assignment' } end
