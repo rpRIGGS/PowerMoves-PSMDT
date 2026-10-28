@@ -180,6 +180,34 @@ function CheckMdtInterfaceAccess(source, interfaceId)
     return access.authorized and contains(access.allowedInterfaces, interfaceId)
 end
 
+-- Dedicated read-only statewide LEO roster authorization. Do not use the
+-- legacy boss permission ceiling; an agency boss is not automatically an
+-- investigator or statewide accreditor. Access is an exact live job+grade
+-- stored role grant limited to approved oversight jobs, or the configured AG.
+function CanViewStatewideLeoRoster(source)
+    local identity = runtimeIdentity(source)
+    if not identity or identity.jobType ~= 'leo' or not identity.gradeValid then return false end
+    local allowedJobs = ((Config.MdtAccess or {}).LeoRosterOversightJobs) or {}
+    if not contains(allowedJobs, identity.job) then return false end
+    if isAttorneyGeneral(identity) then return true end
+    local ok, row = pcall(MySQL.single.await,
+        'SELECT permissions FROM mdt_permission_roles WHERE job = ? AND grade = ?',
+        {identity.job, identity.grade})
+    if not ok or not row then return false end
+    local granted = row.permissions
+    if type(granted) == 'string' then
+        local decodedOk, decoded = pcall(json.decode, granted)
+        granted = decodedOk and decoded or nil
+    end
+    if type(granted) ~= 'table' or not contains(granted, 'leo_roster_oversight') then return false end
+    -- Database queries yield; verify employment still matches the caller.
+    local now = runtimeIdentity(source)
+    return now ~= nil and now.jobType == 'leo' and now.gradeValid
+        and now.citizenid == identity.citizenid
+        and now.job == identity.job and now.grade == identity.grade
+        and now.onDuty == identity.onDuty
+end
+
 -- Separate, read-only government personnel scope. This deliberately does not
 -- use CheckAuth/CheckPermission or boss-derived operational permission sets.
 function GetGovernmentRosterAccess(source)
