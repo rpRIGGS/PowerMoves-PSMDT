@@ -1,5 +1,8 @@
 # PowerMoves PSMDT — Master workflow, source checkpoints, and phased execution
 
+> **IMPLEMENTATION ORDER SUPERSEDED (October 28, 2026):** The staged order below mistakenly prioritized civilian FOIA intake ahead of the original six-interface foundation. The current authoritative coding order is [`planning/PSMDT_FOUNDATION_FIRST_EXECUTION_PLAN.md`](PSMDT_FOUNDATION_FIRST_EXECUTION_PLAN.md): audit/source baseline, interface routing and scoped job/rank permissions, working module parity, agency ownership, training/calendar, interagency cases, then public-service intake and government/DOT vertical integrations. Preserve completed source work; do not mistake it for deployed/tested functionality.
+
+
 Updated October 28, 2026. **This document is a consolidated implementation contract**, drawn from the existing `POWERMOVES_PSMDT_PROJECT_CONTEXT.md`, `POWERMOVES_PSMDT_CODEX_CONTEXT.md`, foundation checkpoints, and owner discussions. A planned capability is **not** a claim that code works in FiveM.
 
 ## Non-negotiable foundation
