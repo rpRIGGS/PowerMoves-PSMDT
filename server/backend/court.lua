@@ -914,6 +914,7 @@ ps.registerCallback(resourceName .. ':server:getGroupMembers', function(source, 
     end
 
     local role = normalizeRole(group.role)
+    local minGrade = group.minGrade ~= nil and tonumber(group.minGrade) or nil
     local maxGrade = group.maxGrade ~= nil and tonumber(group.maxGrade) or nil
     local members, seen = {}, {}
 
@@ -934,9 +935,10 @@ ps.registerCallback(resourceName .. ':server:getGroupMembers', function(source, 
                 match = false
             end
 
-            if match and maxGrade ~= nil then
-                local lvl = (job.grade and tonumber(job.grade.level)) or 0
-                if lvl > maxGrade then match = false end
+            if match and (minGrade ~= nil or maxGrade ~= nil) then
+                local lvl = job.grade and tonumber(type(job.grade) == 'table' and job.grade.level or job.grade)
+                if not lvl or (minGrade ~= nil and lvl < minGrade)
+                    or (maxGrade ~= nil and lvl > maxGrade) then match = false end
             end
             if match and group.onlyOnDuty then
                 if not job.onduty then match = false end
