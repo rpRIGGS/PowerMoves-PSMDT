@@ -1,0 +1,61 @@
+name: PSMDT Foundation Validation
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-and-integration-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout development source
+        uses: actions/checkout@v4
+      - name: Install Lua 5.4
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.4
+          lua -v
+      - name: Compile production Lua syntax
+        run: |
+          find client server -name '*.lua' -print0 | xargs -0 -r -n1 luac -p
+          luac -p config.lua
+      - name: Run existing Lua regression suites
+        run: |
+          set -eu
+          lua tests/phase1/access_regression.lua
+          lua tests/ems_dashboard/server_regression.lua
+          lua tests/phase2/government_roster_regression.lua
+          lua tests/phase3/government_employment_regression.lua
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - name: Install frontend dependencies
+        working-directory: web
+        run: pnpm install --no-frozen-lockfile
+      - name: Run existing frontend regression suites
+        run: |
+          set -eu
+          node tests/basics/dashboard_routes_regression.cjs
+          node tests/basics/navigation_regression.cjs
+          node tests/ems_dashboard/frontend_regression.cjs
+          node tests/phase1/auth_frontend_regression.cjs
+          node tests/phase2/government_frontend_regression.cjs
+          node tests/phase3/government_frontend_regression.cjs
+      - name: Full frontend type and Svelte validation
+        working-directory: web
+        run: pnpm run check
+      - name: Build production NUI
+        working-directory: web
+        run: pnpm run build
+      - name: Verify deployable NUI entry
+        run: test -s web/dist/index.html
