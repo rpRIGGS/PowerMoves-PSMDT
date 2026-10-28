@@ -478,6 +478,12 @@ Config.MedicalJobs = {
 -- These mappings grant entry to an interface, not access to another agency's
 -- records or authority over another branch of government.
 Config.MdtAccess = {
+    -- 'legacy': existing QBCore bosses receive their job-type permission ceiling.
+    -- 'explicit': bosses use stored mdt_permission_roles rows or job/grade
+    -- Config.PermissionDefaults like other staff. Switch only after populating
+    -- and reviewing permissions for ALL active department leadership grades.
+    -- This migration flag defaults to legacy to avoid removing working access.
+    BossPermissionMode = 'legacy',
     FireJobs = { 'safr', 'lsfd', 'lscfd', 'bcfd' },
     GovernmentJobs = {
         sagov = 'state',
