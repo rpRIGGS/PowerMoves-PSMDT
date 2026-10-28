@@ -1026,9 +1026,11 @@ Config.Court = {
         -- scheduled  -> in_session  once scheduled_at is reached
         -- in_session -> completed   once scheduled_at + duration + grace passed
         CompleteGraceMinutes = 5,
-        -- true  = a completed hearing is deleted (calendar self-cleans)
-        -- false = a completed hearing is kept with status 'completed'
-        DeleteOnComplete = true,
+        -- Preserve completed court and departmental hearing histories.
+        -- Deleting completed hearings destroys their attendee/calendar record
+        -- and conflicts with the permanent SADOJ court record requirement.
+        -- Keep completed entries with status 'completed' for archival review.
+        DeleteOnComplete = false,
     },
 
     -- ---- Attendee quick-add groups (buttons in the create/edit modal) ----
