@@ -3,6 +3,7 @@
 	import type { createTabService } from "../services/tabService.svelte";
 	import type { JobType } from "../interfaces/IUser";
 	import type { AuthService } from "../services/authService.svelte";
+	import { TAB_VISIBILITY_KEYS } from "../constants/management";
 
 	interface Props {
 		tabService: ReturnType<typeof createTabService>;
@@ -14,7 +15,8 @@
 
 	function isTabHidden(tabName: string): boolean {
 		if (!authService) return false;
-		const key = `tab_hidden_${tabName.toLowerCase()}`;
+		const key = TAB_VISIBILITY_KEYS.find(tab => tab.tabName === tabName)?.key
+			?? `tab_hidden_${tabName.toLowerCase().replace(/\s+/g, "_")}`;
 		return authService.hasRawPermission(key);
 	}
 
@@ -22,7 +24,7 @@
 		if (isTabHidden(t.name)) return false;
 		return true;
 	}));
-	let visibleTabNames = $derived(new Set(visibleTabs.map(t => t.name)));
+	let visibleTabNames = $derived(new Set<string>(visibleTabs.map(t => t.name)));
 
 	let collapsed = $state(false);
 	let collapsedGroups = $state<Record<string, boolean>>({});

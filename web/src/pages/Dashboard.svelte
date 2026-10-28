@@ -6,7 +6,7 @@
 	import type { createTabService } from "../services/tabService.svelte";
 	import { openReportInEditor } from "../stores/reportsStore";
 	import { mdtStore } from "../stores/mdtStore";
-	import { PRIORITY_COLORS } from "../constants";
+	import { PRIORITY_COLORS, type MDTTab } from "../constants";
 	import { createDashboardService } from "../services/dashboardService.svelte";
 	import ReportItem from "../components/dashboard/ReportItem.svelte";
 	import DispatchStatusWidget from "../components/dashboard/DispatchStatusWidget.svelte";
@@ -68,6 +68,18 @@
 	let dojCourtCases = $state<any[]>([]);
 	let dojCourtOrders = $state<any[]>([]);
 
+	function dojDashboardRows(response: unknown, key: "requests" | "cases" | "orders"): any[] {
+		const rows = Array.isArray(response) ? response
+			: response && typeof response === "object" ? (response as Record<string, unknown>)[key] : undefined;
+		return Array.isArray(rows) ? rows.slice(0, 5) : [];
+	}
+
+	function navigateToTab(tab: MDTTab): void {
+		const activeInstance = tabService.getActiveInstance();
+		if (activeInstance) tabService.setInstanceTab(activeInstance.id, tab);
+		else tabService.setActiveTab(tab);
+	}
+
 	async function loadDojDashboard() {
 		if (!isDOJ) return;
 		const [reviews, cases, orders] = await Promise.all([
@@ -75,9 +87,9 @@
 			fetchNui<any>(NUI_EVENTS.DOJ.GET_COURT_CASES, { limit: 5 }, []),
 			fetchNui<any>(NUI_EVENTS.DOJ.GET_COURT_ORDERS, { limit: 5 }, []),
 		]);
-		dojWarrantReviews = Array.isArray(reviews) ? reviews.slice(0, 5) : [];
-		dojCourtCases = Array.isArray(cases) ? cases.slice(0, 5) : [];
-		dojCourtOrders = Array.isArray(orders) ? orders.slice(0, 5) : [];
+		dojWarrantReviews = dojDashboardRows(reviews, "requests");
+		dojCourtCases = dojDashboardRows(cases, "cases");
+		dojCourtOrders = dojDashboardRows(orders, "orders");
 	}
 
 	// Services
@@ -509,7 +521,7 @@
 							<div class="empty-state">No pending warrants</div>
 						{:else}
 							{#each dojWarrantReviews as wr}
-								<button class="list-item-btn" onclick={() => tabService.openTab('warrant_review')}>
+								<button class="list-item-btn" onclick={() => navigateToTab('Warrant Review')}>
 									<span class="item-name">{wr.citizen_name || wr.citizenid}</span>
 									<span class="item-meta">{wr.status || 'pending'} · {formatDate(wr.created_at)}</span>
 								</button>
@@ -527,7 +539,7 @@
 							<div class="empty-state">No court cases</div>
 						{:else}
 							{#each dojCourtCases as cc}
-								<button class="list-item-btn" onclick={() => tabService.openTab('court_cases')}>
+								<button class="list-item-btn" onclick={() => navigateToTab('Court Cases')}>
 									<span class="item-name">{cc.title || cc.case_number}</span>
 									<span class="item-meta">{cc.status} · {formatDate(cc.created_at || cc.filed_date)}</span>
 								</button>
@@ -545,7 +557,7 @@
 							<div class="empty-state">No court orders</div>
 						{:else}
 							{#each dojCourtOrders as co}
-								<button class="list-item-btn" onclick={() => tabService.openTab('court_orders')}>
+								<button class="list-item-btn" onclick={() => navigateToTab('Court Orders')}>
 									<span class="item-name">{co.title || co.order_number}</span>
 									<span class="item-meta">{co.status} · {formatDate(co.created_at)}</span>
 								</button>

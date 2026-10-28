@@ -46,57 +46,61 @@
 	);
 
 	function canSeeTab(tab: { permission?: string }): boolean {
-		if (!tab.permission || !authService) return true;
+		if (!authService) return false;
+		if (!tab.permission) return true;
 		return authService.hasPermission(tab.permission);
 	}
 
-	const defaultTab: View = authService?.jobType === 'doj' ? "permissions" : "bulletins";
-	let firstVisibleTab = $derived(tabs.find((t) => canSeeTab(t))?.key || defaultTab);
-	let view = $state<View>(defaultTab);
+	let permittedTabs = $derived(tabs.filter(canSeeTab));
+	let view = $state<View | null>(null);
+	// Choose an existing permitted section before mounting its component. This
+	// also drops a selected section when its role grant is revoked.
+	let activeView = $derived(permittedTabs.find(tab => tab.key === view)?.key ?? permittedTabs[0]?.key ?? null);
 </script>
 
 <div class="management-page">
 	<div class="topbar">
 		<div class="tab-buttons">
-			{#each tabs as tab}
-				{#if canSeeTab(tab)}
-					<button class="tab-btn" class:active={view === tab.key} onclick={() => (view = tab.key)}>{tab.label}</button>
-				{/if}
+			{#each permittedTabs as tab}
+				<button class="tab-btn" class:active={activeView === tab.key} onclick={() => (view = tab.key)}>{tab.label}</button>
 			{/each}
 		</div>
 	</div>
 	<div class="management-content">
-		{#if view === "bulletins"}
+		{#if activeView === "bulletins"}
 			<ManagementBulletins />
-		{:else if view === "activity"}
+		{:else if activeView === "activity"}
 			<ManagementActivity />
-		{:else if view === "permissions"}
+		{:else if activeView === "permissions"}
 			<ManagementPermissions jobType={authService?.jobType} />
-		{:else if view === "tags"}
+		{:else if activeView === "tags"}
 			<ManagementTags jobType={authService?.jobType} />
-		{:else if view === "jailfines"}
+		{:else if activeView === "jailfines"}
 			<ManagementJailFines />
-		{:else if view === "tracking"}
+		{:else if activeView === "tracking"}
 			<ManagementTracking />
-		{:else if view === "templates"}
+		{:else if activeView === "templates"}
 			<ManagementTemplates jobType={authService?.jobType} />
-		{:else if view === "licenses"}
+		{:else if activeView === "licenses"}
 			<ManagementLicenses />
-		{:else if view === "awards"}
+		{:else if activeView === "awards"}
 			<ManagementAwards />
-		{:else if view === "colors"}
+		{:else if activeView === "colors"}
 			<ManagementColors />
-		{:else if view === "sop"}
+		{:else if activeView === "sop"}
 			<ManagementSOP {authService} />
-		{:else if view === "fto"}
+		{:else if activeView === "fto"}
 			<ManagementFTO jobType={authService?.jobType} />
-		{:else if view === "visibility"}
+		{:else if activeView === "visibility"}
 			<ManagementVisibility jobType={authService?.jobType} />
+		{:else}
+			<p class="no-management-access">No management sections are available for your role.</p>
 		{/if}
 	</div>
 </div>
 
 <style>
+	.no-management-access { padding: 24px; color: var(--primary-text); }
 	.management-page {
 		display: flex;
 		flex-direction: column;

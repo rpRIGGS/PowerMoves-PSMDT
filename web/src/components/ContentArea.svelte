@@ -124,8 +124,7 @@
 		sop: ["sop_view", "sop_manage"],
 		bulletin_board: ["bulletin_view"],
 		calendar: ["court_view", "training_view"],
-		management: ["management_settings", "management_bulletins", "management_activity", "management_permissions", "management_tracking"],
-		settings: ["management_settings"],
+		management: ["management_settings", "management_bulletins", "management_activity", "management_permissions", "management_tracking", "management_tags", "sop_manage", "fto_manage"],
 	};
 
 	const DOJ_SHARED_PAGES = ["reports", "citizens", "cases", "evidence", "charges"];
