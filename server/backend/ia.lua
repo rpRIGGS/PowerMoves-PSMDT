@@ -197,6 +197,7 @@ ps.registerCallback(resourceName .. ':server:submitComplaint', function(source, 
     -- Attach the complaint to a real officer where we can. NULL means "we couldn't
     -- tell who this is about" — IA assigns it by hand rather than it going nowhere.
     local officerCid = resolveOfficer(officerName, officerBadge)
+    local responsibleAgency, responsibleDomain = allegedEmployeeAgency(officerCid)
 
     -- The success screen promises the complainant will be contacted, so record a
     -- number they can actually be reached on.
@@ -211,8 +212,8 @@ ps.registerCallback(resourceName .. ':server:submitComplaint', function(source, 
         INSERT INTO mdt_ia_complaints
         (complaint_number, complainant_citizenid, complainant_name, complainant_phone,
          officer_citizenid, officer_name, officer_badge,
-         category, description, incident_date, incident_location, witnesses, evidence, status, job_type)
-        VALUES ('', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?)
+         category, description, incident_date, incident_location, witnesses, evidence, status, job_type, agency)
+        VALUES ('', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?)
     ]], {
         citizenid,
         complainantName,
@@ -226,7 +227,8 @@ ps.registerCallback(resourceName .. ':server:submitComplaint', function(source, 
         incidentLocation,
         witnesses or '[]',
         evidence or '[]',
-        GetMdtDomain(src)
+        responsibleDomain,
+        responsibleAgency
     })
 
     if not complaintId then
