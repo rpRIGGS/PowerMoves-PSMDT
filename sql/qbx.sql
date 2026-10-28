@@ -927,6 +927,7 @@ INSERT IGNORE INTO `mdt_custom_licenses` (`name`, `description`) VALUES
 CREATE TABLE IF NOT EXISTS `mdt_ia_complaints` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `complaint_number` varchar(20) NOT NULL,
+  `agency` varchar(40) DEFAULT NULL,
   `complainant_citizenid` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `complainant_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `complainant_phone` varchar(20) DEFAULT NULL,
