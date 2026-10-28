@@ -672,6 +672,15 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
 
     local reportId = reportData.report and tonumber(reportData.report.id) or nil
     local reportType = reportData.report and reportData.report.type or 'Incident Report'
+    local creatorEmployer = ps.getJobName(src)
+    if type(creatorEmployer) ~= 'string' or creatorEmployer == '' then
+        return { success = false, error = 'Missing employing agency' }
+    end
+    local newReport = reportId == nil
+    -- An explicitly shared editor must not transfer the original owner.
+    local existingOwner = reportId and MySQL.scalar.await(
+        "SELECT identifier FROM mdt_reports_restrictions WHERE reportid = ? AND type = 'owner' LIMIT 1",
+        { reportId }) or nil
 
     local citizenids = collectCitizenIds(reportData)
 
