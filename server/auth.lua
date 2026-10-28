@@ -202,6 +202,9 @@ end
 function CanViewStatewideLeoRoster(source)
     local identity = runtimeIdentity(source)
     if not identity or identity.jobType ~= 'leo' or not identity.gradeValid then return false end
+    -- Statewide roster access must respect the same live duty requirement as
+    -- other MDT views, including the Attorney General's special entitlement.
+    if not GetMdtAccess(source).authorized then return false end
     local allowedJobs = ((Config.MdtAccess or {}).LeoRosterOversightJobs) or {}
     if not contains(allowedJobs, identity.job) then return false end
     if isAttorneyGeneral(identity) then return true end
@@ -220,7 +223,7 @@ function CanViewStatewideLeoRoster(source)
     return now ~= nil and now.jobType == 'leo' and now.gradeValid
         and now.citizenid == identity.citizenid
         and now.job == identity.job and now.grade == identity.grade
-        and now.onDuty == identity.onDuty
+        and now.onDuty == identity.onDuty and GetMdtAccess(source).authorized == true
 end
 
 -- Separate, read-only government personnel scope. This deliberately does not
