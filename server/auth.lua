@@ -81,9 +81,13 @@ local function rolePermissions(identity)
     -- Government has no operational callbacks in phase 1. Stored roles or a
     -- QBCore boss flag cannot turn interface entry into police/medical access.
     if identity.jobType == 'gov' then return {} end
-    local granted = ceiling
-    if not identity.isBoss then
-        granted = nil
+    -- Transitional policy: preserve legacy access until explicit job/grade
+    -- permissions have been populated and reviewed for every active agency.
+    -- In 'explicit' mode, bosses use the same stored role/default lookup as
+    -- other employees; QBCore isboss remains available for employment logic.
+    local bossMode = ((Config.MdtAccess or {}).BossPermissionMode or 'legacy')
+    local granted = identity.isBoss and bossMode ~= 'explicit' and ceiling or nil
+    if not granted then
         local row = MySQL.single.await(
             'SELECT permissions FROM mdt_permission_roles WHERE job = ? AND grade = ?',
             { identity.job, identity.grade }
