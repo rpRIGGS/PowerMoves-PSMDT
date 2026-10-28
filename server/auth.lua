@@ -80,7 +80,11 @@ function HasMdtJudicialAuthority(source)
 end
 
 local function rolePermissions(identity)
-    local ceiling = ((Config.MdtAccess or {}).PermissionSets or {})[identity.jobType] or {}
+    -- SAFR retains the existing legacy EMS jobType for operational callbacks,
+    -- but its *authorization ceiling* is an independent fire permission family.
+    -- Neither switching screens nor holding a boss flag merges the two sets.
+    local permissionFamily = identity.primaryInterfaceId == 'safr' and 'fire' or identity.jobType
+    local ceiling = ((Config.MdtAccess or {}).PermissionSets or {})[permissionFamily] or {}
     -- Government has no operational callbacks in phase 1. Stored roles or a
     -- QBCore boss flag cannot turn interface entry into police/medical access.
     if identity.jobType == 'gov' then return {} end
