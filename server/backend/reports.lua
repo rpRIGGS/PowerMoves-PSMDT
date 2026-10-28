@@ -80,8 +80,9 @@ local function checkReportAccess(src, reportId)
             OR (mrr_check.type = 'job' AND mrr_check.identifier = ?)
             OR (mrr_check.type = 'jobtype' AND mrr_check.identifier = ?)
         )
+        AND ]] .. ownerScope .. [[
         GROUP BY mr.id
-    ]], {reportId, jobType, jobType, jobType, jobType, identifier, job, jobType})
+    ]], {reportId, jobType, jobType, jobType, jobType, identifier, job, jobType, job, identifier, job})
 
     return hasAccess and hasAccess[1] ~= nil
 end
@@ -233,8 +234,7 @@ local function buildReportAccessClause()
             OR (mrr.type = 'citizenid' AND mrr.identifier = ?)
             OR (mrr.type = 'job' AND mrr.identifier = ?)
             OR (mrr.type = 'jobtype' AND mrr.identifier = ?)
-        )
-    ]]
+        ) AND ]] .. ownerScope
 end
 
 
@@ -255,7 +255,7 @@ ps.registerCallback(resourceName .. ':server:getReports', function(source, page,
     filterClause = filterClause or ''
 
     local accessClause = buildReportAccessClause()
-    local baseParams = { jobType, jobType, jobType, identifier, job, jobType }
+    local baseParams = { jobType, jobType, jobType, identifier, job, jobType, job, identifier, job }
 
     local queryParams = {}
     for _, v in ipairs(baseParams) do queryParams[#queryParams + 1] = v end
@@ -1118,7 +1118,7 @@ ps.registerCallback(resourceName..':server:getReportAnalytics', function(source,
         WHERE %s%s
           AND mr.type = 'Incident Report'
 	]]):format(accessClause, filterClause)
-	local incidentParams = { jobType, jobType, jobType, identifier, job, jobType }
+	local incidentParams = { jobType, jobType, jobType, identifier, job, jobType, job, identifier, job }
 	for _, value in ipairs(filterValues or {}) do
 		incidentParams[#incidentParams + 1] = value
 	end
@@ -1131,7 +1131,7 @@ ps.registerCallback(resourceName..':server:getReportAnalytics', function(source,
         LEFT JOIN mdt_reports_restrictions AS mrr ON mr.id = mrr.reportid
         WHERE %s%s
 	]]):format(accessClause, filterClause)
-	local arrestParams = { jobType, jobType, jobType, identifier, job, jobType }
+	local arrestParams = { jobType, jobType, jobType, identifier, job, jobType, job, identifier, job }
 	for _, value in ipairs(filterValues or {}) do
 		arrestParams[#arrestParams + 1] = value
 	end
@@ -1145,7 +1145,7 @@ ps.registerCallback(resourceName..':server:getReportAnalytics', function(source,
         WHERE %s%s
           AND mw.expirydate >= NOW()
 	]]):format(accessClause, filterClause)
-	local warrantParams = { jobType, jobType, jobType, identifier, job, jobType }
+	local warrantParams = { jobType, jobType, jobType, identifier, job, jobType, job, identifier, job }
 	for _, value in ipairs(filterValues or {}) do
 		warrantParams[#warrantParams + 1] = value
 	end
