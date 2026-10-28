@@ -106,7 +106,8 @@ local function resolveOfficer(name, badge)
             WHERE badge_number = ? OR callsign = ?
             LIMIT 2
         ]], { badge, badge })
-        if row and row.citizenid then return row.citizenid end
+        if #matches == 1 then return matches[1].citizenid end
+        if #matches > 1 then return nil end
     end
 
     if name == '' then return nil end
