@@ -109,10 +109,8 @@ ps.registerCallback(resourceName .. ':server:issueAccreditation', function(sourc
     if not code:match('^[%w_%-%.]+$') then
         return {success = false, message = 'Credential code contains invalid characters'}
     end
-    local specialization = payload.specialization == nil or payload.specialization == ''
-        and nil or clean(payload.specialization, 160)
-    local sourceRef = payload.reference == nil or payload.reference == ''
-        and nil or clean(payload.reference, 128)
+    local specialization = clean(payload.specialization, 160)
+    local sourceRef = clean(payload.reference, 128)
     local expiry = payload.expiresAt
     if expiry == '' then expiry = nil end
     if expiry ~= nil then
@@ -127,12 +125,14 @@ ps.registerCallback(resourceName .. ':server:issueAccreditation', function(sourc
     if not issuer or not actor or not ensureSchema() then
         return {success = false, message = 'Accreditation unavailable'}
     end
-    local ok, id = pcall(MySQL.insert.await, [[
-        INSERT INTO mdt_personal_accreditations
-        (citizenid, credential_code, credential_name, credential_family,
-         specialization, issued_by_job, issued_by_citizenid, expires_at, source_reference)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ]], {citizenid, code, name, family, specialization or '', issuer, actor, expiry or false, sourceRef or ''})
+    local ok, id = pcall(function()
+        return MySQL.insert.await([[
+            INSERT INTO mdt_personal_accreditations
+            (citizenid, credential_code, credential_name, credential_family,
+             specialization, issued_by_job, issued_by_citizenid, expires_at, source_reference)
+            VALUES (?, ?, ?, ?, ?, ?, ?, NULLIF(?, ''), ?)
+        ]], {citizenid, code, name, family, specialization or '', issuer, actor, expiry or '', sourceRef or ''})
+    end)
     if not ok or not id then
         return {success = false, message = 'Accreditation could not be saved'}
     end
