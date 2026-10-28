@@ -282,20 +282,46 @@ local function governmentRosterJob(jobName)
         if ok and type(value) == 'table' then job = value end
     end
     if not job or type(job.grades) ~= 'table' then return nil end
-    local grades, names = {}, {}
+    local grades, names, bossGrades = {}, {}, {}
     for key, definition in pairs(job.grades) do
         if type(definition) == 'table' then
             local grade = tonumber(definition.level or definition.grade or definition.rank or definition.value or definition.id or key)
             local name = definition.name or definition.label or definition.title
             if grade and grade >= 0 and grade % 1 == 0 and type(name) == 'string' and name ~= '' and not names[grade] then
                 names[grade] = name
+                bossGrades[grade] = definition.isboss == true
                 grades[#grades + 1] = { grade = grade, name = name }
             end
         end
     end
     if #grades == 0 then return nil end
     table.sort(grades, function(a, b) return a.grade < b.grade end)
-    return { label = type(job.label) == 'string' and job.label ~= '' and job.label or jobName, grades = grades, names = names }
+    return { label = type(job.label) == 'string' and job.label ~= '' and job.label or jobName, grades = grades, names = names, bossGrades = bossGrades }
+end
+
+local function governmentGrade(value)
+    if type(value) == 'table' then
+        value = value.level or value.grade or value.rank or value.value or value.id
+    end
+    if type(value) ~= 'number' and type(value) ~= 'string' then return nil end
+    local grade = tonumber(value)
+    if not grade or grade < 0 or grade >= math.huge or grade % 1 ~= 0 then return nil end
+    return grade
+end
+
+-- This only advertises controls. Employment callbacks independently verify
+-- current QBCore players and shared boss flags immediately before SetJob.
+local function governmentRosterCanManage(source, access, selectedDepartment, jobDefinition)
+    if selectedDepartment ~= access.agency or not jobDefinition then return false end
+    local ok, allowed = pcall(function()
+        local job = ps.getJobData(source)
+        return type(job) == 'table' and job.name == access.agency
+            and governmentGrade(job.grade) == access.grade
+            and job.isboss == true and jobDefinition.bossGrades[access.grade] == true
+            and ps.getIdentifier(source) == access.citizenid
+            and (Config.OnlyShowOnDuty ~= true or job.onduty == true)
+    end)
+    return ok and allowed == true
 end
 
 local function governmentRosterObject(value)
@@ -408,8 +434,202 @@ ps.registerCallback(tostring(GetCurrentResourceName()) .. ':server:getGovernment
     return {
         success = true, roster = roster, departments = departments,
         selectedDepartment = selectedDepartment, hasOversight = access.hasOversight,
-        canManagePersonnel = false,
+        canManagePersonnel = governmentRosterCanManage(source, access, selectedDepartment, selectedJob),
     }
+end)
+
+-- Government employment uses the same primary QBCore job as existing MDT
+-- employment actions. It never enters operational authorization or cleanup.
+local governmentEmploymentLocks = {}
+
+local function governmentEmploymentDenied(message)
+    return { success = false, error = message }
+end
+
+local function governmentCore()
+    local ok, core = pcall(function() return exports['qb-core']:GetCoreObject() end)
+    if not ok or type(core) ~= 'table' or type(core.Functions) ~= 'table'
+        or type(core.Functions.GetPlayer) ~= 'function' or type(core.Shared) ~= 'table'
+        or type(core.Shared.Jobs) ~= 'table' then return nil end
+    return core
+end
+
+local function governmentCorePlayer(core, source)
+    local ok, player = pcall(core.Functions.GetPlayer, source)
+    local data = ok and type(player) == 'table' and player.PlayerData or nil
+    if type(data) ~= 'table' or type(data.job) ~= 'table'
+        or type(data.citizenid) ~= 'string' or data.citizenid == ''
+        or tonumber(data.source) ~= tonumber(source) then return nil end
+    return player
+end
+
+local function governmentCoreGrade(core, jobName, grade)
+    local job = core.Shared.Jobs[jobName]
+    local definition = type(job) == 'table' and type(job.grades) == 'table'
+        and (job.grades[tostring(grade)] or job.grades[grade]) or nil
+    return type(definition) == 'table' and definition or nil
+end
+
+local function governmentManager(core, source, access, payload, expected)
+    if not access then return nil end
+    if payload.department ~= nil and payload.department ~= access.agency then return nil end
+    if payload.job ~= nil and payload.job ~= access.agency then return nil end
+    local player = governmentCorePlayer(core, source)
+    local data = player and player.PlayerData
+    local job = data and data.job
+    local grade = job and governmentGrade(job.grade)
+    local sharedGrade = grade and governmentCoreGrade(core, access.agency, grade)
+    if not data or data.citizenid ~= access.citizenid or job.name ~= access.agency
+        or grade ~= access.grade or job.isboss ~= true
+        or not sharedGrade or sharedGrade.isboss ~= true
+        or (Config.OnlyShowOnDuty == true and job.onduty ~= true) then return nil end
+    local manager = {
+        citizenid = data.citizenid, agency = job.name, grade = grade,
+        onDuty = job.onduty == true, player = player,
+    }
+    if expected and (manager.citizenid ~= expected.citizenid or manager.agency ~= expected.agency
+        or manager.grade ~= expected.grade or manager.onDuty ~= expected.onDuty) then return nil end
+    return manager
+end
+
+local function governmentOnlineTarget(core, payload, hiring)
+    if hiring then
+        local serverId = (type(payload.serverId) == 'number' or type(payload.serverId) == 'string') and tonumber(payload.serverId) or nil
+        if not serverId or serverId <= 0 or serverId >= math.huge or serverId % 1 ~= 0 then return nil end
+        return governmentCorePlayer(core, serverId)
+    end
+    if type(payload.citizenid) ~= 'string' or payload.citizenid == ''
+        or type(core.Functions.GetPlayerByCitizenId) ~= 'function' then return nil end
+    local ok, found = pcall(core.Functions.GetPlayerByCitizenId, payload.citizenid)
+    local data = ok and type(found) == 'table' and found.PlayerData or nil
+    local source = type(data) == 'table' and tonumber(data.source) or nil
+    local player = source and governmentCorePlayer(core, source) or nil
+    if not player or player.PlayerData.citizenid ~= payload.citizenid then return nil end
+    return player
+end
+
+local function governmentEligibleTarget(player, manager, payload, hiring, candidate)
+    local data = player and player.PlayerData
+    if not data or data.citizenid == manager.citizenid then return false end
+    if not candidate and data.citizenid ~= payload.citizenid then return false end
+    return data.job.name == (hiring and 'unemployed' or manager.agency)
+end
+
+local function governmentManagerRequest(source, payload)
+    if type(payload) ~= 'table' then return nil, nil, nil, 'Invalid personnel request' end
+    local access = governmentRosterAccess(source)
+    if not access then return nil, nil, nil, 'Government personnel access denied' end
+    local core = governmentCore()
+    if not core then return nil, nil, nil, 'QBCore employment services unavailable' end
+    local manager = governmentManager(core, source, access, payload)
+    if not manager then return nil, nil, nil, 'Only a current department boss may manage its personnel' end
+    return core, manager, access
+end
+
+ps.registerCallback(tostring(GetCurrentResourceName()) .. ':server:getGovernmentHireCandidate', function(source, payload)
+    local core, manager, _, message = governmentManagerRequest(source, payload)
+    if not core then return governmentEmploymentDenied(message) end
+    local target = governmentOnlineTarget(core, payload, true)
+    if not governmentEligibleTarget(target, manager, payload, true, true) then
+        return governmentEmploymentDenied('Select an online unemployed player')
+    end
+    local citizenid = target.PlayerData.citizenid
+    -- The permission lookup can yield. Re-resolve both actors afterwards;
+    -- a server ID may have been reassigned to a different character.
+    local access = governmentRosterAccess(source)
+    manager = governmentManager(core, source, access, payload, manager)
+    target = governmentOnlineTarget(core, payload, true)
+    if not manager or not target or target.PlayerData.citizenid ~= citizenid
+        or not governmentEligibleTarget(target, manager, payload, true, true) then
+        return governmentEmploymentDenied('Personnel eligibility changed; refresh and try again')
+    end
+    local data = target.PlayerData
+    local info = type(data.charinfo) == 'table' and data.charinfo or {}
+    return {
+        success = true,
+        candidate = {
+            citizenid = data.citizenid, serverId = tonumber(data.source),
+            firstName = type(info.firstname) == 'string' and info.firstname or '',
+            lastName = type(info.lastname) == 'string' and info.lastname or '',
+        },
+    }
+end)
+
+local function governmentEmploymentAction(source, payload, action)
+    local core, manager, _, message = governmentManagerRequest(source, payload)
+    if not core then return governmentEmploymentDenied(message) end
+    local hiring = action == 'hire'
+    if type(payload.citizenid) ~= 'string' or payload.citizenid == '' then
+        return governmentEmploymentDenied('Missing employee identifier')
+    end
+    local grade = action == 'terminate' and 0 or governmentGrade(payload.grade)
+    -- Unlike framework grade data, a requested grade must be a scalar.
+    if action ~= 'terminate' and type(payload.grade) ~= 'number' and type(payload.grade) ~= 'string' then grade = nil end
+    local destination = action == 'terminate' and 'unemployed' or manager.agency
+    if grade == nil or not governmentCoreGrade(core, destination, grade) then
+        return governmentEmploymentDenied('Invalid grade for this department')
+    end
+    local target = governmentOnlineTarget(core, payload, hiring)
+    if not governmentEligibleTarget(target, manager, payload, hiring, false) then
+        return governmentEmploymentDenied(hiring and 'Player must be online and unemployed' or 'Employee must be online and employed by your department')
+    end
+    local targetSource = tonumber(target.PlayerData.source)
+    if governmentEmploymentLocks[payload.citizenid] then
+        return governmentEmploymentDenied('Another employment action is in progress for this player')
+    end
+    governmentEmploymentLocks[payload.citizenid] = true
+    local ok, result = pcall(function()
+        -- Final authorization is after the last role read. Oversight is not a
+        -- write grant: the manager's primary job always determines destination.
+        local access = governmentRosterAccess(source)
+        local currentManager = governmentManager(core, source, access, payload, manager)
+        local currentTarget = governmentOnlineTarget(core, payload, hiring)
+        if not currentManager or not currentTarget or tonumber(currentTarget.PlayerData.source) ~= targetSource
+            or not governmentEligibleTarget(currentTarget, currentManager, payload, hiring, false)
+            or not governmentCoreGrade(core, destination, grade) then
+            return governmentEmploymentDenied('Personnel authority or employment changed; refresh and try again')
+        end
+        if type(currentTarget.Functions) ~= 'table' or type(currentTarget.Functions.SetJob) ~= 'function' then
+            return governmentEmploymentDenied('Framework employment change unavailable')
+        end
+        local oldJob, oldGrade = currentTarget.PlayerData.job.name, governmentGrade(currentTarget.PlayerData.job.grade)
+        local changed = currentTarget.Functions.SetJob(destination, grade)
+        local updated = governmentCorePlayer(core, targetSource)
+        if changed == false or not updated or updated.PlayerData.citizenid ~= payload.citizenid
+            or updated.PlayerData.job.name ~= destination or governmentGrade(updated.PlayerData.job.grade) ~= grade then
+            return governmentEmploymentDenied('Framework did not apply the employment change')
+        end
+        local saveWarning = false
+        if type(updated.Functions) == 'table' and type(updated.Functions.Save) == 'function' then
+            local saved, saveResult = pcall(updated.Functions.Save)
+            saveWarning = not saved or saveResult == false
+        end
+        if ps.auditLog then
+            pcall(ps.auditLog, source, 'government_employee_' .. action, 'government_personnel', payload.citizenid, {
+                department = manager.agency, oldJob = oldJob, oldGrade = oldGrade,
+                job = destination, grade = grade,
+            })
+        end
+        local successMessage = action == 'hire' and 'Employee hired'
+            or action == 'terminate' and 'Employment terminated' or 'Employee grade updated'
+        if saveWarning then successMessage = successMessage .. '; immediate framework save could not be confirmed' end
+        return { success = true, message = successMessage }
+    end)
+    governmentEmploymentLocks[payload.citizenid] = nil
+    if not ok then return governmentEmploymentDenied('Framework employment change failed') end
+    return result
+end
+
+ps.registerCallback(tostring(GetCurrentResourceName()) .. ':server:hireGovernmentEmployee', function(source, payload)
+    return governmentEmploymentAction(source, payload, 'hire')
+end)
+
+ps.registerCallback(tostring(GetCurrentResourceName()) .. ':server:setGovernmentEmployeeGrade', function(source, payload)
+    return governmentEmploymentAction(source, payload, 'grade_change')
+end)
+
+ps.registerCallback(tostring(GetCurrentResourceName()) .. ':server:terminateGovernmentEmployee', function(source, payload)
+    return governmentEmploymentAction(source, payload, 'terminate')
 end)
 
 -- Get available officer tags/certifications (filtered by job type)

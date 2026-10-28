@@ -15,6 +15,19 @@ RegisterNUICallback('getGovernmentRoster', function(data, cb)
     cb(result or denied)
 end)
 
+-- These bridges do not decide who may manage personnel. Each server callback
+-- rechecks the live manager, target employee and government job.
+for _, action in ipairs({
+    'getGovernmentHireCandidate', 'hireGovernmentEmployee',
+    'setGovernmentEmployeeGrade', 'terminateGovernmentEmployee',
+}) do
+    RegisterNUICallback(action, function(data, cb)
+        if not MDTOpen then cb({ success = false, error = 'MDT is not open' }) return end
+        local result = ps.callback(tostring(GetCurrentResourceName()) .. ':server:' .. action, data)
+        cb(result or { success = false, error = 'Government personnel service unavailable' })
+    end)
+end
+
 RegisterNUICallback('getOfficerTags', function(data, cb)
     if not MDTOpen then cb({}) return end
     local tags = ps.callback('ps-mdt:server:getOfficerTags')

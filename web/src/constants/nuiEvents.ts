@@ -172,6 +172,10 @@ export const NUI_EVENTS = {
 	ROSTER: {
 		GET_ROSTER: "getRoster",
 		GET_GOVERNMENT_ROSTER: "getGovernmentRoster",
+		GET_GOVERNMENT_HIRE_CANDIDATE: "getGovernmentHireCandidate",
+		HIRE_GOVERNMENT_EMPLOYEE: "hireGovernmentEmployee",
+		SET_GOVERNMENT_EMPLOYEE_GRADE: "setGovernmentEmployeeGrade",
+		TERMINATE_GOVERNMENT_EMPLOYEE: "terminateGovernmentEmployee",
 		UPDATE_ROSTER: "updateRoster",
 		ADD_OFFICER: "addOfficer",
 		REMOVE_OFFICER: "removeOfficer",

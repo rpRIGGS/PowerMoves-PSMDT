@@ -25,5 +25,18 @@ export interface GovernmentRosterResponse {
 	departments: GovernmentDepartment[];
 	selectedDepartment?: string;
 	hasOversight?: boolean;
-	canManagePersonnel?: false;
+	canManagePersonnel?: boolean;
+}
+
+export interface GovernmentHireCandidate {
+	citizenid: string;
+	serverId: number;
+	firstName: string;
+	lastName: string;
+}
+
+export interface GovernmentEmploymentResult {
+	success: boolean;
+	error?: string;
+	message?: string;
 }

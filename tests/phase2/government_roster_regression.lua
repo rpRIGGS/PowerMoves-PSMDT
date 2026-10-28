@@ -431,7 +431,9 @@ test('response uses the minimal personnel allowlist and never includes operation
     local result=roster(1)
     local allowed={citizenid=true,firstName=true,lastName=true,rank=true,grade=true,department=true,departmentLabel=true,jurisdiction=true}
     for _, employee in ipairs(result.roster) do for key in pairs(employee) do expect(allowed[key], 'Unexpected employee field: '..key) end end
-    equal(result.canManagePersonnel,false)
+    -- Phase 3 enables management for a live boss viewing their own job. The
+    -- employee projection remains unchanged and still excludes private data.
+    equal(result.canManagePersonnel,true)
 end)
 
 test('department grade catalog and jurisdiction ancestry use existing runtime definitions only', function()
