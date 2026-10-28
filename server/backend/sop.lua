@@ -31,6 +31,26 @@ ps.registerCallback(resourceName .. ':server:getSOPCategories', function(source)
     return categories
 end)
 
+-- Existing SOP data is already keyed to the employing job.
+-- Resolve ownership before every mutation that receives a client-supplied ID.
+local function ownsSOPCategory(src, categoryId)
+    local job = ps.getJobName(src)
+    if not job then return false end
+    local owner = MySQL.scalar.await('SELECT job FROM mdt_sop_categories WHERE id = ? LIMIT 1', {categoryId})
+    return owner ~= nil and owner == job
+end
+
+local function ownsSOPSection(src, sectionId)
+    local job = ps.getJobName(src)
+    if not job then return false end
+    local owner = MySQL.scalar.await([[
+        SELECT c.job FROM mdt_sop_sections s
+        INNER JOIN mdt_sop_categories c ON c.id = s.category_id
+        WHERE s.id = ? LIMIT 1
+    ]], {sectionId})
+    return owner ~= nil and owner == job
+end
+
 -- Create a new SOP category
 ps.registerCallback(resourceName .. ':server:createSOPCategory', function(source, data)
     local src = source
@@ -69,6 +89,7 @@ ps.registerCallback(resourceName .. ':server:updateSOPCategory', function(source
     categoryId = tonumber(categoryId)
     updates = updates or {}
     if not categoryId then return { success = false, error = 'Invalid category id' } end
+    if not ownsSOPCategory(src, categoryId) then return { success = false, error = 'Category access denied' } end
 
     local sets = {}
     local vals = {}
@@ -98,6 +119,7 @@ ps.registerCallback(resourceName .. ':server:deleteSOPCategory', function(source
 
     categoryId = tonumber(categoryId)
     if not categoryId then return { success = false, error = 'Invalid category id' } end
+    if not ownsSOPCategory(src, categoryId) then return { success = false, error = 'Category access denied' } end
 
     MySQL.query.await('DELETE FROM mdt_sop_categories WHERE id = ?', { categoryId })
     return { success = true }
@@ -117,6 +139,7 @@ ps.registerCallback(resourceName .. ':server:createSOPSection', function(source,
     if not categoryId or title == '' then
         return { success = false, error = 'Category and title are required' }
     end
+    if not ownsSOPCategory(src, categoryId) then return { success = false, error = 'Category access denied' } end
 
     -- Get next sort order within this category
     local maxRow = MySQL.single.await('SELECT COALESCE(MAX(sort_order), 0) as max_sort FROM mdt_sop_sections WHERE category_id = ?', { categoryId })
@@ -142,6 +165,7 @@ ps.registerCallback(resourceName .. ':server:updateSOPSection', function(source,
     sectionId = tonumber(sectionId)
     updates = updates or {}
     if not sectionId then return { success = false, error = 'Invalid section id' } end
+    if not ownsSOPSection(src, sectionId) then return { success = false, error = 'Section access denied' } end
 
     local sets = {}
     local vals = {}
@@ -171,6 +195,7 @@ ps.registerCallback(resourceName .. ':server:deleteSOPSection', function(source,
 
     sectionId = tonumber(sectionId)
     if not sectionId then return { success = false, error = 'Invalid section id' } end
+    if not ownsSOPSection(src, sectionId) then return { success = false, error = 'Section access denied' } end
 
     MySQL.query.await('DELETE FROM mdt_sop_sections WHERE id = ?', { sectionId })
     return { success = true }
