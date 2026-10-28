@@ -93,3 +93,13 @@ Owner decisions captured October 28, 2026. Unresolved issues stay explicitly unr
 - **PowerMoves-PSDispatch main:** `shared/config.lua` now allows QBCore `fire` to open dispatch; `client/main.lua` E-response accepts calls targeted either by job *type* or *agency name* while respecting `Config.OnDutyOnly`. This enables proper named-agency fire calls, but does not create /511 yet or authorize `mechanic` access.
 - **Still outstanding:** server-side `ps-dispatch:server:attach` receives client player data and has no exclusive tow-claim logic. Before /511 first-accept dispatch, verify source identity/eligibility server-side, then add atomic claim and proper release/reassignment without modifying multi-unit emergency behavior. The complete report/roster and accreditation permission audit remains open.
 - All changed files were read back from their default branches; automated Lua integration tests, FiveM runtime tests, and server deployment were NOT performed.
+
+## PS-Dispatch /511 implementation checkpoint — October 28, direct main
+**Implemented in separate repository** `rpRIGGS/PowerMoves-PSDispatch` on `main`:
+- `/511 <message>` uses the existing caller/phone dispatch flow; its alert is `511call` targeting job type `mechanic` and has its own blip. QBCore on-duty mechanics can open the dispatch menu.
+- Server verifies live QBCore citizen/job/duty when attaching; untrusted client-supplied player tables are ignored. Legacy police/fire/EMS calls remain multi-unit.
+- `511call` is exclusive; the first eligible driver is confirmed by `ps-dispatch:callback:claimTow`. Both popup E and UI attach wait for confirmation before showing "Responding" and waypoint.
+- A claimed tow is omitted from other mechanics' available-call results and removed from their active board; reassignment occurs after disconnect, detach, or changing to another dispatch. Separate 511 requests are never merged into one incident.
+- Only the assigned on-duty tow driver can clear/manage an accepted 511 call; off-duty units can release their assignment.
+- **Static source checks passed (12/12); Lua execution, database and FiveM runtime tests are NOT performed**. The stored dispatch call is not a durable tow audit record; it can expire, be cleared, or be lost on restart.
+**Not implemented**: SADOT.net operational interface/access, vehicle condition reports, tow/impound completion integration, persistence/auditing, fleet-targeted MDT call buttons, automatic vehicle handling, 511 UI field specialization, cross-agency accident/vehicle-record permissions. Keep the `Config.MdtAccess.Transportation.Enabled=false` placeholder until ready.
