@@ -169,10 +169,27 @@ ps.registerCallback('ps-mdt:server:getRosterList', function(source)
         defaultDept = employer
         scopeJobType = nil
     else
-        jobList = (Config and Config.PoliceJobs) or { 'police' }
-        matchFn = IsPoliceJob
-        defaultDept = 'police'
-        scopeJobType = Config and Config.PoliceJobType and tostring(Config.PoliceJobType) or nil
+        -- Default to the actual employing law-enforcement agency.
+        -- Statewide authorized investigators can view the family roster;
+        -- ordinary departmental bosses cannot inherit that oversight.
+        local employer = access.agency
+        local eligible = false
+        for _, configured in ipairs((Config and Config.PoliceJobs) or {}) do
+            if configured == employer then eligible = true break end
+        end
+        if not eligible then return { roster = {}, activeUnits = {} } end
+        local statewide = type(CanViewStatewideLeoRoster) == 'function'
+            and CanViewStatewideLeoRoster(source) == true
+        if statewide then
+            jobList = (Config and Config.PoliceJobs) or {}
+            matchFn = IsPoliceJob
+            scopeJobType = Config and Config.PoliceJobType and tostring(Config.PoliceJobType) or nil
+        else
+            jobList = { employer }
+            matchFn = function(name, _) return name == employer end
+            scopeJobType = nil
+        end
+        defaultDept = employer
     end
 
     if GetResourceState('qbx_core') == 'started' and exports['qbx_core'] then
