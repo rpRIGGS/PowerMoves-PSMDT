@@ -9,7 +9,7 @@
 	import { untrack } from "svelte";
 	import { getReportTypesForJob } from "../../constants/index";
 	import { formatDate as fmtDate, formatTime as fmtTime } from "../../utils/datetime";
-	import type { JobType } from "../../interfaces/IUser";
+	import type { JobType, InterfaceId } from "../../interfaces/IUser";
 
 	interface Props {
 		title: string;
@@ -25,6 +25,7 @@
 		availableTemplates?: TemplateOption[];
 		showTemplateMenu?: boolean;
 		jobType?: JobType;
+		interfaceId?: InterfaceId;
 	}
 
 	let {
@@ -41,6 +42,7 @@
 		availableTemplates = [],
 		showTemplateMenu = false,
 		jobType = 'leo',
+		interfaceId,
 	}: Props = $props();
 
 	// Local state so parent re-renders don't reset inputs
@@ -61,7 +63,7 @@
 
 	let matchingTemplates = $derived(availableTemplates.filter((t) => t.type === localType));
 
-	let reportTypes = $derived(getReportTypesForJob(jobType));
+	let reportTypes = $derived(getReportTypesForJob(jobType, interfaceId));
 
 	function formatDate(timestamp: number): string {
 		return fmtDate(timestamp);
