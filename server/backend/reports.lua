@@ -254,9 +254,7 @@ end
 
 ps.registerCallback(resourceName .. ':server:getReports', function(source, page, filters)
     local src = source
-    if not CheckAuth(src) or not CheckPermission(src, 'reports_create') then
-        return { success = false, error = 'Report editing not permitted' }
-    end
+    if not CheckAuth(src) then return end
 
     local identifier = ps.getIdentifier(src)
     local job = ps.getJobName(src)
@@ -659,7 +657,9 @@ end)
 
 ps.registerCallback(resourceName..':server:saveReport', function(source, reportData)
     local src = source
-    if not CheckAuth(src) then return end
+    if not CheckAuth(src) or not CheckPermission(src, 'reports_create') then
+        return { success = false, error = 'Report editing not permitted' }
+    end
 
     local identifier = ps.getIdentifier(src)
     local playerName = ps.getPlayerName(src)
