@@ -113,6 +113,33 @@
 		trainingService === 'medical' ? 'Clinical Preceptor' : 'Field Training Officer (FTO)');
 	let recordTitle = $derived(trainingService === 'doj' ? 'Training File' :
 		trainingService === 'medical' ? 'Clinical Training File' : 'FTO Assignment');
+	interface PersonalTrainingRow {
+		fto_number: string;
+		job_type: string;
+		agency_job: string | null;
+		status: string;
+		start_date: string | null;
+		end_date: string | null;
+		current_phase: string | null;
+	}
+	let showMyTrainingHistory = $state(false);
+	let trainingHistory = $state<PersonalTrainingRow[]>([]);
+	let trainingHistoryLoading = $state(false);
+	async function openMyTrainingHistory() {
+		showMyTrainingHistory = true;
+		trainingHistoryLoading = true;
+		try {
+			const rows = await fetchNui<PersonalTrainingRow[]>(
+				NUI_EVENTS.FTO.GET_MY_TRAINING_TRANSCRIPT, {}, []
+			);
+			trainingHistory = Array.isArray(rows) ? rows : [];
+		} catch {
+			trainingHistory = [];
+			globalNotifications.error("Unable to retrieve personal training history");
+		} finally {
+			trainingHistoryLoading = false;
+		}
+	}
 	let canManage = $derived(authService?.hasPermission('fto_manage') ?? false);
 	let mounted = false;
 
@@ -589,7 +616,31 @@
 </script>
 
 <div class="fto-page">
-	{#if selectedDetail}
+	{#if showMyTrainingHistory}
+		<div class="topbar">
+			<button class="back-btn" onclick={() => { showMyTrainingHistory = false; }}>
+				Back to {trainingTitle}
+			</button>
+			<span class="topbar-case-number">My Training History</span>
+		</div>
+		<div class="list-panel">
+			<p style="padding:12px 18px;opacity:0.75">Personal training milestones across previous and current agencies. Instructor evaluations remain in the agency's authorized training records.</p>
+			{#if trainingHistoryLoading}
+				<p style="padding:16px">Loading training history...</p>
+			{:else if trainingHistory.length === 0}
+				<p style="padding:16px">No recorded training assignments yet.</p>
+			{:else}
+				{#each trainingHistory as entry}
+					<div style="padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.09)">
+						<div style="font-weight:600">{entry.fto_number || 'Training Record'} — {formatLabel(entry.status || 'unknown')}</div>
+						<div style="opacity:0.8;margin-top:5px">{entry.agency_job || 'Previous agency not recorded'} · {entry.job_type || 'Training'}</div>
+						<div style="opacity:0.7;margin-top:5px">Phase: {entry.current_phase || 'Not recorded'}</div>
+						<div style="opacity:0.7;margin-top:5px">Started: {entry.start_date ? formatDateValue(entry.start_date) : '—'} · Completed: {entry.end_date ? formatDateValue(entry.end_date) : '—'}</div>
+					</div>
+				{/each}
+			{/if}
+		</div>
+	{:else if selectedDetail}
 		<!-- ==================== DETAIL VIEW ==================== -->
 		<div class="topbar">
 			<button class="back-btn" onclick={goBack}>
@@ -1107,6 +1158,9 @@
 				<input type="text" placeholder="Search by trainee or trainer name..." bind:value={searchQuery} />
 			</div>
 			<div style="flex:1;"></div>
+			<button class="back-btn" onclick={openMyTrainingHistory} disabled={trainingHistoryLoading}>
+				My Training History
+			</button>
 			{#if canManage}
 				<button class="primary-btn" onclick={() => { showCreateForm = true; }}>
 					<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
