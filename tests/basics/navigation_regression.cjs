@@ -120,13 +120,19 @@ async function main() {
     const content = read('web/src/components/ContentArea.svelte');
     assert.match(content, /authService\.isAuthorized\s*&&\s*authService\.interfaceId\s*===\s*['"]sagov['"][\s\S]*?<Government\s/);
   });
-  await test('fire and hospital interface identities remain distinct while sharing EMS pages', () => {
+  await test('SAFR and SAMS retain distinct interface identities and service training tabs', () => {
     assert.equal(navigation.INTERFACE_INFO.safr.name, 'SAFR.net');
     assert.equal(navigation.INTERFACE_INFO.sams.name, 'SAMS.net');
     assert.notEqual(navigation.INTERFACE_INFO.safr.icon, navigation.INTERFACE_INFO.sams.icon);
-    const tabs = navigation.getTabsForJob('ems').map(item => item.name);
-    for (const tab of ['Dashboard', 'Reports', 'Roster', 'Calendar', 'Preferences']) assert.ok(tabs.includes(tab));
-    for (const tab of ['Court Orders', 'Warrant Review', 'FTO', 'PPR']) assert.ok(!tabs.includes(tab));
+    for (const interfaceId of ['safr', 'sams']) {
+      const tabs = navigation.getTabsForJob('ems', interfaceId).map(item => item.name);
+      for (const tab of ['Dashboard', 'Reports', 'Roster', 'FTO', 'SOP', 'Calendar', 'Preferences']) {
+        assert.ok(tabs.includes(tab), interfaceId + ' missing ' + tab);
+      }
+      for (const tab of ['Court Orders', 'Warrant Review', 'PPR']) {
+        assert.ok(!tabs.includes(tab), interfaceId + ' unexpectedly exposes ' + tab);
+      }
+    }
   });
   await test('management opens the first actually permitted section rather than Bulletins', () => {
     for (const [permission, expected] of [['management_activity', 'activity'], ['management_permissions', 'permissions'], ['management_tags', 'tags'], ['sop_manage', 'sop'], ['fto_manage', 'fto']]) {
