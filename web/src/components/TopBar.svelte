@@ -11,7 +11,6 @@
 	} from "../constants";
 	import { formatTime, formatDate } from "../utils/datetime";
 
-	let info = $derived(getInterfaceInfo(authService.interfaceId, authService.jobType));
 	import type { AuthService } from "../services/authService.svelte";
 	import type { InterfaceId } from "../interfaces/IUser";
 	import { globalNotifications } from "../services/notificationService.svelte";
@@ -22,6 +21,7 @@
 	}
 
 	let { authService, onOpacityStyleChange }: Props = $props();
+	let info = $derived(getInterfaceInfo(authService.interfaceId, authService.jobType));
 
 	let currentTime = $state(DEFAULT_TIME);
 	let currentDate = $state(DEFAULT_DATE);

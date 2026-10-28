@@ -498,6 +498,7 @@ Config.PoliceJobs = {
 Config.DojJobType = "doj"
 Config.DojJobs = {
     'sadoj',
+    'judge', -- legacy DOJ job defined in authoritative planning-reference/jobs.lua
     'lawyer',
 }
 
@@ -565,6 +566,7 @@ Config.MdtAccess = {
     AttorneyGeneral = { job = 'sadle', grade = 11 },
     JudicialGrades = {
         sadoj = { 8, 9, 10 },
+        judge = { 1, 2 }, -- legacy Magistrate/Judge; clerk grade 0 is excluded
     },
     -- Explicit permission ceilings also define the starting grants for boss
     -- grades. QBCore isboss stays unchanged; it is not universal MDT authority.
