@@ -472,5 +472,7 @@ end)
 -- effective grants rather than an unrestricted boss override.
 ps.registerCallback(tostring(GetCurrentResourceName())..':server:getMyPermissions', function(source)
     local access = GetMdtAccess(source)
-    return { permissions = access.permissions, isBoss = access.isBoss }
+    -- Do not advertise actionable permissions for an unauthorized session.
+    -- Boss employment status remains independent of MDT operational grants.
+    return { permissions = access.authorized and access.permissions or {}, isBoss = access.isBoss }
 end)
