@@ -8,6 +8,7 @@
 	import { openReportInEditor } from "../stores/reportsStore";
 	import type { createTabService } from "../services/tabService.svelte";
 	import { globalNotifications } from "../services/notificationService.svelte";
+	import { compressImage } from "../services/uploadService";
 	import { openBoloDetail } from "../stores/navigationStore";
 	import Pagination from "../components/Pagination.svelte";
 
@@ -108,9 +109,8 @@
 	let { tabService, jobType = 'leo', authService }: { tabService: ReturnType<typeof createTabService>; jobType?: JobType; authService?: AuthService } =
 		$props();
 
-	let canManageLicenses = $derived(!isEMS && (authService?.hasPermission('citizens_edit_licenses') ?? true));
-
 	const isEMS = $derived(jobType === 'ems');
+	let canManageLicenses = $derived(!isEMS && (authService?.hasPermission('citizens_edit_licenses') ?? true));
 	let searchQuery = $state("");
 	let citizens: Citizen[] = $state([]);
 	let loading = $state(true);
