@@ -347,7 +347,7 @@ sadoj = {
 	},
 	pillboxmed = {
 		label = 'Pillbox Hill Medical Center',
-		type = 'medical',
+		type = 'ems',
 		defaultDuty = true,
 		offDutyPay = false,
 		grades = {
@@ -369,7 +369,7 @@ sadoj = {
 	},
 	sandymed = {
 		label = 'Sandy Shores Medical Center',
-		type = 'medical',
+		type = 'ems',
 		defaultDuty = true,
 		offDutyPay = false,
 		grades = {
@@ -391,7 +391,7 @@ sadoj = {
 	},
 	paletomed = {
 		label = 'The Bay Care Center',
-		type = 'medical',
+		type = 'ems',
 		defaultDuty = true,
 		offDutyPay = false,
 		grades = {
@@ -413,7 +413,7 @@ sadoj = {
 	},
 	parsonsmed = {
 		label = 'Parsons Rehabilitation Center',
-		type = 'medical',
+		type = 'ems',
 		defaultDuty = true,
 		offDutyPay = false,
 		grades = {
