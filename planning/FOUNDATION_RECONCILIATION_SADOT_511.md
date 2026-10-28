@@ -58,3 +58,11 @@ D. Review separate SADOT.net architecture and /511 first-accept flow in PS-Dispa
 E. Owner-run integration tests on development FiveM server; no automatic merge/deploy.
 
 Owner decisions captured October 28, 2026. Unresolved issues stay explicitly unresolved; avoid repeating previously answered questions.
+
+## Implementation checkpoint — permission migration switch (October 28)
+- **Implemented on this review branch only**, not merged/deployed: `Config.MdtAccess.BossPermissionMode='legacy'` and matching `server/auth.lua` role lookup support for an opt-in `'explicit'` mode.
+- **Legacy mode (current default):** QBCore bosses keep the original job-type permission ceiling; nonboss employees use stored `mdt_permission_roles` grants, with per-job/per-grade `Config.PermissionDefaults` fallback. This is **not yet a security fix when left in legacy mode**.
+- **Explicit mode (future switch after migration):** Bosses also read the stored job/grade permissions or per-job/per-grade defaults. QBCore `isboss` itself remains unchanged for same-job employment administration. If an agency's boss role has no stored grants/defaults it receives no general operational permissions; judicial authority still follows the narrow existing judicial rule.
+- Code audit verified that the two modified source files differ from default branch only by this migration mechanism and its config setting. No Lua execution tests or FiveM runtime validation performed.
+- **Required before enabling explicit mode:** enumerate every active LEO/DOJ/Fire/EMS leadership grade; inspect existing SQL role rows; design approved grants and their statewide oversight scopes; populate them; test boss/nonboss permissions and cross-agency attempts in automated harness and then FiveM development environment. Never enable `'explicit'` globally before that work is done.
+- Note: current `GetMdtAccess` and related callbacks need a separate source-level review of intersection of selected interface with actual allowed actions, and the future fire/ems domain reconciliation. Neither is addressed by this minimal change.
