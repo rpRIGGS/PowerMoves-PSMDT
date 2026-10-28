@@ -1,8 +1,9 @@
 local resourceName = tostring(GetCurrentResourceName())
 
--- Phase 2: IA complaints are domain-scoped (police vs ems) so each side only
--- sees its own internal-affairs cases. Existing rows default to 'police'; new
--- rows take the submitting officer's live domain.
+-- IA complaints retain their legacy police/ems service marker AND a nullable
+-- responsible agency. New civilian complaints use the accused employee's
+-- verified current job when available, never the complainant's job. Older
+-- complaints are left unassigned until their agency can be confirmed.
 CreateThread(function()
     Wait(2500)
     if EnsureColumn then
