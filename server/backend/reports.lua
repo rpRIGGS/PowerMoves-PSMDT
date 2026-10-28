@@ -812,11 +812,21 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
 
     if reportData.restrictions and #reportData.restrictions > 0 then
         for _, restriction in ipairs(reportData.restrictions) do
-            table.insert(attachmentQueries, {
-                query = "INSERT INTO mdt_reports_restrictions (reportid, type, identifier) VALUES (?, ?, ?)",
-                values = { reportId, restriction.type, restriction.identifier }
-            })
+            -- Ownership comes from the server, never an edited client payload.
+            if restriction.type ~= 'owner' then
+                table.insert(attachmentQueries, {
+                    query = "INSERT INTO mdt_reports_restrictions (reportid, type, identifier) VALUES (?, ?, ?)",
+                    values = { reportId, restriction.type, restriction.identifier }
+                })
+            end
         end
+    end
+
+    if newReport or existingOwner then
+        table.insert(attachmentQueries, {
+            query = "INSERT INTO mdt_reports_restrictions (reportid, type, identifier) VALUES (?, 'owner', ?)",
+            values = { reportId, existingOwner or creatorEmployer }
+        })
     end
 
     -- Auto-add jobtype restriction so reports are only visible to the same job type
