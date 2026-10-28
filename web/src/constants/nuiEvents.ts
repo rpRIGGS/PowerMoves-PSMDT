@@ -201,6 +201,7 @@ export const NUI_EVENTS = {
 		GET_FTO_LIST: "getFTOList",
 		GET_FTO: "getFTO",
 		GET_OFFICER_FTO_HISTORY: "getOfficerFTOHistory",
+		GET_MY_TRAINING_TRANSCRIPT: "getMyTrainingTranscript",
 		CREATE_FTO_ASSIGNMENT: "createFTOAssignment",
 		UPDATE_FTO_ASSIGNMENT: "updateFTOAssignment",
 		DELETE_FTO_ASSIGNMENT: "deleteFTOAssignment",
