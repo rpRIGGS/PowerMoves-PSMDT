@@ -101,7 +101,7 @@ local function resolveOfficer(name, badge)
 
     -- A badge is unique and unambiguous, so trust it first.
     if badge ~= '' then
-        local row = MySQL.single.await([[
+        local matches = MySQL.query.await([[
             SELECT citizenid FROM mdt_profiles
             WHERE badge_number = ? OR callsign = ?
             LIMIT 2
