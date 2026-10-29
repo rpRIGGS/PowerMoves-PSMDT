@@ -743,6 +743,9 @@ ps.registerCallback(resourceName .. ':server:saveCustomLicense', function(source
     end
 
     local id = payload.id and tonumber(payload.id)
+    if payload.id ~= nil and (not id or id <= 0 or id % 1 ~= 0) then
+        return { success = false, message = 'Invalid license ID' }
+    end
 
     if id then
         -- Check duplicate (excluding self)
