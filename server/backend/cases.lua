@@ -121,7 +121,8 @@ ps.registerCallback(resourceName .. ':server:getCases', function(source, page, f
     local offset = (page - 1) * limit
 
     local scope = getCaseScope(src)
-    if not scope then return { cases = {}, hasMore = false } end
+    local actorCid = ps.getIdentifier(src)
+    if not scope or not actorCid then return { cases = {}, hasMore = false } end
     filters = filters or {}
     local clauses = {}
     local values = {}
@@ -166,6 +167,7 @@ ps.registerCallback(resourceName .. ':server:getCases', function(source, page, f
     -- suspended. Do not return the previous department's case list.
     local current = getCaseScope(src)
     if not CheckAuth(src) or not CheckPermission(src, 'cases_view')
+        or ps.getIdentifier(src) ~= actorCid
         or not current or current.agency ~= scope.agency
         or current.statewide ~= scope.statewide then
         return { cases = {}, hasMore = false }
@@ -186,7 +188,8 @@ ps.registerCallback(resourceName .. ':server:getCase', function(source, caseId)
     end
 
     local scope = getCaseScope(src)
-    if not scope then return { success = false, error = 'Unauthorized' } end
+    local actorCid = ps.getIdentifier(src)
+    if not scope or not actorCid then return { success = false, error = 'Unauthorized' } end
     local caseRow = MySQL.single.await('SELECT * FROM mdt_cases WHERE id = ?', { caseId })
     if not caseRow or (not scope.statewide and caseRow.assigned_department ~= scope.agency
         and not hasCaseDisclosure(src, caseId)) then
@@ -228,6 +231,7 @@ ps.registerCallback(resourceName .. ':server:getCase', function(source, caseId)
     -- loss or employer changes before returning the combined case payload.
     local current = getCaseScope(src)
     if not CheckAuth(src) or not CheckPermission(src, 'cases_view') or not current
+        or ps.getIdentifier(src) ~= actorCid
         or current.agency ~= scope.agency or current.statewide ~= scope.statewide then
         return {success=false,error='Authorization changed'}
     end
