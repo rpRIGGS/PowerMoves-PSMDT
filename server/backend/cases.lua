@@ -28,10 +28,10 @@ local function hasCaseDisclosure(source, caseId)
         or not CheckAuth(source) or not CheckPermission(source, 'cases_view') then return false end
     local row = MySQL.single.await([[
         SELECT id FROM mdt_case_disclosures
-        WHERE case_id = ? AND recipient_citizenid = ?
+        WHERE case_id = ? AND recipient_citizenid = ? AND recipient_job = ?
           AND revoked_at IS NULL AND (expires_at IS NULL OR expires_at > NOW())
         LIMIT 1
-    ]], {caseId, actor})
+    ]], {caseId, actor, ps.getJobName(source)})
     return row ~= nil and CheckAuth(source)
         and CheckPermission(source, 'cases_view') and ps.getIdentifier(source) == actor
 end
@@ -705,16 +705,19 @@ ps.registerCallback(resourceName .. ':server:grantCaseDisclosure', function(sour
     if not caseRow or caseRow.assigned_department ~= employer then
         return {success=false, error='Only originating department may disclose a case'}
     end
-    local recipient = MySQL.scalar.await('SELECT citizenid FROM players WHERE citizenid = ? LIMIT 1', {recipientCid})
-    if not recipient or not CheckAuth(src) or not CheckPermission(src, 'cases_edit')
+    local recipientJob = MySQL.scalar.await([[
+        SELECT JSON_UNQUOTE(JSON_EXTRACT(job, '$.name'))
+        FROM players WHERE citizenid = ? LIMIT 1
+    ]], {recipientCid})
+    if not recipientJob or recipientJob == '' or not CheckAuth(src) or not CheckPermission(src, 'cases_edit')
         or ps.getIdentifier(src) ~= actor or ps.getJobName(src) ~= employer
         or not canAccessCaseId(src, id) then return {success=false,error='Authorization changed'} end
     local ok, newId = pcall(MySQL.insert.await, [[
         INSERT INTO mdt_case_disclosures
-            (case_id, recipient_citizenid, purpose, granted_by_citizenid, granted_by_job)
-        SELECT id, ?, ?, ?, assigned_department FROM mdt_cases
+            (case_id, recipient_citizenid, recipient_job, purpose, granted_by_citizenid, granted_by_job)
+        SELECT id, ?, ?, ?, ?, assigned_department FROM mdt_cases
         WHERE id = ? AND assigned_department = ?
-    ]], {recipientCid, purpose, actor, id, employer})
+    ]], {recipientCid, recipientJob, purpose, actor, id, employer})
     if not ok or not newId then return {success=false,error='Disclosure storage unavailable'} end
     if ps.auditLog then ps.auditLog(src,'case_disclosure_granted','case',id,
         {grant_id=newId, recipient=recipientCid, purpose=purpose}) end
@@ -767,10 +770,10 @@ ps.registerCallback(resourceName .. ':server:getDisclosedCases', function(source
                c.assigned_department, g.purpose, g.granted_at
         FROM mdt_case_disclosures g
         INNER JOIN mdt_cases c ON c.id = g.case_id
-        WHERE g.recipient_citizenid = ? AND g.revoked_at IS NULL
+        WHERE g.recipient_citizenid = ? AND g.recipient_job = ? AND g.revoked_at IS NULL
           AND (g.expires_at IS NULL OR g.expires_at > NOW())
         ORDER BY g.granted_at DESC LIMIT 100
-    ]], {actor})
+    ]], {actor,job})
     if not CheckAuth(src) or not CheckPermission(src, 'cases_view')
         or ps.getIdentifier(src) ~= actor or ps.getJobName(src) ~= job then return {} end
     return ok and rows or {}
