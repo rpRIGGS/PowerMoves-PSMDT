@@ -29,6 +29,11 @@ assert.match(review, /FOR UPDATE/);
 assert.match(review, /affectedRows/);
 assert.doesNotMatch(review, /MySQL\.transaction\.await/);
 assert.match(review, /publishPublicRecordsResponse/);
+assert.match(review, /canUsePublicRecordsOffice/);
+assert.match(desk, /canUsePublicRecordsOffice/);
+assert.match(officePage, /canUsePublicRecordsOffice/);
+assert.match(nuiEvents, /CHECK_OFFICE_ACCESS: "canUsePublicRecordsOffice"/);
+
 assert.match(client, /getMyPublicRecordsResponse/);
 assert.match(client, /records_office =/);
 assert.match(desk, /reviewPublicRecordsRequest/);
