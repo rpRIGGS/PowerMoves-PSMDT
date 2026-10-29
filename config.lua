@@ -103,6 +103,9 @@ Config.Sharingleo = {
 Config.Sharingdoj = {
     Mutual = {
         types = {
+            'reports',
+            'cases',
+            'court',
         },
         departments = {
         },
@@ -116,7 +119,9 @@ Config.Sharingdoj = {
                 'lawyer',
             },
             types = {
-
+                'reports',
+                'cases',
+                'court',
             },
         },
     },
@@ -126,6 +131,7 @@ Config.Sharingdoj = {
 Config.Sharingfire = {
     Mutual = {
         types = {
+            'reports',
         },
         departments = {
         },
@@ -151,6 +157,7 @@ Config.Sharingfire = {
 Config.Sharingems = {
     Mutual = {
         types = {
+            'reports',
         },
         departments = {
         },
@@ -177,6 +184,7 @@ Config.Sharingems = {
 Config.Sharinggov = {
     Mutual = {
         types = {
+            'reports',
         },
         departments = {
         },
@@ -192,7 +200,7 @@ Config.Sharinggov = {
                 'lsgov',
             },
             types = {
-
+                'reports',
             },
         },
     },
@@ -203,6 +211,7 @@ Config.Sharingdot = {
     Enabled = true,
     Mutual = {
         types = {
+            'reports',
         },
         departments = {
         },
@@ -231,7 +240,7 @@ Config.Sharingdot = {
                 'jetsam',
             },
             types = {
-
+                'reports',
             },
         },
     },
