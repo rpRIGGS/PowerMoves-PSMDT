@@ -323,3 +323,21 @@ RegisterNUICallback('searchVehiclesForReport', function(data, cb)
     local result = ps.callback(resourceName .. ':server:searchVehiclesForReport', query)
     cb(result or {})
 end)
+-- Controlled report discovery: server enforces origin and recipient grants.
+RegisterNUICallback('grantReportDisclosure', function(data, cb)
+    if not MDTOpen or type(data) ~= 'table' then cb({success=false}) return end
+    cb(ps.callback(resourceName .. ':server:grantReportDisclosure',
+        data.reportId, data.recipientCitizenid, data.purpose) or {success=false})
+end)
+RegisterNUICallback('revokeReportDisclosure', function(data, cb)
+    if not MDTOpen or type(data) ~= 'table' then cb({success=false}) return end
+    cb(ps.callback(resourceName .. ':server:revokeReportDisclosure', data.grantId) or {success=false})
+end)
+RegisterNUICallback('getDisclosedReports', function(data, cb)
+    if not MDTOpen then cb({}) return end
+    cb(ps.callback(resourceName .. ':server:getDisclosedReports') or {})
+end)
+RegisterNUICallback('getReportDisclosures', function(data, cb)
+    if not MDTOpen or type(data) ~= 'table' then cb({}) return end
+    cb(ps.callback(resourceName .. ':server:getReportDisclosures', data.reportId) or {})
+end)
