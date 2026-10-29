@@ -14,7 +14,7 @@ Updated: October 29, 2026. Runtime FiveM deployment remains with the server owne
 ## Installation on test server — never unreviewed production
 
 1. Back up MariaDB and the existing PSMDT folder. Confirm dependencies and exact current jobs.lua and management permissions.
-2. Review and install additive migrations: `sql/migrations/2026-10-28-ia-referrals.sql`, `2026-10-28-case-disclosures.sql`, `2026-10-28-report-disclosures.sql`. These create new tables and do not modify existing record ownership.
+2. Review and install additive migrations: `sql/migrations/2026-10-28-ia-referrals.sql`, `2026-10-28-case-disclosures.sql`, `2026-10-28-report-disclosures.sql`, `2026-10-29-evidence-disclosures.sql`. These create new tables and do not modify existing record ownership.
 3. Deploy updated code and built NUI; restart the resource on a DEV FiveM server. Verify no F8/client/server console errors.
 4. Create or choose two test law-enforcement employers (e.g. LSPD and BCSO), authorized SADLE IA personnel, and a separate authorized SADOJ prosecutor / defense counsel. Use actual configured jobs and grade permissions, not hypothetical boss behavior.
 5. Give each test character appropriate on-duty status and only the exact permissions intended. Log the source character/citizenid and employer.
@@ -38,6 +38,11 @@ Updated: October 29, 2026. Runtime FiveM deployment remains with the server owne
 | REPORT-03 | LSPD revokes share; counsel retries read-by-ID | Denied; read audit and revocation audit recorded |
 | REPORT-04 | Legacy ownerless report sharing attempt via new endpoint | Denied pending manual ownership reconciliation |
 | REPORT-05 | Transfer counsel to a different job with same citizenid | Grant inaccessible |
+| EVID-01 | LSPD grants a single evidence item to named SADOJ counsel | Metadata and custody history available; stash/inventory identifier withheld |
+| EVID-02 | Counsel attempts evidence transfer, delete, image upload or stash access | Denied; view grant never authorizes mutation |
+| EVID-03 | LSPD revokes evidence disclosure | Subsequent inbox/detail reads denied; audited |
+| EVID-04 | Recipient switches to a new job, or evidence is reassigned to another case employer | Access denied |
+| EVID-05 | BCSO attempts to grant LSPD evidence | Denied |
 | DOJ-01 | LEO → prosecutor → assigned defense case/report discovery chain | Only explicitly granted documents available; existing judicial docket policy remains unchanged |
 | REG-01 | Routine LEO / EMS / fire / DOJ / SAGOV nav and basic reports/cases still work | No regression in original modules |
 
