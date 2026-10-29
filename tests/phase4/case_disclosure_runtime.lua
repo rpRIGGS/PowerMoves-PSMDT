@@ -16,7 +16,7 @@ local env=setmetatable({
  MySQL={
   single={await=function(sql,args)
    if sql:find('FROM mdt_case_disclosures',1,true) then
-    if grants[args[1]..':'..args[2]] then return {id=12} end
+    if grants[args[1]..':'..args[2]] and args[3]=='sadoj' then return {id=12} end
     return nil
    end
    if sql:find('FROM mdt_cases',1,true) then
@@ -26,12 +26,12 @@ local env=setmetatable({
    return nil
   end},
   scalar={await=function(sql,args)
-   if sql:find('FROM players',1,true) then return args[1] end
+   if sql:find('FROM players',1,true) then return 'sadoj' end
    return nil
   end},
   query={await=function(sql,args)
    if sql:find('FROM mdt_case_disclosures g',1,true) then
-    if actor.cid=='DEFENSE-1' and grants['55:DEFENSE-1'] then
+    if actor.cid=='DEFENSE-1' and actor.job=='sadoj' and args[2]=='sadoj' and grants['55:DEFENSE-1'] then
      return {{id=55,title='Confidential investigation',assigned_department='lspd'}}
     end
     return {}
@@ -40,7 +40,7 @@ local env=setmetatable({
   end},
   insert={await=function(sql,args)
    assert(sql:find('INSERT INTO mdt_case_disclosures',1,true))
-   assert(args[5]=='lspd','only owner may issue disclosure')
+   assert(args[2]=='sadoj' and args[6]=='lspd','recipient employer and owner must be bound')
    grants['55:'..args[1]]=true
    writes[#writes+1]='grant'
    return 12
