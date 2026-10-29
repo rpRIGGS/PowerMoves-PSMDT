@@ -3,6 +3,7 @@
 local callbacks, writes, insertion = {}, 0, nil
 local actor = {job='sams', citizenid='STATE-1', duty=true, permission=true}
 local lookupHook, readHook = nil, nil
+local expectedIssuer, expectedFamily = 'sams', 'ems'
 local env = setmetatable({
     GetCurrentResourceName=function() return 'ps-mdt' end,
     CreateThread=function() end,
@@ -34,8 +35,8 @@ local env = setmetatable({
         insert={await=function(query,args)
             insertion = { sql=query, family=args[4], issuer=args[6] }
             assert(query:find('INSERT INTO mdt_personal_accreditations',1,true))
-            assert(args[4]=='ems', 'SAMS credentials must belong to medical family')
-            assert(args[6]=='sams', 'issuer must be actual SAMS job')
+            assert(args[4]==expectedFamily, 'Credential family must match verified issuer')
+            assert(args[6]==expectedIssuer, 'Issuer must match authorized state job')
             writes=writes+1
             return 9
         end},
@@ -81,4 +82,17 @@ actor.permission=false
 assert(#personnelRead(1,'SUBORDINATE-1')==0, 'Missing supervisor grant should deny read')
 actor.permission=true
 
-print('PASS issuer validation and credential read anti-transfer regressions')
+for _, sample in ipairs({
+    {job='safr',family='fire'},
+    {job='post',family='leo'},
+    {job='sadle',family='leo'},
+}) do
+    actor.job, expectedIssuer, expectedFamily = sample.job, sample.job, sample.family
+    local result=issue(1,{citizenid='PATIENT-1',code='CRED_' .. sample.job,name='Credential'})
+    assert(result.success, sample.job .. ' issuance requires explicit authority')
+end
+assert(writes==4)
+actor.job='bcso'
+assert(not issue(1,payload).success, 'Ordinary law enforcement is not statewide issuer')
+assert(writes==4)
+print('PASS statewide issuer families and anti-transfer credential authorization')
