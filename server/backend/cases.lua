@@ -21,6 +21,21 @@ local function canAccessCaseId(source, caseId)
         and (current.statewide or row.assigned_department == current.agency)
 end
 
+local function hasCaseDisclosure(source, caseId)
+    local actor = ps.getIdentifier(source)
+    local access = GetMdtAccess(source)
+    if not actor or not access or not access.authorized
+        or not CheckAuth(source) or not CheckPermission(source, 'cases_view') then return false end
+    local row = MySQL.single.await([[
+        SELECT id FROM mdt_case_disclosures
+        WHERE case_id = ? AND recipient_citizenid = ?
+          AND revoked_at IS NULL AND (expires_at IS NULL OR expires_at > NOW())
+        LIMIT 1
+    ]], {caseId, actor})
+    return row ~= nil and CheckAuth(source)
+        and CheckPermission(source, 'cases_view') and ps.getIdentifier(source) == actor
+end
+
 local function buildCaseNumber(id)
     local year = os.date('%Y')
     return ('CASE-%s-%05d'):format(year, id)
@@ -164,7 +179,8 @@ ps.registerCallback(resourceName .. ':server:getCase', function(source, caseId)
     local scope = getCaseScope(src)
     if not scope then return { success = false, error = 'Unauthorized' } end
     local caseRow = MySQL.single.await('SELECT * FROM mdt_cases WHERE id = ?', { caseId })
-    if not caseRow or (not scope.statewide and caseRow.assigned_department ~= scope.agency) then
+    if not caseRow or (not scope.statewide and caseRow.assigned_department ~= scope.agency
+        and not hasCaseDisclosure(src, caseId)) then
         return { success = false, error = 'Case not found or inaccessible' }
     end
 
