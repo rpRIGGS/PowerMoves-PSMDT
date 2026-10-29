@@ -71,7 +71,7 @@ local function buildRosterFromQbx(jobList, matchFn, defaultDept)
     end
 
     for _, row in ipairs(MySQL.query.await('SELECT citizenid, job FROM players', {}) or {}) do
-        local job = row.job and json.decode(row.job) or {}
+        local job = safeRosterDecode(row.job)
         if matchFn(job.name, job.type) then
             members[row.citizenid] = true
         end
@@ -248,9 +248,9 @@ ps.registerCallback('ps-mdt:server:getRosterList', function(source)
 
     for _, citizen in pairs(MySQL.query.await('SELECT citizenid, charinfo, job, metadata FROM players', {}) or {}) do
         local citizenid = citizen.citizenid
-        local charinfo = citizen.charinfo and json.decode(citizen.charinfo) or {}
-        local job = citizen.job and json.decode(citizen.job) or {}
-        local metadata = citizen.metadata and json.decode(citizen.metadata) or {}
+        local charinfo = safeRosterDecode(citizen.charinfo)
+        local job = safeRosterDecode(citizen.job)
+        local metadata = safeRosterDecode(citizen.metadata)
         local jobName = job.name and tostring(job.name) or nil
         local inDomain = (jobName and jobLookup[jobName]) or (job.type and jobType and tostring(job.type) == jobType)
         if inDomain then
