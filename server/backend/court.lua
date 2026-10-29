@@ -422,13 +422,14 @@ ps.registerCallback(resourceName .. ':server:createHearing', function(source, pa
     local caseId, caseOk = resolveCaseId(payload.case_id)
     if not caseOk then return { success = false, error = 'Case ID does not exist' } end
 
-    local hearingId = MySQL.insert.await([[
+    local sql = [[
         INSERT INTO mdt_court_hearings
             (title, category, hearing_type, case_id, warrant_reportid, defendant_cid, defendant_name,
              scheduled_at, duration_minutes, location, judge_cid, judge_name, status, notes,
              created_by, created_by_name, job_type)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ]], {
+    ]]
+    local args = {
         payload.title,
         category,
         normalizeType(payload.hearing_type),
@@ -446,7 +447,14 @@ ps.registerCallback(resourceName .. ':server:createHearing', function(source, pa
         citizenid,
         getOfficerDisplayName(src),
         domain,
-    })
+    }
+    if departmentCalendarOwnership() then
+        local owner = calendarOwnerJob(src)
+        if not owner then return { success = false, error = 'Invalid department' } end
+        sql = sql:gsub('job_type%)', 'job_type, owner_job)'):gsub('?, ?, ?%)', '?, ?, ?, ?)')
+        args[#args + 1] = owner
+    end
+    local hearingId = MySQL.insert.await(sql, args)
 
     if not hearingId then return { success = false, error = 'Failed to create hearing' } end
 
