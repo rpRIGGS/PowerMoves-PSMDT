@@ -231,15 +231,20 @@ ps.registerCallback(resourceName .. ':server:getCase', function(source, caseId)
         ps.auditLog(src,'case_disclosure_accessed','case',caseId,
             {recipient=ps.getIdentifier(src),originating_department=caseRow.assigned_department})
     end
+    -- A named disclosure permits the case summary, NOT automatic access to
+    -- internal notes, uploaded attachments, linked reports, or evidence.
+    -- Each protected artifact requires its own explicit grant.
+    local externalRecipient = not current.statewide
+        and caseRow.assigned_department ~= current.agency
     return {
         success = true,
         data = {
             case = caseRow,
-            officers = officers or {},
-            attachments = attachments or {},
+            officers = externalRecipient and {} or (officers or {}),
+            attachments = externalRecipient and {} or (attachments or {}),
             evidence = {},
-            reports = reports or {},
-            notes = notes or {}
+            reports = externalRecipient and {} or (reports or {}),
+            notes = externalRecipient and {} or (notes or {})
         }
     }
 end)
