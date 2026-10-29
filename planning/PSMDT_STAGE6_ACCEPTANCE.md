@@ -47,10 +47,18 @@ been run on a QBCore development server. Stage 7 is not in scope here.
 6. Test an assessment for each relevant taxable authority and year, including
    State's distinct authority. Change PS Housing owner mid-review, check
    rollback; validate explicit exemption reason and audit history.
-7. SADOT: test wrong mechanic job, off-duty driver, expired permit, expired
+7. Test the separate legislative docket from within SAGOV: state law for state,
+   county ordinance for a county, municipal code for the city. Drafts must
+   remain within their jurisdiction, with explicit state-oversight exception.
+   Only authorized officials may open votes, cast a single recorded vote per
+   character, certify an outcome with a reason, and publish an adopted measure.
+   Verify duplicate votes, outdated versions, cross-county access attempts,
+   audit rollback, and job changes during transactions. This does not yet
+   constitute public ballots/elections or automatic legal quorum.
+8. SADOT: test wrong mechanic job, off-duty driver, expired permit, expired
    vehicle qualification, changed vehicle plate, and a cancelled 511 claim.
    Keep SADOT inactive if the actual dispatch fork has not been integrated.
-8. Inspect F8 and server logs, resource restarts, NUI build, migration results
+9. Inspect F8 and server logs, resource restarts, NUI build, migration results
    and QBCore permissions; record observed outcomes before any production use.
 
 ## Unfinished integration / owner decisions (do not claim completion)
@@ -61,9 +69,10 @@ been run on a QBCore development server. Stage 7 is not in scope here.
   sales-tax location rules, budget disbursement, or finalized taxing-authority
   payment integration has been established. Do not charge players or assume
   all parent taxes apply to a property.
-- Legislative enactment, official voting/ballots/elections, independent SADOJ
-  challenges, and public FOIA publication have additional requirements beyond
-  posting administrative notices; not complete.
+- The legislative docket and **staff-only recorded voting** now have source
+  implementations; the necessary RP quorum/certification policy remains an
+  explicit rule decision. Public ballot elections, independent SADOJ challenges,
+  tax-rate enactment and public FOIA publication are **not** complete.
 - SADOT operator UI/report templates and full PS-Dispatch 511 exclusive claim
   integration require verification in both forks and the owner's test server.
   No mechanic job receives SADOT access simply by changing the config.
@@ -74,3 +83,19 @@ been run on a QBCore development server. Stage 7 is not in scope here.
 The GitHub validation workflow runs Lua syntax and isolated runtime mocks,
 frontend type checks/build, source contracts and MariaDB smoke tests.
 Success is not evidence of full FiveM, PS Housing or PS Dispatch integration.
+
+## Verified Stage 6 legislative regression checkpoint
+
+- [GitHub Actions run 40928463315](https://github.com/rpRIGGS/PowerMoves-PSMDT/actions/runs/40928463315)
+  passed the Lua, frontend and temporary MariaDB jobs after the
+  `tests/phase6/government_legislation_runtime.lua` callback regression
+  and `tests/phase6/mysql_government_legislation.sh` integration smoke test
+  were included.
+- This proves the **tested source path** passed automation; it does **not**
+  establish in-game FiveM runtime acceptance, approved quorum rules,
+  public ballot elections, or actual SAGOV employee permissions.
+- Draft PR #2 (`development/foundation-reconciliation-2026-10-28`) remains
+  unmerged and requires targeted reconciliation at Stage 6 closeout.
+  Several frontend corrections are already on `main`; other proposed
+  changes, including legacy `judge` permissions, must not be applied without
+  checking against authoritative job/grade definitions.
