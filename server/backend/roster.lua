@@ -1,3 +1,11 @@
+local function safeRosterDecode(value)
+    if type(value) == 'table' then return value end
+    if type(value) ~= 'string' then return {} end
+    local ok, decoded = pcall(json.decode, value)
+    if ok and type(decoded) == 'table' then return decoded end
+    return {}
+end
+
 local function getRadioChannel(playerSource)
     if not playerSource then return 0 end
     local channel = 0
