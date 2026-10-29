@@ -114,7 +114,9 @@ local function roleDomain(jobName, job)
     local jobType = job and job.type
     if (policy.GovernmentJobs or {})[jobName] or jobType == 'gov' then return 'gov' end
     if hasValue(Config.DojJobs, jobName) or jobType == Config.DojJobType then return 'doj' end
-    if hasValue(Config.PoliceJobs, jobName) or jobType == Config.PoliceJobType then return 'leo' end
+    -- SADLE uses an explicit agency allowlist, not every job that happens
+    -- to advertise the QBCore 'leo' type.
+    if hasValue(Config.PoliceJobs, jobName) then return 'leo' end
     if hasValue(Config.MedicalJobs, jobName) or jobType == Config.MedicalJobType then return 'ems' end
     return nil
 end
