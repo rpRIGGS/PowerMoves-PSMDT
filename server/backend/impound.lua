@@ -592,14 +592,21 @@ end
 -- The client finished fading the vehicle out: take it out of the world for good.
 RegisterNetEvent(resourceName .. ':server:removeVehicle', function(netId)
     local src = source
-    if not CheckAuth(src) then return end
+    if not CheckAuth(src) or not CheckPermission(src, 'vehicle_impound') then return end
     netId = tonumber(netId)
     if not netId then return end
 
     local entity = NetworkGetEntityFromNetworkId(netId)
-    if entity and entity ~= 0 and DoesEntityExist(entity) then
-        DeleteEntity(entity)
+    if not entity or entity == 0 or not DoesEntityExist(entity) or GetEntityType(entity) ~= 2 then return end
+    local ped = GetPlayerPed(src)
+    if not ped or ped == 0 or not DoesEntityExist(ped) then return end
+    -- Never accept arbitrary network IDs from a remote client.
+    if #(GetEntityCoords(ped) - GetEntityCoords(entity)) > 20.0 then return end
+    for _, pid in ipairs(GetPlayers()) do
+        local playerPed = GetPlayerPed(tonumber(pid))
+        if playerPed and playerPed ~= 0 and GetVehiclePedIsIn(playerPed, false) == entity then return end
     end
+    DeleteEntity(entity)
 end)
 
 -- Is a real player sitting in this vehicle? NPC occupants are fine; players are not.
