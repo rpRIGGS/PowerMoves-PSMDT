@@ -1261,3 +1261,92 @@ ps.registerCallback(resourceName .. ':server:getReportsByPlate', function(source
 
     return rows or {}
 end)
+
+-- Stage 4 discovery: named report grants are managed only by the report's
+-- originating employer. Ownerless legacy reports require reconciliation.
+ps.registerCallback(resourceName .. ':server:grantReportDisclosure', function(source, reportId, recipientCid, purpose)
+    local src,id=source,tonumber(reportId)
+    if not id or type(recipientCid)~='string' or #recipientCid<2 or #recipientCid>64
+        or type(purpose)~='string' or #purpose<10 or #purpose>255 then
+        return {success=false,error='Valid report, recipient and purpose required'}
+    end
+    if not CheckAuth(src) or not CheckPermission(src,'reports_edit') then
+        return {success=false,error='Unauthorized'}
+    end
+    local actor,employer=ps.getIdentifier(src),ps.getJobName(src)
+    if not actor or not employer then return {success=false,error='Unauthorized'} end
+    local owner=MySQL.scalar.await(
+        "SELECT identifier FROM mdt_reports_restrictions WHERE reportid = ? AND type = 'owner' LIMIT 1",{id})
+    if not owner or owner~=employer then return {success=false,error='Originating employer required'} end
+    local recipient=MySQL.scalar.await('SELECT citizenid FROM players WHERE citizenid = ? LIMIT 1',{recipientCid})
+    if not recipient or not CheckAuth(src) or not CheckPermission(src,'reports_edit')
+        or ps.getIdentifier(src)~=actor or ps.getJobName(src)~=employer then
+        return {success=false,error='Authorization changed'}
+    end
+    local ok,grantId=pcall(MySQL.insert.await,[[
+        INSERT INTO mdt_report_disclosures
+            (report_id,recipient_citizenid,purpose,granted_by_citizenid,granted_by_job)
+        SELECT r.id, ?, ?, ?, ?
+        FROM mdt_reports r WHERE r.id = ?
+          AND EXISTS (SELECT 1 FROM mdt_reports_restrictions o
+            WHERE o.reportid = r.id AND o.type = 'owner' AND o.identifier = ?)
+    ]],{recipientCid,purpose,actor,employer,id,employer})
+    if not ok or not grantId then return {success=false,error='Disclosure storage unavailable'} end
+    if ps.auditLog then ps.auditLog(src,'report_disclosure_granted','report',id,
+        {grant_id=grantId,recipient=recipientCid,purpose=purpose}) end
+    return {success=true,grantId=grantId}
+end)
+
+ps.registerCallback(resourceName .. ':server:revokeReportDisclosure', function(source, grantId)
+    local src,id=source,tonumber(grantId)
+    if not id or not CheckAuth(src) or not CheckPermission(src,'reports_edit') then
+        return {success=false,error='Unauthorized'}
+    end
+    local actor,employer=ps.getIdentifier(src),ps.getJobName(src)
+    if not actor or not employer then return {success=false,error='Unauthorized'} end
+    local ok,count=pcall(MySQL.update.await,[[
+        UPDATE mdt_report_disclosures g
+        INNER JOIN mdt_reports_restrictions o ON o.reportid = g.report_id
+          AND o.type = 'owner'
+        SET g.revoked_at = NOW(), g.revoked_by_citizenid = ?
+        WHERE g.id = ? AND o.identifier = ? AND g.revoked_at IS NULL
+    ]],{actor,id,employer})
+    if not ok or tonumber(count)~=1 then return {success=false,error='Grant not found or inaccessible'} end
+    if ps.auditLog then ps.auditLog(src,'report_disclosure_revoked','report_disclosure',id,{employer=employer}) end
+    return {success=true}
+end)
+
+ps.registerCallback(resourceName .. ':server:getDisclosedReports', function(source)
+    local src=source
+    if not CheckAuth(src) or not CheckPermission(src,'reports_view') then return {} end
+    local actor,employer=ps.getIdentifier(src),ps.getJobName(src)
+    if not actor or not employer then return {} end
+    local ok,rows=pcall(MySQL.query.await,[[
+        SELECT r.id,r.title,r.type,r.datecreated,g.purpose,g.granted_at
+        FROM mdt_report_disclosures g
+        INNER JOIN mdt_reports r ON r.id = g.report_id
+        WHERE g.recipient_citizenid = ? AND g.revoked_at IS NULL
+          AND (g.expires_at IS NULL OR g.expires_at > NOW())
+        ORDER BY g.granted_at DESC LIMIT 100
+    ]],{actor})
+    if not CheckAuth(src) or not CheckPermission(src,'reports_view')
+        or ps.getIdentifier(src)~=actor or ps.getJobName(src)~=employer then return {} end
+    return ok and rows or {}
+end)
+
+ps.registerCallback(resourceName .. ':server:getReportDisclosures', function(source, reportId)
+    local src,id=source,tonumber(reportId)
+    if not id or not CheckAuth(src) or not CheckPermission(src,'reports_edit') then return {} end
+    local actor,employer=ps.getIdentifier(src),ps.getJobName(src)
+    local owner=MySQL.scalar.await(
+        "SELECT identifier FROM mdt_reports_restrictions WHERE reportid = ? AND type = 'owner' LIMIT 1",{id})
+    if not employer or owner~=employer then return {} end
+    local ok,rows=pcall(MySQL.query.await,[[
+        SELECT id,recipient_citizenid,purpose,granted_at,expires_at,revoked_at
+        FROM mdt_report_disclosures WHERE report_id = ?
+        ORDER BY granted_at DESC LIMIT 100
+    ]],{id})
+    if not CheckAuth(src) or not CheckPermission(src,'reports_edit')
+        or ps.getIdentifier(src)~=actor or ps.getJobName(src)~=employer then return {} end
+    return ok and rows or {}
+end)
