@@ -142,6 +142,12 @@ ps.registerCallback(resourceName .. ':server:getFTOList', function(source, pageN
     local ok, rows = pcall(MySQL.query.await, query, values)
     if not ok then return { entries = {}, hasMore = false } end
 
+    -- Reject an old employer's results if the user changes character/job
+    -- while the database query is running.
+    if not CheckAuth(src) or ps.getIdentifier(src) ~= citizenId
+        or getFTODomain(src) ~= values[1] or ps.getJobName(src) ~= values[2] then
+        return { entries = {}, hasMore = false }
+    end
     return {
         entries = rows or {},
         hasMore = rows and #rows >= limit or false,
@@ -207,6 +213,12 @@ ps.registerCallback(resourceName .. ':server:getFTO', function(source, data)
         dor.ratings = (rOk and ratings) or {}
     end
 
+    if not CheckAuth(src) or ps.getIdentifier(src) ~= citizenId
+        or entry.job_type ~= getFTODomain(src) or entry.agency_job ~= ps.getJobName(src)
+        or (not CheckPermission(src, 'fto_view')
+            and entry.trainee_citizenid ~= citizenId and entry.trainer_citizenid ~= citizenId) then
+        return { success = false, error = 'Authorization changed' }
+    end
     return { success = true, data = { entry = entry, dors = dorList } }
 end)
 
