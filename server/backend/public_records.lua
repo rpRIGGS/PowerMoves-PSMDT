@@ -1,4 +1,5 @@
--- Stage 5 public-records intake: strictly citizen-owned, no disclosure or agency review.
+-- Stage 5 civilian public-records intake, request tracking and applicant-scoped decisions.
+-- Staff review and publication are implemented separately in public_records_review.lua.
 local resourceName = tostring(GetCurrentResourceName())
 local lastSubmitted = {}
 
