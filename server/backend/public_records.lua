@@ -27,7 +27,8 @@ ps.registerCallback(resourceName .. ':server:submitPublicRecordRequest', functio
     if type(cid) ~= 'string' or cid == '' then return {success = false, error = 'Character unavailable'} end
     if type(payload) ~= 'table' then return {success = false, error = 'Invalid request'} end
     local agency = payload.agency
-    if not isConfiguredReceivingAgency(agency) then
+    if not isConfiguredReceivingAgency(agency)
+        or not PublicServiceDeskAllows(src, agency, 'public_records_request') then
         return {success = false, error = 'Receiving records office is unavailable'}
     end
     local subject = cleanText(payload.subject, 160)
@@ -61,7 +62,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:getMyPublicRecordRequests', function(source)
     local cid = ps.getIdentifier(source)
-    if type(cid) ~= 'string' or cid == '' then return {} end
+    if type(cid) ~= 'string' or cid == '' or not PublicServiceDeskAllows(source, nil, 'public_records_status') then return {} end
     local ok, rows = pcall(MySQL.query.await, [[
         SELECT request_number, agency, subject, status, created_at
         FROM mdt_public_record_requests
@@ -76,7 +77,7 @@ end)
 ps.registerCallback(resourceName .. ':server:getMyPublicRecordsResponse', function(source, requestNumber)
     local cid = ps.getIdentifier(source)
     if type(cid) ~= 'string' or type(requestNumber) ~= 'string'
-       or #requestNumber > 36 then return {success = false} end
+       or #requestNumber > 36 or not PublicServiceDeskAllows(source, nil, 'public_records_status') then return {success = false} end
     local ok, row = pcall(MySQL.single.await, [[
         SELECT r.request_number, r.agency, r.status, p.response_text, p.issued_at
         FROM mdt_public_record_requests r
