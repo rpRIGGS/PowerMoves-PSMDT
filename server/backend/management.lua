@@ -32,6 +32,7 @@ end
 
 local function getPoliceJobDefinition(source)
     local jobName = resolvePoliceJobName(source)
+    if not jobName then return nil, nil end
 
     if exports['qb-core'] then
         local QBCore = exports['qb-core']:GetCoreObject()
