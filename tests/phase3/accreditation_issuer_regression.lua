@@ -2,6 +2,7 @@
 -- Mocks SQL only; never touches persistent FiveM records.
 local callbacks, writes, insertion = {}, 0, nil
 local actor = {job='sams', citizenid='STATE-1', duty=true, permission=true}
+local lookupHook, readHook = nil, nil
 local env = setmetatable({
     GetCurrentResourceName=function() return 'ps-mdt' end,
     CreateThread=function() end,
@@ -18,11 +19,14 @@ local env = setmetatable({
     MySQL={
         scalar={await=function(query,args)
             assert(query:find('FROM players',1,true))
+            if lookupHook then local hook=lookupHook; lookupHook=nil; hook() end
             return args[1]
         end},
         query={await=function(query)
-            assert(query:find('CREATE TABLE IF NOT EXISTS mdt_personal_accreditations',1,true))
-            return {}
+            if query:find('CREATE TABLE IF NOT EXISTS mdt_personal_accreditations',1,true) then return {} end
+            assert(query:find('FROM mdt_personal_accreditations',1,true))
+            if readHook then local hook=readHook; readHook=nil; hook() end
+            return {{id=4,credential_code='SAMS_BLS',credential_family='ems'}}
         end},
         insert={await=function(query,args)
             insertion = { sql=query, family=args[4], issuer=args[6] }
@@ -49,4 +53,20 @@ actor.job='sams'
 actor.duty=false
 assert(not issue(1,payload).success)
 assert(writes==1)
-print('PASS SAMS issuer explicit grant, employer and duty boundaries')
+
+actor.duty=true
+actor.permission=true
+lookupHook=function() actor.job='pillboxmed' end
+assert(not issue(1,payload).success, 'Issuer transfer during target lookup must fail')
+actor.job='sams'
+lookupHook=function() actor.citizenid='OTHER-CHARACTER' end
+assert(not issue(1,payload).success, 'Issuer character transfer during lookup must fail')
+actor.citizenid='STATE-1'
+
+local selfRead=assert(callbacks['ps-mdt:server:getMyAccreditations'])
+readHook=function() actor.citizenid='OTHER-CHARACTER' end
+assert(#selfRead(1)==0, 'Credential read must reject changed character')
+actor.citizenid='STATE-1'
+assert(#selfRead(1)==1, 'Credential owner should see their records')
+assert(writes==1)
+print('PASS issuer validation and credential read anti-transfer regressions')
