@@ -576,6 +576,12 @@ Config.MdtAccess = {
         IssuePermission = 'government_business_license_issue',
         StateOversightPermission = 'government_business_license_oversight',
     },
+    -- State Tax Assessor's Office roles belong to the Governor's Office,
+    -- not a separate QBCore job or a server-admin power.
+    GovernmentPropertyAssessments = {
+        AssessPermission = 'government_property_assess',
+        ViewPermission = 'government_property_assessment_view',
+    },
     GovernmentLicensing = {
         ReviewPermission = 'government_license_review',
         ApprovePermission = 'government_license_approve',
