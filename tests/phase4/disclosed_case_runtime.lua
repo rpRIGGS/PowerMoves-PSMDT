@@ -26,7 +26,7 @@ local env=setmetatable({
             end
             if sql:find('SELECT id FROM mdt_case_disclosures',1,true) then
                 assert(args[1]==5 and args[2]==actor.cid and args[3]==actor.job)
-                return granted and {id=7} or nil
+                return (granted and actor.job=='bcso' and actor.cid=='CID-DEFENSE') and {id=7} or nil
             end
             return nil
         end},
