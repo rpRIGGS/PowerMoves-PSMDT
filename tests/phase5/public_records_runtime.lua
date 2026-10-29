@@ -137,4 +137,16 @@ forceResponseFailure=false
 assert(call('reviewPublicRecordsRequest',{id=3,action='denied',reason='Not eligible'}).success)
 assert(requests[3].status=='denied' and responses[3]==nil and #audits==3)
 
-print('PASS Stage 5 agency isolation, counter/duty checks, transaction rollback, duplicate prevention')
+-- An oxmysql installation without the checked transaction API must not
+-- mutate any records or silently fall back to an unchecked batch.
+local originalTx = env.MySQL.startTransaction
+env.MySQL.startTransaction = nil
+local beforeAudits = #audits
+local beforeStatus = requests[4].status
+assert(not call('reviewPublicRecordsRequest',{id=4,action='denied',reason='Outdated database driver'}).success)
+assert(not call('publishPublicRecordsResponse',{id=4,response='No uncontrolled release'}).success)
+assert(requests[4].status == beforeStatus and responses[4] == nil and #audits == beforeAudits,
+    'Missing oxmysql transaction API must fail closed without writes')
+env.MySQL.startTransaction = originalTx
+
+print('PASS Stage 5 agency isolation, counter/duty, rollback and oxmysql compatibility denial')
