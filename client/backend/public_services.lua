@@ -21,6 +21,56 @@ local function publicRecordsDialog(agency)
     }) end
 end
 
+-- Browse explicit public-safe copies at a configured service counter.
+-- The server checks applicant ownership, expiry, revocation and proximity.
+local function myPublicReleaseCopies(requests)
+    if not lib or not lib.inputDialog or not lib.alertDialog then return end
+    local choices = {}
+    for _, item in ipairs(requests or {}) do
+        if item.status == 'approved' and type(item.request_number) == 'string' then
+            choices[#choices + 1] = {
+                value = item.request_number,
+                label = item.request_number .. ' — ' .. tostring(item.subject or ''),
+            }
+        end
+    end
+    if #choices == 0 then return end
+    local selected = lib.inputDialog('View Public Release Copies', {
+        {type = 'select', label = 'Approved request', options = choices, required = true}
+    })
+    if not selected then return end
+    local result = ps.callback(resourceName .. ':server:getMyPublicReleaseCopies', selected[1])
+    if not result or not result.success then
+        lib.notify({title = 'Records Office', description = result and result.error or 'Copies unavailable', type = 'error'})
+        return
+    end
+    local copies = result.copies or {}
+    if #copies == 0 then
+        lib.alertDialog({header = 'Public Release Copies', content = 'No currently valid public copies for that request.'})
+        return
+    end
+    local options = {}
+    for _, copy in ipairs(copies) do
+        options[#options + 1] = {
+            value = tostring(copy.id),
+            label = tostring(copy.title) .. ' (expires ' .. tostring(copy.expires_at) .. ')'
+        }
+    end
+    local chosen = lib.inputDialog('Read Public Release Copy', {
+        {type = 'select', label = 'Available copies', options = options, required = true}
+    })
+    if not chosen then return end
+    for _, copy in ipairs(copies) do
+        if tostring(copy.id) == tostring(chosen[1]) then
+            lib.alertDialog({
+                header = tostring(copy.title),
+                content = tostring(copy.public_text or ''),
+            })
+            return
+        end
+    end
+end
+
 local function myPublicRecordRequests()
     local result = ps.callback(resourceName .. ':server:getMyPublicRecordRequests')
     if not lib or not lib.alertDialog then return end
@@ -59,6 +109,9 @@ local function myPublicRecordRequests()
             end
         end
     end
+    -- Separate from the administrative decision notice: approved requests may
+    -- have one or more active, time-limited, explicitly authored public copies.
+    myPublicReleaseCopies(result)
 end
 
 local serviceHandlers = {
