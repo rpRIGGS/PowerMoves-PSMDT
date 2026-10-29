@@ -58,6 +58,9 @@ actor.job='bcso'
 assert(not call('grantReportDisclosure',90,'OTHER-1','Unauthorized agency share').success)
 actor.job='sadoj';actor.cid='COUNSEL-1';actor.canEdit=false
 assert(#call('getDisclosedReports')==1,'Granted report is in recipient inbox')
+actor.job='bcso'
+assert(#call('getDisclosedReports')==0, 'Recipient transfer invalidates shared report')
+actor.job='sadoj'
 assert(not call('revokeReportDisclosure',10).success,'Recipient must not revoke owner grant')
 actor.job='lspd';actor.cid='LEO-1';actor.canEdit=true
 assert(call('revokeReportDisclosure',10).success)
