@@ -13,16 +13,27 @@ const officePage = read('web/src/pages/RecordsOffice.svelte');
 const nuiEvents = read('web/src/constants/nuiEvents.ts');
 const schema = read('sql/migrations/2026-10-29-public-records-intake.sql');
 const responseSchema = read('sql/migrations/2026-10-29-public-records-response.sql');
+const auditSchema = read('sql/migrations/2026-10-29-public-records-review.sql');
 
+function getTableDDL(content, tableName) {
+  const start = 'CREATE TABLE IF NOT EXISTS `' + tableName + '` (';
+  const at = content.indexOf(start);
+  assert.ok(at >= 0, 'Missing table ' + tableName);
+  const terminator = ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;';
+  const end = content.indexOf(terminator, at);
+  assert.ok(end > at, 'Missing table terminator for ' + tableName);
+  return content.slice(at, end + terminator.length).replace(/\r\n/g, '\n').trim();
+}
 const qbcoreSchema = read('sql/qbcore.sql');
 const qbxSchema = read('sql/qbx.sql');
-for (const schema of [qbcoreSchema, qbxSchema]) {
-  for (const table of [
-    'mdt_public_record_requests',
-    'mdt_public_record_request_audit',
-    'mdt_public_record_responses'
+for (const base of [qbcoreSchema, qbxSchema]) {
+  for (const [table, migration] of [
+    ['mdt_public_record_requests', schema],
+    ['mdt_public_record_request_audit', auditSchema],
+    ['mdt_public_record_responses', responseSchema]
   ]) {
-    assert.match(schema, new RegExp('CREATE TABLE IF NOT EXISTS \\x60' + table + '\\x60'));
+    assert.strictEqual(getTableDDL(base, table), getTableDDL(migration, table),
+      'Clean install and additive migration must use identical DDL for ' + table);
   }
 }
 
