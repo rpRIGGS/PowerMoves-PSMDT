@@ -10,6 +10,7 @@ local function authorized(src)
     if type(cid) ~= 'string' or type(job) ~= 'string' then return nil end
     if type(officers) ~= 'table' or type(officers[job]) ~= 'table' then return nil end
     if officers[job][cid] ~= true then return nil end
+    if not PublicServiceDeskAllows(src, job, 'records_office') then return nil end
     return cid, job
 end
 
