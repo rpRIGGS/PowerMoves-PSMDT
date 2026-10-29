@@ -404,3 +404,21 @@ RegisterNUICallback('openEvidenceStash', function(data, cb)
     TriggerServerEvent(resourceName .. ':server:openEvidenceStash', data.stashId)
     cb({ success = true })
 end)
+
+-- Case-specific legal discovery (view-only; management remains server-side).
+RegisterNUICallback('grantCaseDisclosure', function(data, cb)
+    if not MDTOpen or type(data) ~= 'table' then cb({success=false}) return end
+    cb(ps.callback(resourceName .. ':server:grantCaseDisclosure',
+        data.caseId, data.recipientCitizenid, data.purpose) or {success=false})
+end)
+
+RegisterNUICallback('revokeCaseDisclosure', function(data, cb)
+    if not MDTOpen or type(data) ~= 'table' then cb({success=false}) return end
+    cb(ps.callback(resourceName .. ':server:revokeCaseDisclosure', data.grantId)
+        or {success=false})
+end)
+
+RegisterNUICallback('getCaseDisclosures', function(data, cb)
+    if not MDTOpen or type(data) ~= 'table' then cb({}) return end
+    cb(ps.callback(resourceName .. ':server:getCaseDisclosures', data.caseId) or {})
+end)
