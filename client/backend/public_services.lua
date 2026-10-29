@@ -2,7 +2,57 @@
 -- not a second MDT or a civilian government role.
 local registeredZones = {}
 
+local resourceName = tostring(GetCurrentResourceName())
+
+local function publicRecordsDialog(agency)
+    if not lib or not lib.inputDialog then return end
+    local fields = lib.inputDialog('Public Records Request — ' .. agency, {
+        {type = 'input', label = 'Records requested', description = 'Brief subject', required = true, max = 160},
+        {type = 'textarea', label = 'Describe the records', required = true, max = 4000},
+    })
+    if not fields then return end
+    local result = ps.callback(resourceName .. ':server:submitPublicRecordRequest', {
+        agency = agency, subject = fields[1], description = fields[2],
+    })
+    if lib.notify then lib.notify({
+        title = result and result.success and 'Request submitted' or 'Request not submitted',
+        description = result and (result.requestNumber or result.error) or 'Service unavailable',
+        type = result and result.success and 'success' or 'error',
+    }) end
+end
+
+local function myPublicRecordRequests()
+    local result = ps.callback(resourceName .. ':server:getMyPublicRecordRequests')
+    if not lib or not lib.alertDialog then return end
+    if type(result) ~= 'table' or #result == 0 then
+        lib.alertDialog({header = 'My Public Records Requests', content = 'No requests found.'})
+        return
+    end
+    local lines = {}
+    for _, row in ipairs(result) do
+        lines[#lines + 1] = ('**%s** — %s (%s)\\n%s'):format(
+            tostring(row.request_number or 'Pending'),
+            tostring(row.subject or ''), tostring(row.status or 'submitted'),
+            tostring(row.agency or ''))
+    end
+    lib.alertDialog({header = 'My Public Records Requests', content = table.concat(lines, '\\n\\n')})
+end
+
 local serviceHandlers = {
+    public_records_request = {
+        label = 'Request Public Records',
+        icon = 'fas fa-file-lines',
+        open = function(location)
+            publicRecordsDialog(location.agency)
+        end,
+    },
+    public_records_status = {
+        label = 'My Records Requests',
+        icon = 'fas fa-list-check',
+        open = function()
+            myPublicRecordRequests()
+        end,
+    },
     ia_complaint = {
         label = 'File Internal Affairs Complaint',
         icon = 'fas fa-file-circle-exclamation',
@@ -36,7 +86,7 @@ local function getOptions(location)
             options[#options + 1] = {
                 icon = service.icon,
                 label = service.label,
-                action = service.open,
+                action = function() service.open(location) end,
             }
         else
             log(('Service %s is not yet implemented; not showing it at %s'):format(
