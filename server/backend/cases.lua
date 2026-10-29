@@ -12,7 +12,7 @@ end
 local function canAccessCaseId(source, caseId)
     local id = tonumber(caseId)
     local scope = getCaseScope(source)
-    if not id or not scope then return false end
+    if not id or id <= 0 or id % 1 ~= 0 or not scope then return false end
     local row = MySQL.single.await('SELECT assigned_department FROM mdt_cases WHERE id = ?', { id })
     if not row then return false end
     local current = getCaseScope(source)
