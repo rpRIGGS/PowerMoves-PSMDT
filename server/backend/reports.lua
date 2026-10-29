@@ -47,16 +47,17 @@ end
 -- A named Stage 4 disclosure is read-only; it never grants report writes.
 local function hasReportDisclosure(src, reportId)
     if not CheckAuth(src) or not CheckPermission(src, 'reports_view') then return false end
-    local cid=ps.getIdentifier(src)
-    if not cid then return false end
+    local cid, job=ps.getIdentifier(src), ps.getJobName(src)
+    if not cid or not job then return false end
     local ok, row=pcall(MySQL.single.await, [[
         SELECT id FROM mdt_report_disclosures
         WHERE report_id = ? AND recipient_citizenid = ? AND recipient_job = ?
           AND revoked_at IS NULL AND (expires_at IS NULL OR expires_at > NOW())
         LIMIT 1
-    ]], {reportId,cid,ps.getJobName(src)})
+    ]], {reportId,cid,job})
     return ok and row ~= nil and CheckAuth(src)
         and CheckPermission(src,'reports_view') and ps.getIdentifier(src)==cid
+        and ps.getJobName(src)==job
 end
 
 local function checkReportAccess(src, reportId)
