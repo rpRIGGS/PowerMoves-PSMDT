@@ -166,3 +166,8 @@ RegisterNUICallback('acceptSADLEIAReferral', function(data, cb)
     cb(ps.callback(resourceName .. ':server:acceptSADLEIAReferral', data.id)
         or {success = false})
 end)
+
+RegisterNUICallback('getIAReferralStatus', function(data, cb)
+    if not MDTOpen or type(data) ~= 'table' then cb({}) return end
+    cb(ps.callback(resourceName .. ':server:getIAReferralStatus', data.id) or {})
+end)
