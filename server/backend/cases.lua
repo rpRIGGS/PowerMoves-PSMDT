@@ -673,3 +673,68 @@ ps.registerCallback(resourceName .. ':server:deleteCaseNote', function(source, n
     MySQL.query.await('DELETE FROM mdt_case_notes WHERE id = ? AND case_id = ?', { noteId, caseId })
     return { success = true }
 end)
+
+
+-- Stage 4: a case-owning department may disclose one case detail to a
+-- named character. This never grants blanket agency/case edits or evidence.
+ps.registerCallback(resourceName .. ':server:grantCaseDisclosure', function(source, caseId, recipientCid, purpose)
+    local src, id = source, tonumber(caseId)
+    if not id or type(recipientCid) ~= 'string' or #recipientCid < 2 or #recipientCid > 64
+        or type(purpose) ~= 'string' or #purpose < 10 or #purpose > 255 then
+        return {success=false, error='Case, recipient and purpose are required'}
+    end
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_edit')
+        or not canAccessCaseId(src, id) then return {success=false, error='Unauthorized'} end
+    local actor, employer = ps.getIdentifier(src), ps.getJobName(src)
+    local caseRow = MySQL.single.await('SELECT assigned_department FROM mdt_cases WHERE id = ?', {id})
+    if not caseRow or caseRow.assigned_department ~= employer then
+        return {success=false, error='Only originating department may disclose a case'}
+    end
+    local recipient = MySQL.scalar.await('SELECT citizenid FROM players WHERE citizenid = ? LIMIT 1', {recipientCid})
+    if not recipient or not CheckAuth(src) or not CheckPermission(src, 'cases_edit')
+        or ps.getIdentifier(src) ~= actor or ps.getJobName(src) ~= employer
+        or not canAccessCaseId(src, id) then return {success=false,error='Authorization changed'} end
+    local ok, newId = pcall(MySQL.insert.await, [[
+        INSERT INTO mdt_case_disclosures
+            (case_id, recipient_citizenid, purpose, granted_by_citizenid, granted_by_job)
+        SELECT id, ?, ?, ?, assigned_department FROM mdt_cases
+        WHERE id = ? AND assigned_department = ?
+    ]], {recipientCid, purpose, actor, id, employer})
+    if not ok or not newId then return {success=false,error='Disclosure storage unavailable'} end
+    if ps.auditLog then ps.auditLog(src,'case_disclosure_granted','case',id,
+        {grant_id=newId, recipient=recipientCid, purpose=purpose}) end
+    return {success=true,grantId=newId}
+end)
+
+ps.registerCallback(resourceName .. ':server:revokeCaseDisclosure', function(source, grantId)
+    local src,id=source,tonumber(grantId)
+    if not id or not CheckAuth(src) or not CheckPermission(src,'cases_edit') then
+        return {success=false,error='Unauthorized'}
+    end
+    local actor, employer=ps.getIdentifier(src),ps.getJobName(src)
+    if not actor or not employer then return {success=false,error='Unauthorized'} end
+    local ok,count=pcall(MySQL.update.await,[[
+        UPDATE mdt_case_disclosures g
+        INNER JOIN mdt_cases c ON c.id = g.case_id
+        SET g.revoked_at = NOW(), g.revoked_by_citizenid = ?
+        WHERE g.id = ? AND c.assigned_department = ? AND g.revoked_at IS NULL
+    ]],{actor,id,employer})
+    if not ok or tonumber(count)~=1 then return {success=false,error='Grant not found or inaccessible'} end
+    if ps.auditLog then ps.auditLog(src,'case_disclosure_revoked','case_disclosure',id,{employer=employer}) end
+    return {success=true}
+end)
+
+ps.registerCallback(resourceName .. ':server:getCaseDisclosures', function(source, caseId)
+    local src,id=source,tonumber(caseId)
+    if not id or not CheckAuth(src) or not CheckPermission(src,'cases_edit') then return {} end
+    local actor, employer=ps.getIdentifier(src),ps.getJobName(src)
+    local record=MySQL.single.await('SELECT assigned_department FROM mdt_cases WHERE id = ?', {id})
+    if not record or record.assigned_department~=employer then return {} end
+    local ok,rows=pcall(MySQL.query.await,[[
+        SELECT id,recipient_citizenid,purpose,granted_at,expires_at,revoked_at
+        FROM mdt_case_disclosures WHERE case_id = ? ORDER BY granted_at DESC LIMIT 100
+    ]],{id})
+    if not CheckAuth(src) or not CheckPermission(src,'cases_edit')
+        or ps.getJobName(src)~=employer or ps.getIdentifier(src)~=actor then return {} end
+    return ok and rows or {}
+end)
