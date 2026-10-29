@@ -70,6 +70,10 @@ actor.job='sadoj'
 actor.allowed.cases_edit=false
 assert(call('getCase',55).success,'Named grant should allow case detail')
 assert(#call('getDisclosedCases')==1)
+actor.job='bcso'
+assert(not call('getCase',55).success, 'Same person at new employer must lose disclosure')
+assert(#call('getDisclosedCases')==0)
+actor.job='sadoj'
 assert(not call('revokeCaseDisclosure',12).success,'Recipient cannot revoke a department grant')
 actor.cid='LSPD-1';actor.job='lspd';actor.allowed.cases_edit=true
 assert(call('revokeCaseDisclosure',12).success)
