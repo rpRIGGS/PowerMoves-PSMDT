@@ -28,6 +28,15 @@ pos={x=32,y=32,z=41}
 assert(not allows(1,'bcso','records_office'),'Outside polygon Z range must deny')
 pos={x=1000,y=1000,z=30}
 assert(not allows(1,'lspd','public_records_request'),'Remote calls must deny')
+-- An invalid or unbounded zone setting must not grant global access.
+pos={x=10,y=10,z=30}
+local town=env.Config.PublicServices.Locations[1]
+town.radius=math.huge
+assert(not allows(1,'lspd','records_office'),'Infinite radius must be rejected')
+town.radius=1.0
+pos.x=0/0
+assert(not allows(1,'lspd','records_office'),'NaN coordinates must be rejected')
+pos={x=10,y=10,z=30}
 env.Config.PublicServices.Enabled=false
 assert(not allows(1,'lspd','records_office'),'Disabled service must deny')
 print('PASS Stage 5 server circle/poly vector and agency isolation checks')
