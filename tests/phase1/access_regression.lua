@@ -310,14 +310,14 @@ test('clerks prosecutors and defenders cannot acquire judicial authority via bos
     end
 end)
 
-test('legacy judge compatibility excludes clerk and unrelated lawyer boss', function()
-    for _, grade in ipairs({ 1, 2 }) do
-        identity(470 + grade, 'judge', 'doj', grade, grade == 2)
-        expect(env.HasMdtJudicialAuthority(470 + grade))
+test('legacy judge and lawyer jobs cannot bypass SADOJ judicial grade policy', function()
+    for _, grade in ipairs({ 0, 1, 2 }) do
+        local src = 470 + grade
+        identity(src, 'judge', 'doj', grade, grade == 2)
+        expect(not env.HasMdtJudicialAuthority(src), 'Legacy judge grade ' .. grade)
+        expect(not env.CheckPermission(src, 'warrants_approve'))
     end
-    identity(470, 'judge', 'doj', 0, false)
     identity(473, 'lawyer', 'doj', 2, true)
-    expect(not env.HasMdtJudicialAuthority(470))
     expect(not env.HasMdtJudicialAuthority(473))
     expect(not env.CheckPermission(473, 'warrants_approve'))
 end)
@@ -393,8 +393,8 @@ test('personnel guard checks current employer and requested destination', functi
     local same = identity(601, 'lspd', 'leo', 2, false)
     local other = identity(602, 'bcso', 'leo', 3, false)
     local government = identity(603, 'sagov', 'gov', 9, true)
-    expect(env.CanManageMdtPersonnel(600, same.citizenid, 'lspd'))
-    expect(env.CanManageMdtPersonnel(600, same.citizenid))
+    expect(env.CanManageMdtPersonnel(600, same.citizenid, 'lspd'), 'Same-employer role edit denied')
+    expect(env.CanManageMdtPersonnel(600, same.citizenid), 'Same-employer role edit without destination denied')
     expect(not env.CanManageMdtPersonnel(600, same.citizenid, 'bcso'))
     expect(not env.CanManageMdtPersonnel(600, other.citizenid, 'lspd'))
     expect(not env.CanManageMdtPersonnel(600, government.citizenid, 'lspd'))
