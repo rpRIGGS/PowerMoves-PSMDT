@@ -51,7 +51,9 @@ end
 -- Exposed as a global so the dashboard aggregate (server/backend/dashboard.lua)
 -- can reuse it without a second round-trip.
 function GetActiveWarrantsData(src)
-    if src ~= nil and not canReadWarrantData(src) then return {} end
+    if src ~= nil and (not canReadWarrantData(src) or not CheckPermission(src, 'warrants_view')) then
+        return {}
+    end
     local citizenid = src ~= nil and ps.getIdentifier(src) or nil
     local jobName = src ~= nil and ps.getJobName(src) or nil
     local rows = MySQL.query.await([[
@@ -99,7 +101,8 @@ function BroadcastActiveWarrants()
     local data = GetActiveWarrantsData()
     for _, playerSource in pairs(GetPlayers()) do
         local target = tonumber(playerSource)
-        if target and target > 0 and canReadWarrantData(target) then
+        if target and target > 0 and canReadWarrantData(target)
+            and CheckPermission(target, 'warrants_view') then
             TriggerClientEvent(resourceName .. ':client:updateActiveWarrants', target, data)
         end
     end
