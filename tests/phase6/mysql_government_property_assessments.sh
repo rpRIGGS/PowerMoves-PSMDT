@@ -4,8 +4,8 @@ db=(mariadb --protocol=tcp --host="${MARIADB_HOST:-127.0.0.1}" --port="${MARIADB
 "${db[@]}" < sql/migrations/2026-10-29-government-property-assessments.sql
 "${db[@]}" <<'SQL'
 INSERT INTO mdt_government_property_assessments
-(property_id,jurisdiction,tax_year,property_type,submitted_by_citizenid)
-VALUES (876543,'blaine_county',2026,'residential','assessor-test');
+(property_id,jurisdiction,tax_year,property_type,submitted_by_citizenid,property_owner_snapshot)
+VALUES (876543,'blaine_county',2026,'residential','assessor-test','CIV-HOME');
 START TRANSACTION;
 UPDATE mdt_government_property_assessments
 SET status='approved',version=version+1,assessed_value=250000,
@@ -23,10 +23,10 @@ COMMIT;
 SQL
 test "$("${db[@]}" --batch --skip-column-names -e "
 SELECT CONCAT(status,':',assessed_value,':',government_owned,':',tax_exempt)
-FROM mdt_government_property_assessments WHERE property_id=876543;")" = 'approved:250000:1:0'
+FROM mdt_government_property_assessments WHERE property_id=876543 AND jurisdiction='blaine_county' AND tax_year=2026;")" = 'approved:250000:1:0'
 test "$("${db[@]}" --batch --skip-column-names -e "
 SELECT COUNT(*) FROM mdt_government_property_assessment_audit
-WHERE property_id=876543 AND action='approved'
+WHERE property_id=876543 AND jurisdiction='blaine_county' AND tax_year=2026 AND action='approved'
 AND before_snapshot IS NOT NULL AND after_snapshot IS NOT NULL;")" = 1
 "${db[@]}" <<'SQL'
 START TRANSACTION;
@@ -40,7 +40,7 @@ COMMIT;
 SQL
 test "$("${db[@]}" --batch --skip-column-names -e "
 SELECT CONCAT(status,':',version) FROM mdt_government_property_assessments
-WHERE property_id=876543;")" = 'pending:3'
+WHERE property_id=876543 AND jurisdiction='blaine_county' AND tax_year=2026;")" = 'pending:3'
 "${db[@]}" <<'SQL'
 START TRANSACTION;
 UPDATE mdt_government_property_assessments SET tax_exempt=1,status='approved',
@@ -50,5 +50,5 @@ ROLLBACK;
 SQL
 test "$("${db[@]}" --batch --skip-column-names -e "
 SELECT CONCAT(status,':',version,':',tax_exempt)
-FROM mdt_government_property_assessments WHERE property_id=876543;")" = 'pending:3:0'
+FROM mdt_government_property_assessments WHERE property_id=876543 AND jurisdiction='blaine_county' AND tax_year=2026;")" = 'pending:3:0'
 echo 'PASS Stage 6 assessor MariaDB approval, ownership exemption separation, audit and rollback'
