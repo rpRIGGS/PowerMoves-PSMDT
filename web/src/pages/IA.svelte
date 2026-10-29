@@ -72,6 +72,7 @@
 	let referralReason = $state("");
 	let referralBusy = $state(false);
 	let referralNotice = $state("");
+	let referralStatus = $state("");
 	interface IAReferral { id: number; complaint_id: number; complaint_number: string; referring_agency: string; status: string; reason: string; created_at: string; }
 	let referrals = $state<IAReferral[]>([]);
 	let loadingReferrals = $state(false);
@@ -92,7 +93,7 @@
 			const result = await fetchNui<{success: boolean; error?: string}>(NUI_EVENTS.IA.REFER_TO_SADLE,
 				{id: selectedComplaint.complaint.id, reason: referralReason.trim()}, {success:false});
 			referralNotice = result.success ? "Referral submitted to SADLE." : (result.error || "Referral not accepted.");
-			if (result.success) referralReason = "";
+			if (result.success) { referralReason = ""; referralStatus = "pending"; }
 		} catch { referralNotice = "Referral could not be submitted."; }
 		finally { referralBusy = false; }
 	}
@@ -149,6 +150,11 @@
 			);
 			const detail = response?.data || { complaint: complaints.find(c => c.id === id)!, notes: [] };
 			selectedComplaint = detail;
+			referralStatus = "";
+			if (detail?.complaint && !isSADLE && authService?.hasPermission('ia_view')) {
+				const state = await fetchNui<{status?:string}>(NUI_EVENTS.IA.GET_REFERRAL_STATUS, {id}, {});
+				referralStatus = state.status || "";
+			}
 			if (detail?.complaint) {
 				statusUpdateValue = detail.complaint.status;
 				assignInvestigatorValue = detail.complaint.assigned_to_name || "";
@@ -398,6 +404,7 @@
 
 		{#if canManage && !isSADLE}
 			<div class="section" style="padding:12px 20px;">
+				{#if referralStatus}<p>State referral: {formatLabel(referralStatus)}</p>{/if}
 				<div class="section-title">Refer to SADLE Internal Affairs</div>
 				<textarea class="form-textarea" rows="2" maxlength="1000" placeholder="Reason for statewide investigation (minimum 10 characters)" bind:value={referralReason}></textarea>
 				<button class="action-btn" disabled={referralBusy || referralReason.trim().length < 10} onclick={referSelectedComplaint}>{referralBusy ? 'Submitting…' : 'Submit Referral'}</button>
