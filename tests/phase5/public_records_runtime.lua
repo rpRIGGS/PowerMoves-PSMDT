@@ -7,6 +7,7 @@ local requests = {
     [2] = {id=2, agency='bcso', status='submitted', applicant_citizenid='CIV-B'},
     [3] = {id=3, agency='lspd', status='under_review', applicant_citizenid='CIV-A'},
     [4] = {id=4, agency='lspd', status='under_review', applicant_citizenid='CIV-A'},
+    [5] = {id=5, agency='lspd', status='submitted', applicant_citizenid='CIV-A'},
 }
 local responses, audits = {}, {}
 local forceAuditFailure, forceResponseFailure = false, false
@@ -15,12 +16,15 @@ local transferDuringAuditWrite = false
 
 local function snapshot()
     local states, reply, count = {}, {}, #audits
-    for id, row in pairs(requests) do states[id] = row.status end
+    for id, row in pairs(requests) do states[id] = {status=row.status, assigned=row.assigned_to_citizenid} end
     for id, row in pairs(responses) do reply[id] = row end
     return states, reply, count
 end
 local function revert(states, reply, count)
-    for id, status in pairs(states) do requests[id].status = status end
+    for id, state in pairs(states) do
+        requests[id].status = state.status
+        requests[id].assigned_to_citizenid = state.assigned
+    end
     responses = reply
     while #audits > count do table.remove(audits) end
 end
@@ -34,6 +38,14 @@ local function query(sql, params)
             transferDuringLockedRead=false
         end
         return {{status=row.status, applicant_citizenid=row.applicant_citizenid}}
+    end
+    if sql:find('SET assigned_to_citizenid', 1, true) then
+        local row=requests[params[2]]
+        if not row or row.agency~=params[3] or row.status~='under_review' then
+            return {affectedRows=0}
+        end
+        row.assigned_to_citizenid=params[1]
+        return {affectedRows=1}
     end
     if sql:find('UPDATE mdt_public_record_requests', 1, true) then
         local approved = sql:find("status = 'approved'", 1, true) ~= nil
@@ -121,6 +133,7 @@ assert(not call('getPublicRecordsOfficeQueue', {page=201}).success)
 assert(not call('getPublicRecordsOfficeQueue', {page=1.5}).success)
 assert(call('reviewPublicRecordsRequest',{id=1,action='under_review',reason='Review started'}).success)
 assert(requests[1].status=='under_review' and #audits==1)
+assert(requests[1].assigned_to_citizenid=='OFFICER-A', 'First reviewer is responsible officer')
 assert(#call('getPublicRecordRequestAudit',1).entries==1, 'Own agency may view its audit')
 assert(not call('reviewPublicRecordsRequest',{id=1,action='under_review',reason='Duplicate'}).success)
 assert(#audits==1, 'Duplicate transition must not audit')
@@ -153,6 +166,9 @@ assert(requests[4].status=='under_review' and responses[4]==nil,
     'Job change after audit write must roll back the entire release')
 actor.job='lspd'
 forceAuditFailure=true
+assert(not call('reviewPublicRecordsRequest',{id=5,action='under_review',reason='Failed assignment audit'}).success)
+assert(requests[5].status=='submitted' and requests[5].assigned_to_citizenid==nil,
+    'Assignment and review status must roll back when audit write fails')
 assert(not call('reviewPublicRecordsRequest',{id=3,action='denied',reason='Deny'}).success)
 assert(requests[3].status=='under_review' and #audits==2, 'Audit failure must roll back status')
 assert(not call('publishPublicRecordsResponse',{id=3,response='Public response'}).success)
