@@ -17,9 +17,9 @@ RegisterNUICallback('canUsePublicRecordsOffice', function(_, cb)
     cb(result or {success = false})
 end)
 
-RegisterNUICallback('getPublicRecordsOfficeQueue', function(_, cb)
+RegisterNUICallback('getPublicRecordsOfficeQueue', function(data, cb)
     if not MDTOpen then cb({success = false, error = 'MDT is closed'}) return end
-    local result = ps.callback(resourceName .. ':server:getPublicRecordsOfficeQueue')
+    local result = ps.callback(resourceName .. ':server:getPublicRecordsOfficeQueue', data or {})
     cb(result or {success = false, error = 'Records office unavailable'})
 end)
 
