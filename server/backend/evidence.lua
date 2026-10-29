@@ -31,6 +31,13 @@ local function evidenceReadParams(source)
     return { access.agency, access.interfaceId == 'sadoj' and 1 or 0, citizenid }
 end
 
+local function unchangedEvidenceReadScope(source, original)
+    local current = evidenceReadParams(source)
+    return current ~= nil and original ~= nil
+        and current[1] == original[1] and current[2] == original[2]
+        and current[3] == original[3]
+end
+
 ps.registerCallback(resourceName .. ':server:getEvidenceItems', function(source, page, limit, filters)
     local src = source
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_view') then return { success = false, error = 'Unauthorized' } end
@@ -106,6 +113,10 @@ ps.registerCallback(resourceName .. ':server:getEvidenceItems', function(source,
         end
     end
 
+    -- Never return another employer's results after a yielding query.
+    if not unchangedEvidenceReadScope(src, scopeParams) then
+        return { success = false, error = 'Authorization changed' }
+    end
     return {
         success = true,
         data = {
@@ -184,6 +195,10 @@ ps.registerCallback(resourceName .. ':server:searchEvidenceItems', function(sour
         end
     end
 
+    -- Never return another employer's results after a yielding query.
+    if not unchangedEvidenceReadScope(src, scopeParams) then
+        return { success = false, error = 'Authorization changed' }
+    end
     return {
         success = true,
         data = {
