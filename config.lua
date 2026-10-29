@@ -19,10 +19,11 @@ Config.DateTime = {
     DateFormat = "DD-MM-YYYY" -- Format for displaying date (string: "MM-DD-YYYY", "DD-MM-YYYY", or "YYYY-MM-DD")
 }
 
--- Department data sharing
-Config.Sharing = {
-    -- Mutual Sharing (Bidirectional)
-    -- All departments in this group can see each other's data
+-- Department data sharing (original PS-MDT Mutual / OneWay format)
+-- Each interface has its own policy; server-side access checks remain required.
+
+-- SADLE.net
+Config.Sharingleo = {
     Mutual = {
         types = {
             'reports',
@@ -38,10 +39,8 @@ Config.Sharing = {
         }
     },
 
-    -- One-Way Sharing (Unidirectional)
-    -- Viewers can see target department data, but not vice versa
     OneWay = {
-        { -- SADLE: statewide law-enforcement oversight visibility
+        {
             viewers = {
                 'sadle'
             },
@@ -61,136 +60,89 @@ Config.Sharing = {
                 'bodycams',
                 'evidence',
                 'bolos',
-                'warrants',
-            }
-        },
-    },
-}
-
-
--- Department data sharing by interface
--- The original Config.Sharing above is preserved for legacy PS-MDT handlers.
--- Each .net interface has its own matching Mutual / OneWay configuration.
-Config.InterfaceSharing = {
-    -- SADLE.net - Law Enforcement
-    sadle = {
-        Mutual = {
-            types = {
-                'reports',
-                'bodycams',
-                'evidence',
-                'bolos',
                 'warrants'
-            },
-            departments = {
-                'lspd',
-                'bcso',
-                'sahp'
-            }
-        },
-
-        OneWay = {
-            {
-                viewers = {
-                    'sadle'
-                },
-                targets = {
-                    'post',
-                    'lspd',
-                    'lspe',
-                    'lscso',
-                    'bcso',
-                    'sahp',
-                    'sasp',
-                    'saspa',
-                    'fib'
-                },
-                types = {
-                    'reports',
-                    'bodycams',
-                    'evidence',
-                    'bolos',
-                    'warrants'
-                }
             }
         }
-    },
-
-    -- SADOJ.net - Department of Justice
-    sadoj = {
-        Mutual = {
-            types = {},
-            departments = {}
-        },
-        OneWay = {}
-    },
-
-    -- SAFR.net - Fire Rescue
-    safr = {
-        Mutual = {
-            types = {},
-            departments = {}
-        },
-        OneWay = {
-            {
-                viewers = {
-                    'safr'
-                },
-                targets = {
-                    'lsfd',
-                    'lscfd',
-                    'bcfd'
-                },
-                types = {
-                    'reports'
-                }
-            }
-        }
-    },
-
-    -- SAMS.net - Medical Services
-    sams = {
-        Mutual = {
-            types = {},
-            departments = {}
-        },
-        OneWay = {
-            {
-                viewers = {
-                    'sams'
-                },
-                targets = {
-                    'pillboxmed',
-                    'sandymed',
-                    'paletomed',
-                    'parsonsmed'
-                },
-                types = {
-                    'reports'
-                }
-            }
-        }
-    },
-
-    -- SAGOV.net - Government
-    sagov = {
-        Mutual = {
-            types = {},
-            departments = {}
-        },
-        OneWay = {}
-    },
-
-    -- SADOT.net - Transportation (inactive)
-    sadot = {
-        Enabled = false,
-        Mutual = {
-            types = {},
-            departments = {}
-        },
-        OneWay = {}
     }
 }
+
+-- SADOJ.net
+Config.Sharingdoj = {
+    Mutual = {
+        types = {},
+        departments = {}
+    },
+    OneWay = {}
+}
+
+-- SAFR.net
+Config.Sharingfire = {
+    Mutual = {
+        types = {},
+        departments = {}
+    },
+    OneWay = {
+        {
+            viewers = {
+                'safr'
+            },
+            targets = {
+                'lsfd',
+                'lscfd',
+                'bcfd'
+            },
+            types = {
+                'reports'
+            }
+        }
+    }
+}
+
+-- SAMS.net
+Config.Sharingems = {
+    Mutual = {
+        types = {},
+        departments = {}
+    },
+    OneWay = {
+        {
+            viewers = {
+                'sams'
+            },
+            targets = {
+                'pillboxmed',
+                'sandymed',
+                'paletomed',
+                'parsonsmed'
+            },
+            types = {
+                'reports'
+            }
+        }
+    }
+}
+
+-- SAGOV.net
+Config.Sharinggov = {
+    Mutual = {
+        types = {},
+        departments = {}
+    },
+    OneWay = {}
+}
+
+-- SADOT.net
+Config.Sharingdot = {
+    Enabled = false,
+    Mutual = {
+        types = {},
+        departments = {}
+    },
+    OneWay = {}
+}
+
+-- Keep original PS-MDT sharing readers functional.
+Config.Sharing = Config.Sharingleo
 
 -- Keybinds
 Config.Keys = {
