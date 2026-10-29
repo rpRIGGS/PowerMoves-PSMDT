@@ -783,3 +783,22 @@ ps.registerCallback(resourceName .. ':server:getDisclosedEvidenceDetail', functi
         {recipient=ps.getIdentifier(src)}) end
     return {success=true,data={item=item,custody=custody or {}}}
 end)
+
+
+ps.registerCallback(resourceName .. ':server:getEvidenceDisclosures', function(source, evidenceId)
+    local src,id=source,tonumber(evidenceId)
+    if not id or not CheckAuth(src) or not CheckPermission(src,'evidence_transfer')
+        or not canEditEvidenceRecord(src,id) then return {} end
+    local actor,job=ps.getIdentifier(src),ps.getJobName(src)
+    if not actor or not job then return {} end
+    local ok,rows=pcall(MySQL.query.await,[[
+        SELECT id,recipient_citizenid,recipient_job,purpose,granted_at,revoked_at
+        FROM mdt_evidence_disclosures
+        WHERE evidence_id = ? AND granted_by_job = ?
+        ORDER BY granted_at DESC LIMIT 100
+    ]],{id,job})
+    if not CheckAuth(src) or not CheckPermission(src,'evidence_transfer')
+        or ps.getIdentifier(src)~=actor or ps.getJobName(src)~=job
+        or not canEditEvidenceRecord(src,id) then return {} end
+    return ok and rows or {}
+end)
