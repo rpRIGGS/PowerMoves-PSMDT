@@ -128,6 +128,7 @@ jobs:
           node tests/phase5/public_records_regression.cjs
           node tests/phase6/government_notices_regression.cjs
           node tests/phase6/government_business_licenses_contract.cjs
+          node tests/phase6/government_property_assessments_contract.cjs
           node tests/basics/navigation_regression.cjs
           node tests/basics/dashboard_routes_regression.cjs
           node tests/ems_dashboard/frontend_regression.cjs
