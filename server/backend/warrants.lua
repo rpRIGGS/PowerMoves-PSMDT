@@ -3,7 +3,10 @@ local resourceName = tostring(GetCurrentResourceName())
 -- Warrant records belong to the existing police/DOJ audience. A medical job
 -- must not receive the payload merely because it can open an MDT.
 local function canReadWarrantData(src)
-    return CheckAuth(src) and not IsEmsJob(ps.getJobName(src), ps.getJobType(src))
+    if not CheckAuth(src) then return false end
+    local access = GetMdtAccess(src)
+    return access ~= nil and access.authorized == true
+        and (access.jobType == 'leo' or access.jobType == 'doj')
 end
 
 local function validateExpiry(expiry)
