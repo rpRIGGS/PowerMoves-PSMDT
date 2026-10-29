@@ -260,24 +260,25 @@ lsgov = {
 	},
 	
 
-fib = {
-    label = 'Federal Investigation Bureau',
-    type = 'leo',
-    defaultDuty = true,
-    offDutyPay = false,
-    grades = {
-        ['0'] = { name = 'Awaiting POST', payment = 0 },
-        ['1'] = { name = 'Agent Trainee', payment = 250 },
-        ['2'] = { name = 'Special Agent', payment = 350 },
-        ['3'] = { name = 'Senior Special Agent', payment = 375 },
-        ['4'] = { name = 'Supervisory Special Agent', payment = 400 },
-        ['5'] = { name = 'Assistant Special Agent in Charge', payment = 425 },
-        ['6'] = { name = 'Special Agent in Charge', isboss = true, payment = 450 },
-        ['7'] = { name = 'Assistant Director', isboss = true, payment = 475 },
-        ['8'] = { name = 'Deputy Director', isboss = true, payment = 500 },
-        ['9'] = { name = 'Director', isboss = true, payment = 550 },
-    },
-},
+-- FIB disabled; SADLE is the sole statewide LEO oversight agency.
+-- fib = {
+--     label = 'Federal Investigation Bureau',
+--     type = 'leo',
+--     defaultDuty = true,
+--     offDutyPay = false,
+--     grades = {
+--         ['0'] = { name = 'Awaiting POST', payment = 0 },
+--         ['1'] = { name = 'Agent Trainee', payment = 250 },
+--         ['2'] = { name = 'Special Agent', payment = 350 },
+--         ['3'] = { name = 'Senior Special Agent', payment = 375 },
+--         ['4'] = { name = 'Supervisory Special Agent', payment = 400 },
+--         ['5'] = { name = 'Assistant Special Agent in Charge', payment = 425 },
+--         ['6'] = { name = 'Special Agent in Charge', isboss = true, payment = 450 },
+--         ['7'] = { name = 'Assistant Director', isboss = true, payment = 475 },
+--         ['8'] = { name = 'Deputy Director', isboss = true, payment = 500 },
+--         ['9'] = { name = 'Director', isboss = true, payment = 550 },
+--     },
+-- },
 
 sadle = {
     label = 'San Andreas Division of Law Enforcement',
