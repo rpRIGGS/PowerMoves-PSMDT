@@ -20,5 +20,6 @@ for(const path of ['sql/qbcore.sql','sql/qbx.sql','sql/migrations/2026-10-28-rep
  const sql=fs.readFileSync(path,'utf8');
  assert.match(sql,/CREATE TABLE IF NOT EXISTS \`mdt_report_disclosures\`/);
  assert.match(sql,/idx_report_disclosure_subject/);
+ assert.match(sql,/recipient_job/);
 }
 console.log('PASS named report grants, scoped revocations and schema contracts');
