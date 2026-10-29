@@ -56,7 +56,10 @@ end)
 local fineCooldowns = {}
 ps.registerCallback(resourceName .. ':server:processFine', function(source, payload)
     local src = source
-    if not CheckAuth(src) then return { success = false, message = 'Unauthorized' } end
+    -- Deducting money is a privileged charge-management operation.
+    if not CheckAuth(src) or not CheckPermission(src, 'charges_edit') then
+        return { success = false, message = 'Unauthorized' }
+    end
 
     payload = payload or {}
     local citizenId = payload.citizenid
