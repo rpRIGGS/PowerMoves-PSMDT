@@ -15,6 +15,7 @@
 		onLinkEvidenceCase: (evidenceId: string, caseId: string) => void;
 		onCreateCaseFromEvidence: (evidenceId: string) => void;
 		onNavigateToCases?: () => void;
+		onNavigateToEvidence?: () => void;
 	}
 
 	let {
@@ -26,6 +27,7 @@
 		onLinkEvidenceCase,
 		onCreateCaseFromEvidence,
 		onNavigateToCases,
+		onNavigateToEvidence,
 	}: Props = $props();
 
 	const evidenceTypes = [
