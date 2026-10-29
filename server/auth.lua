@@ -237,6 +237,32 @@ function CanViewStatewideLeoRoster(source)
         and now.onDuty == identity.onDuty and GetMdtAccess(source).authorized == true
 end
 
+function CanViewStatewideServiceRoster(source, interfaceId)
+    local policy = ((Config.MdtAccess or {}).ServiceOversight or {})[interfaceId]
+    if not policy then return false end
+    local initial = runtimeIdentity(source)
+    if not initial or not initial.gradeValid or initial.primaryInterfaceId ~= interfaceId
+        or not contains(policy.OversightJobs, initial.job) then return false end
+    local access = GetMdtAccess(source)
+    if not access.authorized or access.interfaceId ~= interfaceId then return false end
+    local ok, row = pcall(MySQL.single.await,
+        'SELECT permissions FROM mdt_permission_roles WHERE job = ? AND grade = ?',
+        {initial.job, initial.grade})
+    if not ok or not row then return false end
+    local permissions = row.permissions
+    if type(permissions) == 'string' then
+        local decodedOk, decoded = pcall(json.decode, permissions)
+        permissions = decodedOk and decoded or nil
+    end
+    if type(permissions) ~= 'table' or not contains(permissions, policy.RosterPermission) then return false end
+    local current = runtimeIdentity(source)
+    if not current or current.citizenid ~= initial.citizenid or current.job ~= initial.job
+        or current.grade ~= initial.grade or current.onDuty ~= initial.onDuty
+        or current.primaryInterfaceId ~= interfaceId then return false end
+    local currentAccess = GetMdtAccess(source)
+    return currentAccess.authorized == true and currentAccess.interfaceId == interfaceId
+end
+
 -- Separate, read-only government personnel scope. This deliberately does not
 -- use CheckAuth/CheckPermission or boss-derived operational permission sets.
 function GetGovernmentRosterAccess(source)
