@@ -324,6 +324,13 @@ ps.registerCallback(resourceName .. ':server:createFTOAssignment', function(sour
         end
     end
 
+    -- Both phase lookup and active-assignment checks may yield. Verify the
+    -- manager and both employees again before creating an employer-owned DOR.
+    if not CheckAuth(src) or not CheckPermission(src, 'fto_manage')
+        or not CanManageMdtPersonnel(src, data.trainee_citizenid)
+        or not CanManageMdtPersonnel(src, data.trainer_citizenid) then
+        return { success = false, error = 'Authorization changed' }
+    end
     local assignmentId = MySQL.insert.await([[
         INSERT INTO mdt_fto_assignments
         (fto_number, trainee_citizenid, trainee_name, trainer_citizenid, trainer_name,
