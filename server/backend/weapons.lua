@@ -111,7 +111,7 @@ end
 exports('registerWeapon', registerWeapon)
 
 ps.registerCallback('ps-mdt:server:getWeapons', function(source)
-    if not CheckAuth(source) then return {} end
+    if not CheckAuth(source) or not CheckPermission(source, 'weapons_search') then return {} end
     local weapons = MySQL.query.await('SELECT * FROM mdt_weapons') or {}
     local newData = {}
     local weaponBolo = {}
@@ -205,7 +205,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:saveWeaponFlags', function(source, serial, flags)
     local src = source
-    if not CheckAuth(src) then return { success = false } end
+    if not CheckAuth(src) or not CheckPermission(src, 'weapons_add') then return { success = false } end
     if not serial or serial == '' then return { success = false } end
 
     local decoded
@@ -230,7 +230,7 @@ end)
 -- Save/Edit Weapon Info (from NUI)
 ps.registerCallback(resourceName .. ':server:saveWeaponInfo', function(source, payload)
     local src = source
-    if not CheckAuth(src) then return { success = false, message = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'weapons_add') then return { success = false, message = 'Unauthorized' } end
 
     payload = payload or {}
     local serial = payload.serial
@@ -287,7 +287,7 @@ end)
 -- Delete Weapon Record
 ps.registerCallback(resourceName .. ':server:deleteWeapon', function(source, payload)
     local src = source
-    if not CheckAuth(src) then return { success = false, message = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'weapons_add') then return { success = false, message = 'Unauthorized' } end
 
     payload = payload or {}
     local id = tonumber(payload.id)
