@@ -11,6 +11,7 @@ const events = read('web/src/constants/nuiEvents.ts');
 const home = read('web/src/pages/Government.svelte');
 const editor = read('web/src/pages/GovernmentNotices.svelte');
 const migration = read('sql/migrations/2026-10-29-government-public-notices.sql');
+const withdrawal = read('sql/migrations/2026-10-29-government-notice-withdrawal.sql');
 const cleanSchemas = [read('sql/qbcore.sql'), read('sql/qbx.sql')];
 
 function tableDDL(content, name) {
@@ -23,6 +24,7 @@ function tableDDL(content, name) {
   return content.slice(from, to + endToken.length).trim();
 }
 for(const base of cleanSchemas) {
+  assert.ok(base.includes(withdrawal.trim()), 'Fresh install missing withdrawal columns');
   for(const table of ['mdt_government_notices','mdt_government_notice_audit']) {
     assert.strictEqual(tableDDL(base,table),tableDDL(migration,table));
   }
@@ -46,12 +48,14 @@ assert.match(backend, /sameAccess\(source, access\)/);
 assert.match(backend, /row\.status == 'published'/);
 assert.match(backend, /CanViewGovernmentJurisdictionRecord/);
 assert.match(backend, /getPublicGovernmentNotices/);
+assert.match(backend, /status = 'withdrawn'/);
+assert.match(backend, /withdrawn_by_citizenid/);
 assert.match(backend, /PublicServiceDeskAllows\(source, nil, 'government_notices'\)/);
 assert.match(backend, /WHERE status = 'published'/);
 assert.match(serviceCounters, /government_notices =/);
 
 assert.doesNotMatch(backend, /RegisterCommand/);
-for(const action of ['getGovernmentNotices','createGovernmentNotice','editGovernmentNotice','publishGovernmentNotice']) {
+for(const action of ['getGovernmentNotices','createGovernmentNotice','editGovernmentNotice','publishGovernmentNotice','withdrawGovernmentNotice']) {
   assert.match(backend,new RegExp("server:" + action));
   assert.match(client,new RegExp(action));
   assert.match(events,new RegExp(action));
