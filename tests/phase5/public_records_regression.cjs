@@ -14,6 +14,19 @@ const nuiEvents = read('web/src/constants/nuiEvents.ts');
 const schema = read('sql/migrations/2026-10-29-public-records-intake.sql');
 const responseSchema = read('sql/migrations/2026-10-29-public-records-response.sql');
 
+const qbcoreSchema = read('sql/qbcore.sql');
+const qbxSchema = read('sql/qbx.sql');
+for (const schema of [qbcoreSchema, qbxSchema]) {
+  for (const table of [
+    'mdt_public_record_requests',
+    'mdt_public_record_request_audit',
+    'mdt_public_record_responses'
+  ]) {
+    assert.match(schema, new RegExp('CREATE TABLE IF NOT EXISTS \\x60' + table + '\\x60'));
+  }
+}
+
+
 assert.match(intake, /WHERE applicant_citizenid = \?/);
 assert.match(intake, /r\.applicant_citizenid = \?/);
 assert.match(intake, /ps\.getIdentifier\(source\) ~= cid/);
