@@ -14,6 +14,9 @@ local env = setmetatable({
     },
     CheckAuth = function() return actor.authorized end,
     CheckPermission = function() return true end,
+    CanManageMdtPersonnel = function(_, citizenid)
+        return citizenid == 'CID-TRAINER' or citizenid == 'CID-TRAINEE'
+    end,
     GetMdtDomain = function() return actor.domain end,
     MySQL = {
         query = { await = function(sql, args)
@@ -81,4 +84,9 @@ env.MySQL.query.await = function(sql,args)
     return {{id=8, latest_rating=4}}
 end
 assert(#rosterHistory(1,'CID-A')==0, 'Employer transfer must suppress former DOR scores')
-print('PASS FTO employer scopes, confidential DOR ratings and personal transcript protection')
+local create = assert(callbacks['ps-mdt:server:createFTOAssignment'])
+assert(not create(1,{trainee_citizenid='OTHER-AGENCY',trainer_citizenid='CID-TRAINER'}).success,
+    'Managers must not enroll trainees from other departments')
+assert(not create(1,{trainee_citizenid='CID-TRAINEE',trainer_citizenid='OTHER-AGENCY'}).success,
+    'Managers must not appoint outside field trainers')
+print('PASS FTO employer scopes, confidential DOR ratings and same-department training checks')
