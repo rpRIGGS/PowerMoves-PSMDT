@@ -30,6 +30,25 @@ RegisterNUICallback('getPublicRecordRequestAudit', function(data, cb)
     cb(result or {success = false, error = 'Decision history unavailable'})
 end)
 
+RegisterNUICallback('getPublicReleaseCopiesForOfficer', function(data, cb)
+    if not MDTOpen then cb({success = false, error = 'MDT is closed'}) return end
+    local result = ps.callback(resourceName .. ':server:getPublicReleaseCopiesForOfficer',
+        data and data.id)
+    cb(result or {success = false, error = 'Release copies unavailable'})
+end)
+
+RegisterNUICallback('issuePublicReleaseCopy', function(data, cb)
+    if not MDTOpen then cb({success = false, error = 'MDT is closed'}) return end
+    local result = ps.callback(resourceName .. ':server:issuePublicReleaseCopy', data or {})
+    cb(result or {success = false, error = 'Release copy not issued'})
+end)
+
+RegisterNUICallback('revokePublicReleaseCopy', function(data, cb)
+    if not MDTOpen then cb({success = false, error = 'MDT is closed'}) return end
+    local result = ps.callback(resourceName .. ':server:revokePublicReleaseCopy', data or {})
+    cb(result or {success = false, error = 'Release copy not revoked'})
+end)
+
 RegisterNUICallback('reviewPublicRecordsRequest', function(data, cb)
     if not MDTOpen then cb({success = false, error = 'MDT is closed'}) return end
     local result = ps.callback(resourceName .. ':server:reviewPublicRecordsRequest', data or {})
