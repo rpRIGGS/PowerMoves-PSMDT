@@ -69,7 +69,8 @@ ps.registerCallback(resourceName .. ':server:getMyPublicRecordRequests', functio
         WHERE applicant_citizenid = ?
         ORDER BY created_at DESC, id DESC LIMIT 50
     ]], {cid})
-    if not ok or ps.getIdentifier(source) ~= cid then return {} end
+    if not ok or ps.getIdentifier(source) ~= cid
+        or not PublicServiceDeskAllows(source, nil, 'public_records_status') then return {} end
     return rows or {}
 end)
 
@@ -86,7 +87,8 @@ ps.registerCallback(resourceName .. ':server:getMyPublicRecordsResponse', functi
         WHERE r.request_number = ? AND r.applicant_citizenid = ?
           AND r.status = 'approved' LIMIT 1
     ]], {requestNumber, cid})
-    if not ok or ps.getIdentifier(source) ~= cid or not row then
+    if not ok or ps.getIdentifier(source) ~= cid
+        or not PublicServiceDeskAllows(source, nil, 'public_records_status') or not row then
         return {success = false, error = 'Response unavailable'}
     end
     return {success = true, response = row}
