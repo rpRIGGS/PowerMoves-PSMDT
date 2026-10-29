@@ -297,6 +297,12 @@ ps.registerCallback(resourceName .. ':server:createFTOAssignment', function(sour
     if not data.trainer_citizenid or data.trainer_citizenid == '' then
         return { success = false, error = 'Trainer is required' }
     end
+    -- Departmental FTO is not a statewide academy assignment. Both trainee
+    -- and field trainer must be verifiably employed by this manager's agency.
+    if not CanManageMdtPersonnel(src, data.trainee_citizenid)
+        or not CanManageMdtPersonnel(src, data.trainer_citizenid) then
+        return { success = false, error = 'Trainee and trainer must belong to your department' }
+    end
 
     -- Only one open (active or suspended) assignment per trainee.
     local existing = MySQL.single.await(
