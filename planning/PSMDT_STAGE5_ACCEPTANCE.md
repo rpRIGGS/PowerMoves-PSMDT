@@ -7,7 +7,7 @@ Status: **Source implementation candidate — NOT runtime accepted** (October 29
 - Civilian public-records request intake and request history, restricted to the initiating citizenid.
 - Records-office queue accessible only to explicitly listed `Config.PublicServices.RecordsOfficers[job][citizenid]` members, subject to MDT auth.
 - Review transitions from submitted to under_review, then denied or approved.
-- Approved requests receive only records-office-authored public response text. No direct disclosure of cases, reports, evidence stashes, medical charts or IA records.
+- Approved requests receive only records-office-authored public response text. Denied requests receive a written public explanation addressed to the original applicant. No direct disclosure of cases, reports, evidence stashes, medical charts or IA records.
 - Approved responses are scoped to the original requesting citizenid. Review and publication are written to the Stage 5 audit table.
 - Records officers open the integrated PSMDT records-office panel through a configured in-world qb-target counter; civilians submit and check requests at public service counters. No records-office slash command or separate staff ox_lib menu.
 - Source contract test: `tests/phase5/public_records_regression.cjs`, linked into GitHub Actions.
@@ -31,9 +31,9 @@ Status: **Source implementation candidate — NOT runtime accepted** (October 29
 - Agency A cannot review or decide agency B's requests.
 - Unlisted staff, civilians and unauthorized job switches cannot open records-office queues.
 - Two records officers racing the same decision cause only one state transition, response and audit entry.
-- Responses cannot be published before review and cannot be duplicated.
+- Responses cannot be published before review and cannot be duplicated. Denial notice, status and audit commit together, or all roll back.
 - Approved response text contains only the reviewed publicly releasable information.
-- Declined requests show denied status, while restricted source documents are never attached automatically.
+- Denied requests show their status and an applicant-scoped denial explanation; restricted source documents and internal audit rows are never attached automatically.
 - qb-target service zones recover after restart; civilian ox_lib forms and the integrated staff MDT panel render.
 - Existing LEO, EMS, fire, DOJ, IA and evidence workflows remain unaffected.
 - Run Lua syntax, CI source checks and MariaDB migration/integration tests; inspect FiveM F8 and server logs.
