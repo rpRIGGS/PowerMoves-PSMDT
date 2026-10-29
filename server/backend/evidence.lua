@@ -12,6 +12,25 @@ local function canEditEvidenceRecord(source, evidenceId)
     return cid ~= nil and row.created_by == cid and GetMdtAccess(source).authorized == true
 end
 
+-- SQL read guard: evidence linked to a case belongs to its assigned
+-- department; unlinked legacy evidence has no dependable employer marker,
+-- so only the original collecting citizen can view it by default.
+local evidenceReadScope = [[
+    ((mdt_evidence_items.case_id IS NOT NULL AND EXISTS (
+        SELECT 1 FROM mdt_cases scoped_case
+        WHERE scoped_case.id = mdt_evidence_items.case_id
+          AND (scoped_case.assigned_department = ? OR ? = 1)
+    )) OR (mdt_evidence_items.case_id IS NULL AND mdt_evidence_items.created_by = ?))
+]]
+
+local function evidenceReadParams(source)
+    local access = GetMdtAccess(source)
+    if not access.authorized or not access.agency then return nil end
+    local citizenid = ps.getIdentifier(source)
+    if not citizenid then return nil end
+    return { access.agency, access.interfaceId == 'sadoj' and 1 or 0, citizenid }
+end
+
 ps.registerCallback(resourceName .. ':server:getEvidenceItems', function(source, page, limit, filters)
     local src = source
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_view') then return { success = false, error = 'Unauthorized' } end
@@ -20,8 +39,10 @@ ps.registerCallback(resourceName .. ':server:getEvidenceItems', function(source,
     limit = tonumber(limit) or 20
     local offset = (page - 1) * limit
 
-    local queryParts = { '1=1' }
-    local values = {}
+    local scopeParams = evidenceReadParams(src)
+    if not scopeParams then return { success = false, error = 'Unauthorized' } end
+    local queryParts = { evidenceReadScope }
+    local values = scopeParams
 
     if filters and filters.caseId then
         queryParts[#queryParts + 1] = 'case_id = ?'
@@ -108,21 +129,29 @@ ps.registerCallback(resourceName .. ':server:searchEvidenceItems', function(sour
     end
     local offset = (page - 1) * limit
 
-    local totalRow = MySQL.single.await([[
+    local scopeParams = evidenceReadParams(src)
+    if not scopeParams then return { success = false, error = 'Unauthorized' } end
+    local searchParams = { likeQuery, likeQuery, likeQuery, likeQuery, likeQuery }
+    for _, param in ipairs(scopeParams) do searchParams[#searchParams + 1] = param end
+    local totalRow = MySQL.single.await(([[
         SELECT COUNT(id) as total
         FROM mdt_evidence_items
-        WHERE title LIKE ? OR serial LIKE ? OR notes LIKE ? OR location LIKE ? OR stash_id LIKE ?
-    ]], { likeQuery, likeQuery, likeQuery, likeQuery, likeQuery })
+        WHERE (title LIKE ? OR serial LIKE ? OR notes LIKE ? OR location LIKE ? OR stash_id LIKE ?)
+          AND %s
+    ]]):format(evidenceReadScope), searchParams)
 
     local total = totalRow and totalRow.total or 0
 
-    local evidence = MySQL.query.await([[
+    local pagedParams = { table.unpack(searchParams) }
+    pagedParams[#pagedParams + 1], pagedParams[#pagedParams + 2] = limit, offset
+    local evidence = MySQL.query.await(([[
         SELECT id, case_id, report_id, title, type, serial, notes, location, stash_id, stored, last_holder, created_by, created_at, updated_at
         FROM mdt_evidence_items
-        WHERE title LIKE ? OR serial LIKE ? OR notes LIKE ? OR location LIKE ? OR stash_id LIKE ?
+        WHERE (title LIKE ? OR serial LIKE ? OR notes LIKE ? OR location LIKE ? OR stash_id LIKE ?)
+          AND %s
         ORDER BY created_at DESC
         LIMIT ? OFFSET ?
-    ]], { likeQuery, likeQuery, likeQuery, likeQuery, likeQuery, limit, offset })
+    ]]):format(evidenceReadScope), pagedParams)
 
     if evidence and #evidence > 0 then
         local ids = {}
