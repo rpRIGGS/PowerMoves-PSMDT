@@ -60,4 +60,4 @@ RegisterNetEvent('ps-mdt:client:openRecordsOffice', function()
     end
     lib.registerContext({id = 'psmdt_records_office', title = 'Agency Records Office', options = options})
     lib.showContext('psmdt_records_office')
-end, false)
+end)
