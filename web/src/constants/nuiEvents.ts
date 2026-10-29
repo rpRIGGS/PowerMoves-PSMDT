@@ -323,6 +323,7 @@ export const NUI_EVENTS = {
 		REFER_TO_SADLE: "referIAComplaintToSADLE",
 		GET_SADLE_REFERRALS: "getSADLEIAReferrals",
 		ACCEPT_SADLE_REFERRAL: "acceptSADLEIAReferral",
+		GET_REFERRAL_STATUS: "getIAReferralStatus",
 		GET_IA_HISTORY_FOR_OFFICER: "getIAHistoryForOfficer",
 		UPDATE_IA_COMPLAINT_INFO: "updateIAComplaintInfo",
 		UPDATE_IA_STATUS: "updateIAStatus",
