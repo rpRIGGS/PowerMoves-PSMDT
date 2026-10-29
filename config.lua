@@ -22,7 +22,7 @@ Config.DateTime = {
 -- Department data sharing (original PS-MDT Mutual / OneWay format)
 -- Each interface has its own policy; server-side access checks remain required.
 
--- Agency sharing policies. Explicit visibility only; no implicit cross-agency access.
+-- Agency sharing policies: individual job names and permitted record categories.
 -- SADLE.net
 Config.Sharingleo = {
     Mutual = {
@@ -94,17 +94,33 @@ Config.Sharingleo = {
 -- SADOJ.net
 Config.Sharingdoj = {
     Mutual = {
-        types = {},
-        departments = {},
+        types = {
+        },
+        departments = {
+        },
     },
-    OneWay = {},
+    OneWay = {
+        {
+            viewers = {
+                'sadoj',
+            },
+            targets = {
+                'lawyer',
+            },
+            types = {
+
+            },
+        },
+    },
 }
 
 -- SAFR.net
 Config.Sharingfire = {
     Mutual = {
-        types = {},
-        departments = {},
+        types = {
+        },
+        departments = {
+        },
     },
     OneWay = {
         {
@@ -126,8 +142,10 @@ Config.Sharingfire = {
 -- SAMS.net
 Config.Sharingems = {
     Mutual = {
-        types = {},
-        departments = {},
+        types = {
+        },
+        departments = {
+        },
     },
     OneWay = {
         {
@@ -150,20 +168,64 @@ Config.Sharingems = {
 -- SAGOV.net
 Config.Sharinggov = {
     Mutual = {
-        types = {},
-        departments = {},
+        types = {
+        },
+        departments = {
+        },
     },
-    OneWay = {},
+    OneWay = {
+        {
+            viewers = {
+                'sagov',
+            },
+            targets = {
+                'bcgov',
+                'lscgov',
+                'lsgov',
+            },
+            types = {
+
+            },
+        },
+    },
 }
 
 -- SADOT.net
 Config.Sharingdot = {
     Enabled = true,
     Mutual = {
-        types = {},
-        departments = {},
+        types = {
+        },
+        departments = {
+        },
     },
-    OneWay = {},
+    OneWay = {
+        {
+            viewers = {
+                'sahpfleet',
+            },
+            targets = {
+                'paradise',
+                'larrys',
+                'benefactor',
+                'safleet',
+                'bcfleet',
+                'lscofleet',
+                'lscityfleet',
+                'samsfleet',
+                'safrfleet',
+                'mechanic',
+                'mechanic2',
+                'mechanic3',
+                'beeker',
+                'bennys',
+                'jetsam',
+            },
+            types = {
+
+            },
+        },
+    },
 }
 
 -- Keep original PS-MDT sharing readers functional.
