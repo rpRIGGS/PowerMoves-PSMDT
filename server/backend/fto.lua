@@ -230,7 +230,9 @@ ps.registerCallback(resourceName .. ':server:getOfficerFTOHistory', function(sou
     -- A person's milestone summary follows them across employment changes.
     -- Managers may see it only for someone currently employed by their own
     -- agency; other persons' records are not discoverable by arbitrary ID.
-    local isSelf = officerCitizenId == ps.getIdentifier(src)
+    local actorCitizenid, actorEmployer = ps.getIdentifier(src), ps.getJobName(src)
+    if not actorCitizenid or not actorEmployer then return {} end
+    local isSelf = officerCitizenId == actorCitizenid
     if not isSelf then
         if not CheckPermission(src, 'fto_view') or not CanManageMdtPersonnel(src, officerCitizenId) then
             return {}
@@ -245,11 +247,15 @@ ps.registerCallback(resourceName .. ':server:getOfficerFTOHistory', function(sou
             (SELECT d2.overall_rating FROM mdt_fto_dors d2 WHERE d2.assignment_id = a.id ORDER BY d2.created_at DESC LIMIT 1) AS latest_rating
         FROM mdt_fto_assignments a
         LEFT JOIN mdt_fto_phases p ON a.current_phase_id = p.id
-        WHERE a.trainee_citizenid = ?
+        WHERE a.trainee_citizenid = ? AND a.job_type = ? AND a.agency_job = ?
         ORDER BY a.created_at DESC
         LIMIT 150
-    ]], { officerCitizenId })
+    ]], { officerCitizenId, getFTODomain(src), ps.getJobName(src) })
 
+    if not CheckAuth(src) or ps.getIdentifier(src) ~= actorCitizenid
+        or ps.getJobName(src) ~= actorEmployer then return {} end
+    if not isSelf and (not CheckPermission(src, 'fto_view')
+        or not CanManageMdtPersonnel(src, officerCitizenId)) then return {} end
     return (ok and rows) or {}
 end)
 
