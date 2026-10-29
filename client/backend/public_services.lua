@@ -30,12 +30,12 @@ local function myPublicRecordRequests()
     end
     local lines = {}
     for _, row in ipairs(result) do
-        lines[#lines + 1] = ('**%s** — %s (%s)\\n%s'):format(
+        lines[#lines + 1] = ('**%s** — %s (%s)\n%s'):format(
             tostring(row.request_number or 'Pending'),
             tostring(row.subject or ''), tostring(row.status or 'submitted'),
             tostring(row.agency or ''))
     end
-    lib.alertDialog({header = 'My Public Records Requests', content = table.concat(lines, '\\n\\n')})
+    lib.alertDialog({header = 'My Public Records Requests', content = table.concat(lines, '\n\n')})
     local approved = {}
     for _, item in ipairs(result) do
         if item.status == 'approved' and type(item.request_number) == 'string' then
