@@ -89,13 +89,26 @@ ps.registerCallback(resourceName .. ':server:reviewPublicRecordsRequest', functi
     local previous = action == 'under_review' and 'submitted' or 'under_review'
     local ok, committed = pcall(MySQL.startTransaction, function(query)
         local rows = query([[
-            SELECT status FROM mdt_public_record_requests
+            SELECT status, applicant_citizenid FROM mdt_public_record_requests
             WHERE id = ? AND agency = ? FOR UPDATE
         ]], {id, job})
         if type(rows) ~= 'table' or not rows[1] or rows[1].status ~= previous then
             return false
         end
         if authorized(source) ~= cid or ps.getJobName(source) ~= job then return false end
+
+        -- A denial includes a public-facing explanation addressed only to
+        -- the original applicant. Never expose internal audit rows directly.
+        if action == 'denied' then
+            if type(rows[1].applicant_citizenid) ~= 'string'
+                or rows[1].applicant_citizenid == '' then return false end
+            local notice = query([[
+                INSERT INTO mdt_public_record_responses
+                    (request_id, agency, recipient_citizenid, response_text, issued_by_citizenid)
+                VALUES (?, ?, ?, ?, ?)
+            ]], {id, job, rows[1].applicant_citizenid, reason, cid})
+            if not insertedExactlyOne(notice) then return false end
+        end
 
         local changed = query([[
             UPDATE mdt_public_record_requests SET status = ?
