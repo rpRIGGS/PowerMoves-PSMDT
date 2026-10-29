@@ -6,6 +6,10 @@ local function validId(value)
     local id=tonumber(value)
     return id and id>=1 and id<=2147483647 and id%1==0 and id or nil
 end
+local function taxYear(value)
+    local year=tonumber(value)
+    return year and year>=2020 and year<=2100 and year%1==0 and year or nil
+end
 local function text(value,max)
     if type(value)~='string' then return nil end
     local s=value:match('^%s*(.-)%s*$')
@@ -41,7 +45,8 @@ end
 local function snapshot(row)
     if not row then return nil end
     return json.encode({
-        status=row.status,jurisdiction=row.jurisdiction,
+        status=row.status,jurisdiction=row.jurisdiction,tax_year=row.tax_year,
+        property_owner_snapshot=row.property_owner_snapshot,
         property_type=row.property_type,assessed_value=row.assessed_value,
         government_owned=row.government_owned,tax_exempt=row.tax_exempt,
         version=row.version,
@@ -61,14 +66,14 @@ ps.registerCallback(resourceName..':server:getGovernmentPropertyAssessments',fun
         return {success=false,error='Invalid assessor queue page'}
     end
     local ok,rows=pcall(MySQL.query.await,[[
-        SELECT a.property_id,a.jurisdiction,a.property_type,a.assessed_value,
+        SELECT a.property_id,a.jurisdiction,a.tax_year,a.property_type,a.assessed_value,
                a.government_owned,a.tax_exempt,a.status,a.version,
                a.reviewed_by_citizenid,a.decision_reason,a.created_at,
                p.street,p.region,p.for_sale
         FROM mdt_government_property_assessments a
         INNER JOIN properties p ON p.property_id=a.property_id
         ORDER BY CASE WHEN a.status='pending' THEN 0 ELSE 1 END,
-                 a.updated_at DESC,a.property_id DESC
+                 a.tax_year DESC,a.updated_at DESC,a.property_id DESC
         LIMIT ? OFFSET ?
     ]],{51,page*50})
     if not ok or not sameStaff(source,access) then
@@ -98,35 +103,38 @@ ps.registerCallback(resourceName..':server:queueGovernmentPropertyAssessment',fu
         return {success=false,error='Assessor role required'}
     end
     local id=validId(data.propertyId)
+    local year=taxYear(data.taxYear)
     local area=data.jurisdiction
     local classification=data.propertyType
-    if not id or not localArea(area) or not categories[classification] then
+    if not id or not year or not localArea(area) or not categories[classification] then
         return {success=false,error='Invalid property, jurisdiction or classification'}
     end
     if not transactionReady() then return {success=false,error='Assessor transaction unavailable'} end
     local ok,committed=pcall(MySQL.startTransaction,function(query)
-        local property=query('SELECT property_id FROM properties WHERE property_id=? LIMIT 1 FOR UPDATE',{id})
+        local property=query('SELECT property_id,owner_citizenid FROM properties WHERE property_id=? LIMIT 1 FOR UPDATE',{id})
         if type(property)~='table' or not property[1] or not sameStaff(source,access) then return false end
         local inserted=query([[
             INSERT INTO mdt_government_property_assessments
-                (property_id,jurisdiction,property_type,submitted_by_citizenid)
-            VALUES (?,?,?,?)
-        ]],{id,area,classification,access.citizenid})
+                (property_id,jurisdiction,tax_year,property_type,
+                 property_owner_snapshot,submitted_by_citizenid)
+            VALUES (?,?,?,?,?,?)
+        ]],{id,area,year,classification,property[1].owner_citizenid,access.citizenid})
         if not changed(inserted) then return false end
-        local nextState={status='pending',jurisdiction=area,
+        local nextState={status='pending',jurisdiction=area,tax_year=year,
+            property_owner_snapshot=property[1].owner_citizenid,
             property_type=classification,version=1,government_owned=0,tax_exempt=0}
         local audit=query([[
             INSERT INTO mdt_government_property_assessment_audit
-                (property_id,actor_citizenid,action,previous_status,new_status,
-                 reason,before_snapshot,after_snapshot)
-            VALUES (?,?,'submitted',NULL,'pending','Assessment requested',NULL,?)
-        ]],{id,access.citizenid,snapshot(nextState)})
+                (property_id,jurisdiction,tax_year,actor_citizenid,action,
+                 previous_status,new_status,reason,before_snapshot,after_snapshot)
+            VALUES (?,?,?,?,'submitted',NULL,'pending','Assessment requested',NULL,?)
+        ]],{id,area,year,access.citizenid,snapshot(nextState)})
         return changed(audit) and sameStaff(source,access)==true
     end)
     if not ok or committed~=true then
         return {success=false,error='Assessment queue failed; check whether property already exists in the queue'}
     end
-    return {success=true,propertyId=id}
+    return {success=true,propertyId=id,jurisdiction=area,taxYear=year}
 end)
 
 ps.registerCallback(resourceName..':server:decideGovernmentPropertyAssessment',function(source,data)
@@ -135,10 +143,12 @@ ps.registerCallback(resourceName..':server:decideGovernmentPropertyAssessment',f
         return {success=false,error='Appointed assessor required'}
     end
     local id=validId(data.propertyId)
+    local areaKey=data.jurisdiction
+    local year=taxYear(data.taxYear)
     local version=validId(data.version)
     local action=data.action
     local reason=text(data.reason,1000)
-    if not id or not version or not reason
+    if not id or not year or not localArea(areaKey) or not version or not reason
         or (action~='approved' and action~='rejected' and action~='reopen') then
         return {success=false,error='Invalid assessment decision'}
     end
@@ -149,7 +159,7 @@ ps.registerCallback(resourceName..':server:decideGovernmentPropertyAssessment',f
         kind=data.propertyType
         owned=data.governmentOwned
         exempt=data.taxExempt
-        if not value or not localArea(area) or not categories[kind]
+        if not value or area~=areaKey or not categories[kind]
             or type(owned)~='boolean' or type(exempt)~='boolean' then
             return {success=false,error='Assessment requires value, classification and explicit exemption determination'}
         end
@@ -157,13 +167,16 @@ ps.registerCallback(resourceName..':server:decideGovernmentPropertyAssessment',f
     if not transactionReady() then return {success=false,error='Assessor transaction unavailable'} end
     local ok,committed=pcall(MySQL.startTransaction,function(query)
         local rows=query([[
-            SELECT property_id,jurisdiction,property_type,assessed_value,
-                   government_owned,tax_exempt,status,version
+            SELECT property_id,jurisdiction,tax_year,property_type,assessed_value,
+                   government_owned,tax_exempt,status,version,property_owner_snapshot
             FROM mdt_government_property_assessments
-            WHERE property_id = ? FOR UPDATE
-        ]],{id})
+            WHERE property_id = ? AND jurisdiction = ? AND tax_year = ? FOR UPDATE
+        ]],{id,areaKey,year})
         local record=type(rows)=='table' and rows[1] or nil
         if not record or tonumber(record.version)~=version or not sameStaff(source,access) then return false end
+        local property=query('SELECT owner_citizenid FROM properties WHERE property_id=? LIMIT 1 FOR UPDATE',{id})
+        if type(property)~='table' or not property[1] or
+            (property[1].owner_citizenid or '')~=(record.property_owner_snapshot or '') then return false end
         local previous=record.status
         if action=='reopen' then
             if previous~='approved' and previous~='rejected' then return false end
@@ -171,6 +184,7 @@ ps.registerCallback(resourceName..':server:decideGovernmentPropertyAssessment',f
         local before=snapshot(record)
         local after={
             status=action=='reopen' and 'pending' or action,
+            tax_year=year,property_owner_snapshot=record.property_owner_snapshot,
             jurisdiction=action=='approved' and area or record.jurisdiction,
             property_type=action=='approved' and kind or record.property_type,
             assessed_value=action=='approved' and value or record.assessed_value,
@@ -184,26 +198,28 @@ ps.registerCallback(resourceName..':server:decideGovernmentPropertyAssessment',f
             result=query([[
                 UPDATE mdt_government_property_assessments
                 SET status='approved',version=version+1,assessed_value=?,
-                    jurisdiction=?,property_type=?,government_owned=?,tax_exempt=?,
+                    property_type=?,government_owned=?,tax_exempt=?,
                     reviewed_by_citizenid=?,decision_reason=?
-                WHERE property_id=? AND status='pending' AND version=?
-            ]],{value,area,kind,owned and 1 or 0,exempt and 1 or 0,
-                access.citizenid,reason,id,version})
+                WHERE property_id=? AND jurisdiction=? AND tax_year=?
+                    AND status='pending' AND version=?
+            ]],{value,kind,owned and 1 or 0,exempt and 1 or 0,
+                access.citizenid,reason,id,areaKey,year,version})
         else
             result=query([[
                 UPDATE mdt_government_property_assessments
                 SET status=?,version=version+1,reviewed_by_citizenid=?,
                     decision_reason=?
-                WHERE property_id=? AND status=? AND version=?
-            ]],{after.status,access.citizenid,reason,id,previous,version})
+                WHERE property_id=? AND jurisdiction=? AND tax_year=?
+                    AND status=? AND version=?
+            ]],{after.status,access.citizenid,reason,id,areaKey,year,previous,version})
         end
         if not changed(result) then return false end
         local audit=query([[
             INSERT INTO mdt_government_property_assessment_audit
-                (property_id,actor_citizenid,action,previous_status,new_status,
-                 reason,before_snapshot,after_snapshot)
-            VALUES (?,?,?,?,?,?,?,?)
-        ]],{id,access.citizenid,action,previous,after.status,
+                (property_id,jurisdiction,tax_year,actor_citizenid,action,
+                 previous_status,new_status,reason,before_snapshot,after_snapshot)
+            VALUES (?,?,?,?,?,?,?,?,?,?)
+        ]],{id,areaKey,year,access.citizenid,action,previous,after.status,
             reason,before,snapshot(after)})
         return changed(audit) and sameStaff(source,access)==true
     end)
@@ -215,12 +231,13 @@ end)
 
 -- Trusted server resource integration point for PS Housing's sale toggle.
 -- Not wired into PS Housing until its fork is reviewed and tested separately.
-exports('IsPropertyAssessmentApproved',function(propertyId)
+exports('IsPropertyAssessmentApproved',function(propertyId,jurisdiction,yearValue)
     local id=validId(propertyId)
-    if not id then return false end
+    local year=taxYear(yearValue)
+    if not id or not year or not localArea(jurisdiction) then return false end
     local ok,row=pcall(MySQL.single.await,[[
         SELECT status FROM mdt_government_property_assessments
-        WHERE property_id = ? LIMIT 1
-    ]],{id})
+        WHERE property_id = ? AND jurisdiction = ? AND tax_year = ? LIMIT 1
+    ]],{id,jurisdiction,year})
     return ok and type(row)=='table' and row.status=='approved'
 end)
