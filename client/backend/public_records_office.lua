@@ -37,7 +37,9 @@ local function chooseDecision(item)
         response and response.success and 'success' or 'error')
 end
 
-RegisterCommand('recordsdesk', function()
+-- Records-office panel is opened from an authorized in-world service counter.
+-- Never register a slash command for this workflow.
+RegisterNetEvent('ps-mdt:client:openRecordsOffice', function()
     local result = ps.callback(resourceName .. ':server:getPublicRecordsOfficeQueue')
     if not result or not result.success then
         notice(result and result.error or 'Access denied', 'error')
