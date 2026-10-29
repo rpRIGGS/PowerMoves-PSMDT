@@ -168,10 +168,18 @@ ps.registerCallback(resourceName .. ':server:issueWarrant', function(source, dat
     if existing and existing.reportid then
         return { success = false, error = 'An active warrant already exists for this subject on this report' }
     else
-        MySQL.insert.await([[
+        local inserted = MySQL.insert.await([[
             INSERT INTO mdt_reports_warrants (reportid, citizenid, felonies, misdemeanors, infractions, expirydate)
-            VALUES (?, ?, 0, 0, 0, ?)
-        ]], { reportId, citizenid, expiryDate })
+            SELECT r.id, ?, 0, 0, 0, ?
+            FROM mdt_reports r WHERE r.id = ?
+              AND NOT EXISTS (
+                  SELECT 1 FROM mdt_reports_restrictions o
+                  WHERE o.reportid = r.id AND o.type = 'owner' AND o.identifier <> ?
+              )
+        ]], { citizenid, expiryDate, reportId, ps.getJobName(src) })
+        if not inserted or inserted == 0 then
+            return { success = false, error = 'Report not found or inaccessible' }
+        end
     end
 
     if ps.auditLog then
