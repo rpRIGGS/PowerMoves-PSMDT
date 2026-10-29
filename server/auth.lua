@@ -41,11 +41,14 @@ local function runtimeIdentity(source)
     end)
     if not ok or not identity.job or not identity.citizenid then return nil end
     local policy = Config.MdtAccess or {}
-    identity.jurisdiction = (policy.GovernmentJobs or {})[identity.job]
+    local governmentInterface = (Config.Interfaces or {}).sagov or {}
+    local governmentEnabled = governmentInterface.Enabled == true
+    identity.jurisdiction = governmentEnabled and (policy.GovernmentJobs or {})[identity.job] or nil
     if identity.jurisdiction then
         identity.jobType, identity.primaryInterfaceId = 'gov', 'sagov'
     elseif identity.coreJobType == 'gov' then
-        -- An unmapped government job must never fall through to police access.
+        -- Government jobs must be explicitly mapped to a jurisdiction; an
+        -- unlisted job or disabled SAGOV interface cannot inherit access.
         return identity
     elseif contains(Config.DojJobs, identity.job) or identity.coreJobType == Config.DojJobType then
         identity.jobType, identity.primaryInterfaceId = 'doj', 'sadoj'
