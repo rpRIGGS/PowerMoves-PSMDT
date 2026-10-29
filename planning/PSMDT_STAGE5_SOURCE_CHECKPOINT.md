@@ -25,3 +25,14 @@ Date: October 29, 2026
 Follow planning/PSMDT_STAGE5_ACCEPTANCE.md on a backed-up DEV server with actual QBCore jobs, PSMDT and qb-target/ox_lib.
 Test qb-target public service counters and records-office MDT panel with two staff agencies and two civilian characters.
 Do not deploy to production or move the Stage 5 *runtime* status to complete until approved.
+
+## October 29 source hardening checkpoint
+- Corrected the previously undefined server `src` variable in civilian counter authorization.
+- Switched staff decisions and published responses to `MySQL.startTransaction` with row locking and affected-row checks, so 0-row updates/inserts cannot be mistaken for successful decisions.
+- Added a lightweight staff entitlement recheck while the integrated MDT panel is open, clearing cached request details if the employee leaves the vector/poly location or loses access.
+- Rechecked citizen identity and public-counter location after database reads before returning request details.
+- Tightened client counter configuration validation and corrected request-history line formatting.
+- Extended CI to cover Stage 5 staff transaction mocks, civilian character isolation, server circle/poly geometry, and temporary MariaDB uniqueness/rollback SQL.
+- Added regression coverage for staff employer transfer during a locked transaction.
+
+**Verification:** These files and test definitions were committed and inspected in GitHub. No passing result from the latest GitHub Actions workflow, real oxmysql transaction runtime, NUI build, or FiveM DEV server was available to verify here. The 13 source-wiring assertions reviewed in chat are static checks, not 13 runtime tests.
