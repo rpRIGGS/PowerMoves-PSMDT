@@ -376,6 +376,13 @@ ps.registerCallback(resourceName .. ':server:getHearing', function(source, paylo
         SELECT id, citizenid, display_name, role, notified_at
         FROM mdt_court_attendees WHERE hearing_id = ? ORDER BY role ASC
     ]], { hearingId }) or {}
+    -- Attendee reads can yield too: the permission snapshot is never enough.
+    if not CheckAuth(src) or not canViewCalendar(src)
+        or ps.getIdentifier(src) ~= originalCid
+        or not canReadOwnedCalendarEntry(src, hearing)
+        or (departmentCalendarOwnership() and calendarOwnerJob(src) ~= originalOwner) then
+        return { success = false, error = 'Authorization changed' }
+    end
 
     return { success = true, data = { hearing = hearing, attendees = attendees } }
 end)
