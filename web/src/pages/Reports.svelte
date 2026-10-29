@@ -9,6 +9,7 @@
 	import { REPORT_TYPES } from "../constants";
 	import ReportEditor from "./ReportEditor.svelte";
 	import ReportDisclosureManager from "../components/ReportDisclosureManager.svelte";
+	import DisclosedReportInbox from "../components/DisclosedReportInbox.svelte";
 	import type { createInstanceStateService } from "../services/instanceStateService.svelte";
 	import { createReportService } from "../services/reportService.svelte";
 	import {
@@ -246,6 +247,7 @@
 	/>
 {:else}
 	<div class="reports-page">
+		<DisclosedReportInbox onOpen={viewReport} />
 		<div class="topbar">
 			<div class="topbar-left">
 				<div class="search-box">
