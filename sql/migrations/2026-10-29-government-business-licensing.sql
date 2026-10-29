@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS `mdt_government_business_licenses` (
  `revoked_at` DATETIME DEFAULT NULL,
  PRIMARY KEY (`id`),
  UNIQUE KEY `uq_government_business_license_number` (`license_number`),
+ UNIQUE KEY `uq_gov_business_owner_name` (`owner_citizenid`,`agency`,`business_name`),
  KEY `idx_gov_business_owner` (`owner_citizenid`,`created_at`),
  KEY `idx_gov_business_authority` (`agency`,`status`,`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
