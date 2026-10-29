@@ -202,12 +202,13 @@ Config.Sharingdot = {
     OneWay = {
         {
             viewers = {
-                'sahpfleet',
+                'sadot',
             },
             targets = {
                 'paradise',
                 'larrys',
                 'benefactor',
+                'sahpfleet',
                 'safleet',
                 'bcfleet',
                 'lscofleet',
@@ -789,6 +790,7 @@ Config.FireJobs = {
 -- law-enforcement access, or a transport operator license.
 Config.MechanicJobType = 'mechanic'
 Config.MechanicJobs = {
+    'sadot',
     'paradise',
     'larrys',
     'benefactor',
@@ -911,7 +913,9 @@ Config.Interfaces = {
         Enabled = true,
         JobType = Config.MechanicJobType,
         Jobs = Config.MechanicJobs,
-        OversightJobs = {},
+        OversightJobs = {
+            'sadot',
+        },
         Sharing = Config.Sharingdot,
         Permissions = 'mechanic',
         FleetJobs = {
