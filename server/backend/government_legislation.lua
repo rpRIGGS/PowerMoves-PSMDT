@@ -261,7 +261,7 @@ end)
 
 ps.registerCallback(resourceName..':server:getGovernmentOfficialVotes',function(source,idValue)
     local access=acl(source)
-    local id=number(idValue,1,9007199254740991)
+    local id=number(type(idValue)=='table' and idValue.id or idValue,1,9007199254740991)
     if not access or not id then return {success=false,error='Vote access denied'} end
     local oversight=access.agency=='sagov' and access.hasStateOversight==true
     local ok,records=pcall(MySQL.query.await,[[
