@@ -85,7 +85,7 @@ ps.registerCallback(resourceName .. ':server:getMyPublicRecordsResponse', functi
         INNER JOIN mdt_public_record_responses p ON p.request_id = r.id
           AND p.recipient_citizenid = r.applicant_citizenid AND p.agency = r.agency
         WHERE r.request_number = ? AND r.applicant_citizenid = ?
-          AND r.status = 'approved' LIMIT 1
+          AND r.status IN ('approved', 'denied') LIMIT 1
     ]], {requestNumber, cid})
     if not ok or ps.getIdentifier(source) ~= cid
         or not PublicServiceDeskAllows(source, nil, 'public_records_status') or not row then
