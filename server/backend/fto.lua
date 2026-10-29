@@ -371,6 +371,9 @@ ps.registerCallback(resourceName .. ':server:updateFTOAssignment', function(sour
     if #sets == 0 then return { success = false, error = 'No fields to update' } end
 
     if not canAccessFTORecord(src, assignmentId) then return { success = false, error = 'Unauthorized' } end
+    if updates.trainer_citizenid ~= nil and not CanManageMdtPersonnel(src, updates.trainer_citizenid) then
+        return { success = false, error = 'Trainer must belong to your department' }
+    end
     vals[#vals + 1] = assignmentId
     MySQL.update.await('UPDATE mdt_fto_assignments SET ' .. table.concat(sets, ', ') .. ' WHERE id = ?', vals)
     return { success = true }
