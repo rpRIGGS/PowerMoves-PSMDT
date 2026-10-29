@@ -162,6 +162,14 @@ ps.registerCallback(resourceName .. ':server:getCases', function(source, page, f
         LIMIT ? OFFSET ?
     ]]):format(whereClause), values)
 
+    -- A source ID can change character, employer or duty while SQL is
+    -- suspended. Do not return the previous department's case list.
+    local current = getCaseScope(src)
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_view')
+        or not current or current.agency ~= scope.agency
+        or current.statewide ~= scope.statewide then
+        return { cases = {}, hasMore = false }
+    end
     return {
         cases = rows or {},
         hasMore = rows and #rows >= limit or false
