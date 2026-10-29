@@ -3,6 +3,12 @@
 -- separate ox_lib staff menus are used.
 local resourceName = tostring(GetCurrentResourceName())
 
+RegisterNUICallback('canUsePublicRecordsOffice', function(_, cb)
+    if not MDTOpen then cb({success = false}) return end
+    local result = ps.callback(resourceName .. ':server:canUsePublicRecordsOffice')
+    cb(result or {success = false})
+end)
+
 RegisterNUICallback('getPublicRecordsOfficeQueue', function(_, cb)
     if not MDTOpen then cb({success = false, error = 'MDT is closed'}) return end
     local result = ps.callback(resourceName .. ':server:getPublicRecordsOfficeQueue')
