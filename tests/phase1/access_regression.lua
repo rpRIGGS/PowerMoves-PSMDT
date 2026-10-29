@@ -1122,6 +1122,40 @@ test('nonjudicial court status endpoint remains denied and training endpoint rem
     expect(doj('setHearingStatus', 914, { hearingId = 914, status = 'adjourned' }).success)
 end)
 
+test('off-duty LEO cannot use legacy callbacks or operational permissions', function()
+    identity(990, 'lspd', 'leo', 10, true, false)
+    local access = env.GetMdtAccess(990)
+    expect(access.eligible)
+    expect(not access.authorized)
+    expect(not env.CheckAuth(990))
+    expect(not env.CheckPermission(990, 'cases_view'))
+    expect(not env.CheckPermission(990, 'management_permissions'))
+    local perms = callbacks['ps-mdt:server:getMyPermissions'](990)
+    equal(#perms.permissions, 0)
+end)
+
+test('off-duty SADLE AG cannot read statewide rosters', function()
+    local current = identity(991, 'sadle', 'leo', 11, true, false)
+    expect(not env.CheckAuth(991))
+    expect(not env.CanViewStatewideLeoRoster(991))
+    current.job.onduty = true
+    expect(env.CheckAuth(991))
+    expect(env.CanViewStatewideLeoRoster(991))
+end)
+
+test('legacy login tracking rejects off-duty sessions', function()
+    identity(992, 'bcso', 'leo', 16, true, false)
+    local handler = events['ps-mdt:server:trackLogin']
+    expect(type(handler) == 'function')
+    -- Source is supplied by the FiveM event runtime, not a callback argument.
+    env.source = 992
+    local before = #databaseWrites
+    local ok, err = pcall(handler)
+    env.source = nil
+    expect(ok, tostring(err))
+    equal(#databaseWrites, before)
+end)
+
 print(('Phase 1 access regressions: %d passed, %d failed, %d assertions; all SQL mocked.')
     :format(passed, failed, assertions))
 if failed > 0 then os.exit(1) end
