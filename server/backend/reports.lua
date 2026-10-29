@@ -51,10 +51,10 @@ local function hasReportDisclosure(src, reportId)
     if not cid then return false end
     local ok, row=pcall(MySQL.single.await, [[
         SELECT id FROM mdt_report_disclosures
-        WHERE report_id = ? AND recipient_citizenid = ?
+        WHERE report_id = ? AND recipient_citizenid = ? AND recipient_job = ?
           AND revoked_at IS NULL AND (expires_at IS NULL OR expires_at > NOW())
         LIMIT 1
-    ]], {reportId,cid})
+    ]], {reportId,cid,ps.getJobName(src)})
     return ok and row ~= nil and CheckAuth(src)
         and CheckPermission(src,'reports_view') and ps.getIdentifier(src)==cid
 end
@@ -1286,19 +1286,22 @@ ps.registerCallback(resourceName .. ':server:grantReportDisclosure', function(so
     local owner=MySQL.scalar.await(
         "SELECT identifier FROM mdt_reports_restrictions WHERE reportid = ? AND type = 'owner' LIMIT 1",{id})
     if not owner or owner~=employer then return {success=false,error='Originating employer required'} end
-    local recipient=MySQL.scalar.await('SELECT citizenid FROM players WHERE citizenid = ? LIMIT 1',{recipientCid})
-    if not recipient or not CheckAuth(src) or not CheckPermission(src,'reports_delete')
+    local recipientJob=MySQL.scalar.await([[
+        SELECT JSON_UNQUOTE(JSON_EXTRACT(job, '$.name'))
+        FROM players WHERE citizenid = ? LIMIT 1
+    ]],{recipientCid})
+    if not recipientJob or recipientJob=='' or not CheckAuth(src) or not CheckPermission(src,'reports_delete')
         or ps.getIdentifier(src)~=actor or ps.getJobName(src)~=employer then
         return {success=false,error='Authorization changed'}
     end
     local ok,grantId=pcall(MySQL.insert.await,[[
         INSERT INTO mdt_report_disclosures
-            (report_id,recipient_citizenid,purpose,granted_by_citizenid,granted_by_job)
-        SELECT r.id, ?, ?, ?, ?
+            (report_id,recipient_citizenid,recipient_job,purpose,granted_by_citizenid,granted_by_job)
+        SELECT r.id, ?, ?, ?, ?, ?
         FROM mdt_reports r WHERE r.id = ?
           AND EXISTS (SELECT 1 FROM mdt_reports_restrictions o
             WHERE o.reportid = r.id AND o.type = 'owner' AND o.identifier = ?)
-    ]],{recipientCid,purpose,actor,employer,id,employer})
+    ]],{recipientCid,recipientJob,purpose,actor,employer,id,employer}
     if not ok or not grantId then return {success=false,error='Disclosure storage unavailable'} end
     if ps.auditLog then ps.auditLog(src,'report_disclosure_granted','report',id,
         {grant_id=grantId,recipient=recipientCid,purpose=purpose}) end
@@ -1333,10 +1336,10 @@ ps.registerCallback(resourceName .. ':server:getDisclosedReports', function(sour
         SELECT r.id,r.title,r.type,r.datecreated,g.purpose,g.granted_at
         FROM mdt_report_disclosures g
         INNER JOIN mdt_reports r ON r.id = g.report_id
-        WHERE g.recipient_citizenid = ? AND g.revoked_at IS NULL
+        WHERE g.recipient_citizenid = ? AND g.recipient_job = ? AND g.revoked_at IS NULL
           AND (g.expires_at IS NULL OR g.expires_at > NOW())
         ORDER BY g.granted_at DESC LIMIT 100
-    ]],{actor})
+    ]],{actor,employer})
     if not CheckAuth(src) or not CheckPermission(src,'reports_view')
         or ps.getIdentifier(src)~=actor or ps.getJobName(src)~=employer then return {} end
     return ok and rows or {}
