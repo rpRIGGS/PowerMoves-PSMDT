@@ -6,13 +6,14 @@
 	import SOP from "./SOP.svelte";
 	import GovernmentNotices from "./GovernmentNotices.svelte";
 	import GovernmentBudgets from "./GovernmentBudgets.svelte";
+	import GovernmentLegislation from "./GovernmentLegislation.svelte";
 	import GovernmentLicensing from "./GovernmentLicensing.svelte";
 	import GovernmentLicenses from "./GovernmentLicenses.svelte";
 	import GovernmentAssessments from "./GovernmentAssessments.svelte";
 	let { authService }: { authService: AuthService } = $props();
 	const personnel = createGovernmentPersonnelService();
 	let search = $state("");
-	let activeSection = $state<"personnel" | "sop" | "notices" | "licensing" | "licenses" | "assessments" | "budgets">("personnel");
+	let activeSection = $state<"personnel" | "sop" | "notices" | "licensing" | "licenses" | "assessments" | "budgets" | "legislation">("personnel");
 	let showPositions = $state(false);
 	let editor = $state<"hire" | "grade" | "terminate" | null>(null);
 	let selectedEmployee = $state<GovernmentEmployee | null>(null);
@@ -91,6 +92,7 @@
 		<button class:active={activeSection === "sop"} onclick={() => activeSection = "sop"}>Department SOP</button>
 		<button class:active={activeSection === "notices"} onclick={() => activeSection = "notices"}>Public Notices</button>
 		<button class:active={activeSection === "budgets"} onclick={() => activeSection = "budgets"}>Budgets</button>
+		<button class:active={activeSection === "legislation"} onclick={() => activeSection = "legislation"}>Legislation</button>
 		<button class:active={activeSection === "licensing"} onclick={() => activeSection = "licensing"}>Business Licensing</button>
 		<button class:active={activeSection === "licenses"} onclick={() => activeSection = "licenses"}>Vending Permits</button>
 		<button class:active={activeSection === "assessments"} onclick={() => activeSection = "assessments"}>Property Assessments</button>
@@ -101,6 +103,8 @@
 		<GovernmentNotices {authService} />
 	{:else if activeSection === "budgets"}
 		<GovernmentBudgets {authService} />
+	{:else if activeSection === "legislation"}
+		<GovernmentLegislation {authService} />
 	{:else if activeSection === "licensing"}
 		<GovernmentLicensing {authService} />
 	{:else if activeSection === "licenses"}
