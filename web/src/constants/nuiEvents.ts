@@ -360,6 +360,11 @@ export const NUI_EVENTS = {
         QUEUE: "getGovernmentLicenseQueue",
         DECIDE: "decideGovernmentLicense",
     },
+	GOVERNMENT_BUSINESS_LICENSES: {
+        AUTHORITIES: "getGovernmentBusinessLicenseAuthorities",
+        QUEUE: "getGovernmentBusinessLicenses",
+        DECIDE: "decideGovernmentBusinessLicense",
+    },
 	GOVERNMENT_NOTICES: {
         LIST: "getGovernmentNotices",
         CREATE: "createGovernmentNotice",
@@ -471,6 +476,7 @@ export const ALL_NUI_EVENTS = [
 	...Object.values(NUI_EVENTS.FTO),
 	...Object.values(NUI_EVENTS.PUBLIC_RECORDS),
 	...Object.values(NUI_EVENTS.GOVERNMENT_NOTICES),
+	...Object.values(NUI_EVENTS.GOVERNMENT_BUSINESS_LICENSES),
 	...Object.values(NUI_EVENTS.GOVERNMENT_LICENSING),
 	...Object.values(NUI_EVENTS.CIVILIAN),
 	...Object.values(NUI_EVENTS.COLLAB),
