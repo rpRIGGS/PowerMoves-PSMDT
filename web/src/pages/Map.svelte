@@ -991,7 +991,7 @@
 
         const patrol  = getOfficerPatrol(citizenid);
         const color   = patrol?.color ?? "#38bdf8";
-        const latlng  = toMapLatLng(officer.coords) as L.LatLng;
+        const latlng  = L.latLng(toMapLatLng(officer.coords) as L.LatLngTuple);
 
         if (highlightMarker) {
             // Reposition existing marker
@@ -1138,7 +1138,7 @@
 
     function renderZone(patrol: Patrol) {
         if (!map || !patrol.zonePoints || patrol.zonePoints.length < 3) return;
-        const latlngs = patrol.zonePoints.map(pt => toMapLatLng(pt) as L.LatLng);
+        const latlngs = patrol.zonePoints.map(pt => L.latLng(toMapLatLng(pt) as L.LatLngTuple));
         const poly = L.polygon(latlngs, {
             color: patrol.color, weight: 2.5, opacity: 0.9,
             fillColor: patrol.color, fillOpacity: 0.1,
