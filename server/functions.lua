@@ -170,6 +170,23 @@ function CanManageMdtPersonnel(src, citizenid, destinationJob)
 end
 
 
+-- Shared case-employer scope for evidence and case-linked workflows.
+-- This checks ownership, not the caller's separate action permission.
+function CanAccessMdtCase(source, caseId)
+    local id = tonumber(caseId)
+    if not id then return false end
+    local access = GetMdtAccess(source)
+    local citizenid = ps.getIdentifier(source)
+    if not access.authorized or access.isCivilian or not access.agency or not citizenid then return false end
+    local row = MySQL.single.await('SELECT assigned_department FROM mdt_cases WHERE id = ?', { id })
+    if not row then return false end
+    local current = GetMdtAccess(source)
+    return current.authorized == true and current.isCivilian ~= true
+        and current.agency == access.agency and current.interfaceId == access.interfaceId
+        and ps.getIdentifier(source) == citizenid
+        and (current.interfaceId == 'sadoj' or row.assigned_department == current.agency)
+end
+
 --- Ensure an MDT profile exists for a citizen. Resolves name from online player or DB if offline.
 ---@param citizenid string -- The citizen ID to ensure a profile for
 ---@return boolean -- true if profile exists or was created, false on failure
