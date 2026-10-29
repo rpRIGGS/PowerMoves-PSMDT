@@ -7,6 +7,7 @@
 	import { fileToBase64, formatBytes } from "../services/uploadService";
 	import PersonSearchModal from "../components/report-editor/PersonSearchModal.svelte";
 	import Pagination from "../components/Pagination.svelte";
+	import CaseDisclosureManager from "../components/CaseDisclosureManager.svelte";
 	import type { createTabService } from "../services/tabService.svelte";
 	import type { MDTTab } from "../constants";
 	import type {
@@ -667,6 +668,7 @@
 
 		{:else if selectedCase}
 			<!-- ==================== CASE DETAIL VIEW ==================== -->
+			<CaseDisclosureManager caseId={selectedCase.case.id} />
 			<div class="detail-scroll">
 				<!-- Info Section -->
 				<div class="section">
