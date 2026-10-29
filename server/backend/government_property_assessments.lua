@@ -15,8 +15,8 @@ local function text(value,max)
     local s=value:match('^%s*(.-)%s*$')
     return #s>0 and #s<=max and s or nil
 end
-local function localArea(key)
-    return type(key)=='string' and key~='state'
+local function taxableAuthority(key)
+    return type(key)=='string' and key~=''
         and type(GovernmentJurisdictionContains)=='function'
         and GovernmentJurisdictionContains('state',key)==true
 end
@@ -86,7 +86,7 @@ ps.registerCallback(resourceName..':server:getGovernmentPropertyAssessments',fun
     local jurisdictions={}
     local cfg=((Config or {}).MdtAccess or {}).GovernmentJurisdictions or {}
     for key,value in pairs(cfg) do
-        if localArea(key) then
+        if taxableAuthority(key) then
             jurisdictions[#jurisdictions+1]={id=key,label=value.label or key}
         end
     end
@@ -107,7 +107,7 @@ ps.registerCallback(resourceName..':server:queueGovernmentPropertyAssessment',fu
     local year=taxYear(data.taxYear)
     local area=data.jurisdiction
     local classification=data.propertyType
-    if not id or not year or not localArea(area) or not categories[classification] then
+    if not id or not year or not taxableAuthority(area) or not categories[classification] then
         return {success=false,error='Invalid property, jurisdiction or classification'}
     end
     if not transactionReady() then return {success=false,error='Assessor transaction unavailable'} end
@@ -149,7 +149,7 @@ ps.registerCallback(resourceName..':server:decideGovernmentPropertyAssessment',f
     local version=validId(data.version)
     local action=data.action
     local reason=text(data.reason,1000)
-    if not id or not year or not localArea(areaKey) or not version or not reason
+    if not id or not year or not taxableAuthority(areaKey) or not version or not reason
         or (action~='approved' and action~='rejected' and action~='reopen') then
         return {success=false,error='Invalid assessment decision'}
     end
@@ -239,7 +239,7 @@ end)
 exports('IsPropertyAssessmentApproved',function(propertyId,jurisdiction,yearValue)
     local id=validId(propertyId)
     local year=taxYear(yearValue)
-    if not id or not year or not localArea(jurisdiction) then return false end
+    if not id or not year or not taxableAuthority(jurisdiction) then return false end
     local ok,row=pcall(MySQL.single.await,[[
         SELECT status FROM mdt_government_property_assessments
         WHERE property_id = ? AND jurisdiction = ? AND tax_year = ? LIMIT 1
