@@ -47,7 +47,7 @@ local env = setmetatable({
         single={await=function(sql,args)
             assert(sql:find('r.applicant_citizenid = ?',1,true))
             for _, row in pairs(rows) do
-                if row.number==args[1] and row.cid==args[2] and row.status=='approved'
+                if row.number==args[1] and row.cid==args[2] and (row.status=='approved' or row.status=='denied')
                     and responses[row.id] then
                     return {request_number=row.number,response_text=responses[row.id]}
                 end
@@ -71,6 +71,9 @@ actor.nearDesk=true
 assert(#call('getMyPublicRecordRequests')==1)
 rows[1].status='approved';responses[1]='Publicly approved text'
 assert(call('getMyPublicRecordsResponse',a.requestNumber).success)
+rows[1].status='denied';responses[1]='Public denial explanation'
+assert(call('getMyPublicRecordsResponse',a.requestNumber).response.response_text=='Public denial explanation',
+    'Only the original applicant may read denial notices')
 actor.cid='CIV-B'
 assert(#call('getMyPublicRecordRequests')==0, 'Different character must not see first applicant')
 assert(not call('getMyPublicRecordsResponse',a.requestNumber).success,
