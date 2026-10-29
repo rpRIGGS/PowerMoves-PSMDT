@@ -44,7 +44,7 @@ Config.Sharingleo = {
             'sasp',
             'saspa',
             'sadle',
-            'fib',
+
         },
     },
     OneWay = {
@@ -62,7 +62,7 @@ Config.Sharingleo = {
                 'sahp',
                 'sasp',
                 'saspa',
-                'fib',
+
             },
             types = {
                 'reports',
@@ -72,30 +72,7 @@ Config.Sharingleo = {
                 'warrants',
             },
         },
-        {
-            viewers = {
-                'fib',
-            },
-            targets = {
-                'police',
-                'post',
-                'lspd',
-                'lspe',
-                'lscso',
-                'bcso',
-                'sahp',
-                'sasp',
-                'saspa',
-                'sadle',
-            },
-            types = {
-                'reports',
-                'bodycams',
-                'evidence',
-                'bolos',
-                'warrants',
-            },
-        },
+
     },
 }
 
@@ -775,7 +752,7 @@ Config.PoliceJobs = {
     'sasp',
     'sadle',
     'saspa',
-    'fib'
+
 }
 
 Config.DojJobType = "doj"
@@ -845,7 +822,7 @@ Config.Interfaces = {
         Jobs = Config.PoliceJobs,
         OversightJobs = {
             'sadle',
-            'fib',
+
         },
         Departments = {
             'police',
@@ -1046,9 +1023,8 @@ Config.MdtAccess = {
         -- is assigned by default; the owner must decide those grants separately.
         OversightPermission = 'government_roster_oversight',
     },
-    -- Both SADLE and FIB are statewide oversight agencies. Actual roster
-    -- access is restricted to the AG or explicitly authorized job/grade roles.
-    -- Boss status at either employer alone grants no cross-agency access.
+    -- SADLE is the sole statewide LEO oversight agency. Roster access requires
+    -- Attorney General authorization or explicitly granted job/grade permission.
     LeoRosterOversightJobs = Config.Interfaces.sadle.OversightJobs,
     -- Statewide service oversight is distinct from ordinary employer access.
     -- These are candidate oversight employers, NOT blanket record-sharing
