@@ -356,6 +356,10 @@ export const NUI_EVENTS = {
         REVIEW_REQUEST: "reviewPublicRecordsRequest",
         PUBLISH_RESPONSE: "publishPublicRecordsResponse",
     },
+	GOVERNMENT_LICENSING: {
+        QUEUE: "getGovernmentLicenseQueue",
+        DECIDE: "decideGovernmentLicense",
+    },
 	GOVERNMENT_NOTICES: {
         LIST: "getGovernmentNotices",
         CREATE: "createGovernmentNotice",
@@ -467,6 +471,7 @@ export const ALL_NUI_EVENTS = [
 	...Object.values(NUI_EVENTS.FTO),
 	...Object.values(NUI_EVENTS.PUBLIC_RECORDS),
 	...Object.values(NUI_EVENTS.GOVERNMENT_NOTICES),
+	...Object.values(NUI_EVENTS.GOVERNMENT_LICENSING),
 	...Object.values(NUI_EVENTS.CIVILIAN),
 	...Object.values(NUI_EVENTS.COLLAB),
 	...Object.values(NUI_EVENTS.DOJ),
