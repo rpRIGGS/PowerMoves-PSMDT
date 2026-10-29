@@ -89,6 +89,13 @@ ps.registerCallback(resourceName .. ':server:publishPublicRecordsResponse', func
                    FROM mdt_public_record_requests WHERE id = ? AND agency = ?
                      AND status = 'approved' AND ROW_COUNT() = 1]],
          values = {body, cid, id, job}},
+        {query = [[INSERT INTO mdt_public_record_request_audit
+                     (request_id, agency, actor_citizenid, action, reason)
+                   SELECT id, agency, ?, 'approved', 'Public response issued'
+                   FROM mdt_public_record_requests
+                   WHERE id = ? AND agency = ? AND status = 'approved'
+                     AND ROW_COUNT() = 1]],
+         values = {cid, id, job}},
     })
     if not success or committed ~= true then return {success = false, error = 'Response not saved'} end
     local valid, row = pcall(MySQL.single.await,
