@@ -4,6 +4,7 @@
 	interface Props {
 		show: boolean;
 		title: string;
+		searchQuery?: string;
 		searchResults: SearchResult[];
 		onClose: () => void;
 		onSearch: (query: string) => void;
@@ -13,6 +14,7 @@
 	let {
 		show,
 		title,
+		searchQuery,
 		searchResults,
 		onClose,
 		onSearch,
@@ -27,7 +29,7 @@
 	$effect(() => {
 		const currentShow = show;
 		if (currentShow && !prevShow) {
-			localQuery = "";
+			localQuery = searchQuery ?? "";
 			// Use requestAnimationFrame to avoid Svelte's render cycle
 			requestAnimationFrame(() => {
 				inputRef?.focus();
