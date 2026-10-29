@@ -18,7 +18,7 @@
 </script>
 <section class="disclosed-cases">
  <div class="heading"><strong>Shared with me — report discovery</strong><button disabled={loading} onclick={()=>void reload()}>Refresh</button></div>
- {#if items.length===0}<p>{loading?"Loading disclosed cases…":"No active report disclosures."}</p>{/if}
+ {#if items.length===0}<p>{loading?"Loading disclosed reports…":"No active report disclosures."}</p>{/if}
  {#each items as item (item.id)}
  <button class="case-row" onclick={()=>onOpen(String(item.id))}>
   <strong>{item.type} — {item.title}</strong>
