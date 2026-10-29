@@ -13,7 +13,7 @@ local env=setmetatable({
  },
  CheckAuth=function() return actor.duty end,
  CheckPermission=function(_,perm)
-  if perm=='reports_edit' then return actor.canEdit end
+  if perm=='reports_delete' then return actor.canEdit end
   if perm=='reports_view' then return actor.canView end
   return false
  end,
