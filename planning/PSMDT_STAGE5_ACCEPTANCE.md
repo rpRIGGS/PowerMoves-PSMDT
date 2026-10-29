@@ -23,7 +23,7 @@ Status: **Source implementation candidate — NOT runtime accepted** (October 29
    - `sql/migrations/2026-10-29-public-records-response.sql`
 3. Configure actual public desk coordinates, agency names and services (`public_records_request`, `public_records_status`, `records_office` for staff counters).
 4. Explicitly allowlist real records officers. Default `RecordsOfficers = {}` means no reviewer has access.
-5. Confirm the deployed oxmysql version supports `MySQL.startTransaction` (check the installed resource). If not, stop rather than silently bypassing transaction checks.
+5. Confirm oxmysql **v2.12.0 or newer**. `MySQL.startTransaction` was added to the Lua library in v2.12.0; earlier installations must not process Stage 5 records-office decisions. The server fails closed if the API is unavailable.
 6. Test separate characters, departments, on/off-duty access and resource restarts.
 
 ## Mandatory DEV acceptance
