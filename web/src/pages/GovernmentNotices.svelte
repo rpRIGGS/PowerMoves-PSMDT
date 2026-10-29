@@ -10,10 +10,11 @@
         jurisdiction: string;
         title: string;
         body: string;
-        status: "draft" | "published";
+        status: "draft" | "published" | "withdrawn";
         version: number;
         created_by_citizenid: string;
         published_by_citizenid?: string | null;
+        withdrawn_at?: string | null;
         updated_at: string;
     }
     interface NoticeList {
@@ -44,6 +45,7 @@
     let creating = $state(false);
     let title = $state("");
     let body = $state("");
+    let withdrawReason = $state("");
     let revision = 0;
 
     function clear() {
@@ -59,6 +61,7 @@
         creating = false;
         title = "";
         body = "";
+        withdrawReason = "";
     }
 
     async function load() {
@@ -95,6 +98,7 @@
         selected = item;
         title = item.title;
         body = item.body;
+        withdrawReason = "";
         message = "";
         error = "";
     }
@@ -159,6 +163,25 @@
         } finally { saving = false; }
     }
 
+    async function withdraw() {
+        if (!selected || selected.status !== "published" || selected.agency !== agency
+            || !canPublish || saving || !withdrawReason.trim()) return;
+        const item = selected;
+        saving = true;
+        error = "";
+        try {
+            const response = await fetchNui<NoticeAction>("withdrawGovernmentNotice",
+                {id:item.id, version:item.version, reason:withdrawReason.trim()}, {success:false});
+            if (!response?.success) { error = response?.error || "Withdrawal denied."; return; }
+            selected = null;
+            withdrawReason = "";
+            message = "Published notice withdrawn; the audit history is retained.";
+            await load();
+        } catch {
+            error = "Notice was not withdrawn.";
+        } finally { saving = false; }
+    }
+
     onMount(() => { void load(); });
     $effect(() => {
         authService.playerData?.citizenid;
@@ -218,6 +241,13 @@
                     </button>
                 {:else}
                     <p class="notice-body">{selected?.body}</p>
+                {/if}
+                {#if selected?.status === "published" && selected?.agency === agency && canPublish}
+                    <label for="withdraw-reason">Withdrawal reason</label>
+                    <textarea id="withdraw-reason" maxlength="500" rows="3" bind:value={withdrawReason} disabled={saving}></textarea>
+                    <button onclick={() => void withdraw()} disabled={saving || !withdrawReason.trim()}>
+                        Withdraw published notice
+                    </button>
                 {/if}
                 {#if selected?.status === "draft" && selected?.agency === agency && canPublish}
                     <p class="warning">Publishing makes this notice visible to other jurisdictions. It does not enact legislation.</p>
