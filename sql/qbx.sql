@@ -1843,6 +1843,8 @@ CREATE TABLE IF NOT EXISTS `mdt_government_property_assessment_audit` (
   `previous_status` VARCHAR(20) DEFAULT NULL,
   `new_status` VARCHAR(20) NOT NULL,
   `reason` VARCHAR(1000) NOT NULL,
+  `before_snapshot` LONGTEXT DEFAULT NULL,
+  `after_snapshot` LONGTEXT DEFAULT NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_gov_assessment_audit` (`property_id`,`created_at`)
