@@ -9,6 +9,7 @@
         id: number;
         request_number: string | null;
         applicant_citizenid: string;
+        assigned_to_citizenid: string | null;
         agency: string;
         subject: string;
         description: string;
@@ -269,7 +270,7 @@
                 <h3>{selected.request_number || `Request #${selected.id}`}</h3>
                 <p><strong>{selected.subject}</strong></p>
                 <p class="description">{selected.description}</p>
-                <p>Agency: {selected.agency} · Requester: {selected.applicant_citizenid} · Status: {selected.status}</p>
+                <p>Agency: {selected.agency} · Requester: {selected.applicant_citizenid} · Assigned reviewer: {selected.assigned_to_citizenid || "Not yet assigned"} · Status: {selected.status}</p>
                 <section class="history">
                     <h3>Decision history</h3>
                     {#if historyLoading}<p>Loading history…</p>
