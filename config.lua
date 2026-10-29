@@ -512,6 +512,7 @@ Config.DojJobs = {
 -- Shared legacy EMS features are retained through explicit compatibility checks.
 Config.MedicalJobType = "ems"
 Config.MedicalJobs = {
+    'sams',
     'pillboxmed',
     'sandymed',
     'paletomed',
