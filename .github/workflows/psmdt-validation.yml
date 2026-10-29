@@ -95,6 +95,7 @@ jobs:
           node tests/phase4/disclosure_regression.cjs
           node tests/phase4/case_disclosure_regression.cjs
           node tests/phase4/report_disclosure_regression.cjs
+          node tests/phase4/evidence_disclosure_regression.cjs
           node tests/basics/navigation_regression.cjs
           node tests/basics/dashboard_routes_regression.cjs
           node tests/ems_dashboard/frontend_regression.cjs
