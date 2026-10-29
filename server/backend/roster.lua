@@ -232,8 +232,6 @@ ps.registerCallback('ps-mdt:server:getRosterList', function(source)
     for _, jobName in ipairs(jobList) do
         jobLookup[tostring(jobName)] = true
     end
-    local jobType = scopeJobType
-
     local employees = {}
     if GetResourceState('ps-multijob') == 'started' and exports['ps-multijob'] then
         for _, jobName in ipairs(jobList) do
