@@ -33,17 +33,9 @@ Config.Sharingleo = {
             'bolos',
             'warrants',
         },
+        -- Cross-agency sharing is not automatic. SADLE oversight is defined
+        -- separately below; other departments require explicit authorization.
         departments = {
-            'police',
-            'post',
-            'lspd',
-            'lspe',
-            'lscso',
-            'bcso',
-            'sahp',
-            'sasp',
-            'saspa',
-            'sadle',
         },
     },
     OneWay = {
