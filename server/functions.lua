@@ -141,7 +141,9 @@ end
 -- interface entitlement (including the AG's prosecution view) cannot change
 -- another department's employment or manufacture a new supervisory role.
 function CanManageMdtPersonnel(src, citizenid, destinationJob)
-    if not citizenid then return false end
+    -- Government hiring has its own jurisdiction-scoped workflow. This legacy
+    -- personnel helper must never become a government MDT authorization path.
+    if not citizenid or not CheckAuth(src) then return false end
     local access = GetMdtAccess(src)
     if not access.authorized or not access.eligible or access.isCivilian then return false end
     local actorJob, actorCid = ps.getJobName(src), ps.getIdentifier(src)
