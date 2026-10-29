@@ -971,6 +971,20 @@ ps.registerCallback('ps-mdt:server:updateOfficerCallsign', function(source, payl
         return { success = false, message = 'Officer must be online to update callsign' }
     end
 
+    local existing = MySQL.scalar.await(
+        'SELECT citizenid FROM mdt_profiles WHERE callsign = ? AND citizenid != ? LIMIT 1',
+        { newCallsign, citizenid }
+    )
+    if existing then
+        return { success = false, message = 'Callsign is already assigned' }
+    end
+
+    -- Verify the target still belongs to the same department after the query.
+    if not CheckAuth(src) or not CheckPermission(src, 'roster_manage_officers')
+        or not CanManageMdtPersonnel(src, citizenid) then
+        return { success = false, message = 'Personnel authorization changed' }
+    end
+
     Player.Functions.SetMetaData('callsign', newCallsign)
 
     local resourceName = GetCurrentResourceName()
