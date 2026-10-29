@@ -563,6 +563,7 @@ Config.Impound = {
 -- Job Settings
 Config.PoliceJobType = "leo"
 Config.PoliceJobs = {
+    'police', -- QBCore development fallback
     'post',
     'lspd',
     'lspe',
@@ -579,6 +580,7 @@ Config.DojJobType = "doj"
 Config.DojJobs = {
     'sadoj',
     'lawyer',
+    'atcss', -- QBCore DOJ-typed job; review its operational role before granting permissions
 }
 
 -- QBCore job families. Hospital staff use 'ems'; fire departments use 'fire'.
@@ -598,6 +600,22 @@ Config.FireJobs = {
     'lscfd',
     'bcfd',
 }
+
+-- All QBCore employers with type='mechanic' in planning-reference/jobs.lua.
+-- Listing an employer here does NOT grant SADOT access, tow authority,
+-- law-enforcement access, or a transport operator license.
+Config.MechanicJobType = 'mechanic'
+Config.MechanicJobs = {
+    'paradise', 'larrys', 'benefactor',
+    'sahpfleet', 'safleet', 'bcfleet', 'lscofleet', 'lscityfleet',
+    'samsfleet', 'safrfleet',
+    'mechanic', 'mechanic2', 'mechanic3', 'beeker', 'jetsam',
+}
+
+-- Other jobs with explicit QBCore types are handled by their families above.
+-- The original development-only 'police' job is included for MDT testing.
+-- Unrelated civilian jobs (including 'tow', which has no mechanic type)
+-- do not automatically receive operational MDT permissions.
 
 -- Interface identity is separate from the legacy police/EMS calendar domain.
 -- These mappings grant entry to an interface, not access to another agency's
@@ -646,7 +664,7 @@ Config.Interfaces = {
     },
     sadot = {
         JobType = 'mechanic',
-        Jobs = {},
+        Jobs = Config.MechanicJobs,
         Sharing = Config.Sharingdot,
         Enabled = false,
     },
@@ -663,7 +681,7 @@ Config.MdtAccess = {
     Transportation = {
         Enabled = false,
         InterfaceId = 'sadot',
-        JobType = 'mechanic',
+        JobType = Config.MechanicJobType,
         PublicServiceNumber = '511',
         FirstAcceptExclusive = true,
         -- Empty until actual mechanic employer jobs and real SADOT authority
