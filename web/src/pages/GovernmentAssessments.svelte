@@ -6,7 +6,8 @@
 
     interface Area {id:string;label:string;}
     interface Assessment {
-        property_id:number;jurisdiction:string;property_type:string;
+        property_id:number;jurisdiction:string;tax_year:number;property_type:string;
+        exemption_reason?:string|null;
         assessed_value:number|null;government_owned:number|boolean;tax_exempt:number|boolean;
         status:string;version:number;reviewed_by_citizenid:string|null;
         decision_reason:string|null;street:string;region:string;for_sale:number|boolean;
@@ -28,11 +29,13 @@
     let entryPropertyId=$state<number|undefined>();
     let entryJurisdiction=$state("");
     let entryType=$state("residential");
+    let entryTaxYear=$state(new Date().getUTCFullYear());
     let assessValue=$state<number|undefined>();
     let assessJurisdiction=$state("");
     let assessType=$state("residential");
     let governmentOwned=$state(false);
     let exempt=$state(false);
+    let exemptionReason=$state("");
     let reason=$state("");
     let decision=$state("approved");
     let revision=0;
@@ -59,7 +62,8 @@
             canAssess=result.canAssess===true;
             hasMore=result.hasMore===true;
             if(!entryJurisdiction)entryJurisdiction=jurisdictions[0]?.id||"";
-            if(selected)selected=assessments.find(a=>a.property_id===selected?.property_id)||null;
+            if(selected)selected=assessments.find(a=>a.property_id===selected?.property_id
+                && a.jurisdiction===selected?.jurisdiction && a.tax_year===selected?.tax_year)||null;
         }catch{
             if(token===revision)error="Unable to load property assessments";
         }finally{
@@ -73,14 +77,17 @@
         assessJurisdiction=item.jurisdiction;assessType=item.property_type;
         governmentOwned=item.government_owned===true||item.government_owned===1;
         exempt=item.tax_exempt===true||item.tax_exempt===1;
+        exemptionReason=item.exemption_reason??"";
     }
     async function createQueue(){
         if(!canAssess||saving||!entryPropertyId||!Number.isInteger(entryPropertyId)
-            ||entryPropertyId<1||!entryJurisdiction||!types.includes(entryType))return;
+            ||entryPropertyId<1||!entryJurisdiction||!types.includes(entryType)
+            ||!Number.isInteger(entryTaxYear)||entryTaxYear<2020||entryTaxYear>2100)return;
         saving=true;error="";
         try{
             const response=await fetchNui<Result>("queueGovernmentPropertyAssessment",{
-                propertyId:entryPropertyId,jurisdiction:entryJurisdiction,propertyType:entryType
+                propertyId:entryPropertyId,jurisdiction:entryJurisdiction,
+                taxYear:entryTaxYear,propertyType:entryType
             },{success:false});
             if(!response?.success){error=response?.error||"Property was not queued";return;}
             entryPropertyId=undefined;message="Property placed in state assessment queue.";
@@ -93,15 +100,17 @@
         if(decision==="approved"&&(assessValue===undefined||!Number.isSafeInteger(assessValue)
             ||assessValue<0||assessValue>100000000000
             ||!jurisdictions.some(a=>a.id===assessJurisdiction)
-            ||!types.includes(assessType)))return;
+            ||!types.includes(assessType)||assessJurisdiction!==selected.jurisdiction
+            ||(exempt&&!exemptionReason.trim())))return;
         const row=selected;
         saving=true;error="";
         try{
             const response=await fetchNui<Result>("decideGovernmentPropertyAssessment",{
-                propertyId:row.property_id,version:row.version,action:decision,
+                propertyId:row.property_id,jurisdiction:row.jurisdiction,
+                taxYear:row.tax_year,version:row.version,action:decision,
                 reason:reason.trim(),assessedValue:assessValue,
                 jurisdiction:assessJurisdiction,propertyType:assessType,
-                governmentOwned,taxExempt:exempt,
+                governmentOwned,taxExempt:exempt,exemptionReason:exemptionReason.trim(),
             },{success:false});
             if(!response?.success){error=response?.error||"Assessment decision not saved";return;}
             message="Assessment decision audited. PS Housing sale status was not changed.";
@@ -144,6 +153,7 @@
                         {#each jurisdictions as area}<option value={area.id}>{area.label}</option>{/each}
                     </select>
                 </label>
+                <label>Tax year<input type="number" min="2020" max="2100" step="1" bind:value={entryTaxYear}/></label>
                 <label>Property classification
                     <select bind:value={entryType}>
                         {#each types as item}<option value={item}>{item}</option>{/each}
@@ -159,10 +169,11 @@
         <section class="queue">
             <h3>Property assessments</h3>
             {#if loading}<p>Loading assessments…</p>{/if}
-            {#each assessments as row (row.property_id)}
-                <button class:selected={selected?.property_id===row.property_id} onclick={()=>choose(row)}>
+            {#each assessments as row (`${row.property_id}:${row.jurisdiction}:${row.tax_year}`)}
+                <button class:selected={selected?.property_id===row.property_id
+                    && selected?.jurisdiction===row.jurisdiction && selected?.tax_year===row.tax_year} onclick={()=>choose(row)}>
                     <strong>Property #{row.property_id} · {row.street||"Unknown street"}</strong>
-                    <span>{row.jurisdiction} · {row.status}</span>
+                    <span>{row.jurisdiction} · {row.tax_year} · {row.status}</span>
                 </button>
             {:else}
                 {#if !loading}<p>No property assessments on this page.</p>{/if}
@@ -177,7 +188,7 @@
             {#if selected}
                 <h3>Property #{selected.property_id}</h3>
                 <p>{selected.street} · {selected.region}</p>
-                <p>Assessment: {selected.status} · Version {selected.version}</p>
+                <p>Assessment: {selected.jurisdiction} / {selected.tax_year} · {selected.status} · Version {selected.version}</p>
                 <p>Existing listing for_sale: {String(selected.for_sale)} (PS Housing controlled)</p>
                 <p>Assessed value: {selected.assessed_value??"Not set"}</p>
                 <p>Tax exempt: {selected.tax_exempt===1||selected.tax_exempt===true?"Yes":"No"}</p>
@@ -196,11 +207,7 @@
                     {#if decision==="approved"}
                         <div class="fields">
                             <label>Assessed value<input type="number" min="0" step="1" bind:value={assessValue} disabled={saving}/></label>
-                            <label>Jurisdiction
-                                <select bind:value={assessJurisdiction} disabled={saving}>
-                                    {#each jurisdictions as area}<option value={area.id}>{area.label}</option>{/each}
-                                </select>
-                            </label>
+                            <p>Tax authority: {selected.jurisdiction} / {selected.tax_year} (create a new record to assess a different authority)</p>
                             <label>Classification
                                 <select bind:value={assessType} disabled={saving}>
                                     {#each types as item}<option value={item}>{item}</option>{/each}
@@ -208,6 +215,7 @@
                             </label>
                             <label class="checkbox"><input type="checkbox" bind:checked={governmentOwned} disabled={saving}/>Government-owned</label>
                             <label class="checkbox"><input type="checkbox" bind:checked={exempt} disabled={saving}/>Tax exemption approved</label>
+                            {#if exempt}<label>Exemption justification<textarea maxlength="1000" rows="3" bind:value={exemptionReason} disabled={saving}></textarea></label>{/if}
                         </div>
                         <p class="warning">Government ownership does not automatically imply tax exemption. Exemption must be explicitly approved.</p>
                     {/if}
