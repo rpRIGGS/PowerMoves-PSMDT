@@ -93,6 +93,13 @@ jobs:
         run: npm run check
       - name: Build NUI
         run: npm run build
+      - name: Attach compiled NUI for development-server testing
+        uses: actions/upload-artifact@v4
+        with:
+          name: psmdt-nui-dist
+          path: web/dist/
+          if-no-files-found: error
+          retention-days: 14
       - name: Frontend regressions
         working-directory: .
         run: |
