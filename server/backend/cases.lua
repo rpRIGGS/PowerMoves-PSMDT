@@ -753,3 +753,25 @@ ps.registerCallback(resourceName .. ':server:getCaseDisclosures', function(sourc
         or ps.getJobName(src)~=employer or ps.getIdentifier(src)~=actor then return {} end
     return ok and rows or {}
 end)
+
+
+-- Individually disclosed cases appear only in the named character's inbox.
+-- Original employer ownership remains intact and disclosures are read-only.
+ps.registerCallback(resourceName .. ':server:getDisclosedCases', function(source)
+    local src = source
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_view') then return {} end
+    local actor, job = ps.getIdentifier(src), ps.getJobName(src)
+    if not actor or not job then return {} end
+    local ok, rows = pcall(MySQL.query.await, [[
+        SELECT c.id, c.case_number, c.title, c.status, c.priority,
+               c.assigned_department, g.purpose, g.granted_at
+        FROM mdt_case_disclosures g
+        INNER JOIN mdt_cases c ON c.id = g.case_id
+        WHERE g.recipient_citizenid = ? AND g.revoked_at IS NULL
+          AND (g.expires_at IS NULL OR g.expires_at > NOW())
+        ORDER BY g.granted_at DESC LIMIT 100
+    ]], {actor})
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_view')
+        or ps.getIdentifier(src) ~= actor or ps.getJobName(src) ~= job then return {} end
+    return ok and rows or {}
+end)
