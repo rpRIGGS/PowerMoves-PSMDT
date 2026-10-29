@@ -74,6 +74,18 @@ local env = setmetatable({
     },
     MySQL = {
         query = {await = function(sql, params)
+            if sql:find('FROM mdt_public_record_request_audit a',1,true) then
+                assert(sql:find('r.agency = ?',1,true), 'Audit must be request-employer scoped')
+                local requested=requests[params[1]]
+                if not requested or requested.agency~=params[2] then return {} end
+                local selectedAudits={}
+                for _, record in ipairs(audits) do
+                    if record.request_id==params[1] then
+                        selectedAudits[#selectedAudits+1]=record
+                    end
+                end
+                return selectedAudits
+            end
             assert(sql:find('WHERE agency = ?',1,true), 'Queue must be employer scoped')
             local result = {}
             for _,row in pairs(requests) do
@@ -100,6 +112,7 @@ end
 assert(call('getPublicRecordsOfficeQueue').success)
 assert(call('reviewPublicRecordsRequest',{id=1,action='under_review',reason='Review started'}).success)
 assert(requests[1].status=='under_review' and #audits==1)
+assert(#call('getPublicRecordRequestAudit',1).entries==1, 'Own agency may view its audit')
 assert(not call('reviewPublicRecordsRequest',{id=1,action='under_review',reason='Duplicate'}).success)
 assert(#audits==1, 'Duplicate transition must not audit')
 
@@ -111,6 +124,7 @@ assert(responses[1].body=='Publicly releasable answer' and #audits==2)
 assert(not call('reviewPublicRecordsRequest',{id=2,action='under_review',reason='Cross-agency'}).success)
 actor.job='bcso'; actor.cid='OFFICER-B'
 assert(call('getPublicRecordsOfficeQueue').success)
+assert(#call('getPublicRecordRequestAudit',1).entries==0, 'Cross-agency audit must be hidden')
 assert(not call('reviewPublicRecordsRequest',{id=1,action='denied',reason='Cross-agency'}).success)
 actor.job='lspd'; actor.cid='OFFICER-A'
 actor.duty=false
