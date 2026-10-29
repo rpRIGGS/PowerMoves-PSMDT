@@ -10,6 +10,7 @@
 	import { globalNotifications } from "../services/notificationService.svelte";
 	import { openBoloDetail } from "../stores/navigationStore";
 	import Pagination from "../components/Pagination.svelte";
+	import { compressImage } from "../services/uploadService";
 
 	interface Citizen {
 		id: number;
@@ -96,7 +97,7 @@
 			vehicle: string;
 		}>;
 		propertiesList?: Array<{
-			id: number;
+			id?: number;
 			property_name: string;
 		}>;
 		tags?: string[];
@@ -113,7 +114,7 @@
 	let searchQuery = $state("");
 	let citizens: Citizen[] = $state([]);
 	let loading = $state(true);
-	let selectedProfile: CitizenProfile | null = $state(null);
+	let selectedProfile = $state<CitizenProfile | null>(null);
 	let copyNotice = $state("");
 	let copyTimeout: ReturnType<typeof setTimeout> | null = null;
 
