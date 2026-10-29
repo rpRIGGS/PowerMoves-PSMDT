@@ -56,3 +56,14 @@ New modules and NUI controls provide individually named, read-only disclosure fo
 - This protects the new named-grant route; it does not redefine the existing judicial docket visibility or create unapproved courtroom role permissions.
 
 **Source quality and live acceptance remain separate.** Do not declare Stage 4 accepted until the real Stage 4 acceptance matrix has recorded passing tests against a development server, with agreed DOJ and defense role policies.
+
+## Evidence-specific legal discovery (source implementation)
+
+- Read-only evidence grants are separate from custody-changing operations, transfers, and stash access. Their recipients are tied to a character and current employing job.
+- Original department/collector retains evidence administration. An authorized evidence-transfer role can issue a case-linked grant only from the actual responsible case employer (or from personally collected unlinked evidence).
+- A disclosed recipient can see redacted evidence metadata and its custody history; **not** stash IDs, image-upload rights, evidence transfers, or other records by association.
+- Grants are revocable and audited, and a changed employer or case employer invalidates viewing. Owner controls and an individual recipient view are in the Evidence NUI screen.
+- Tables are installed from `sql/migrations/2026-10-29-evidence-disclosures.sql` (DEV only), or the updated QBCore/QBX clean-install schema. No production database is changed in this chat.
+- Additional mocked runtime and static code checks are in `tests/phase4/evidence_disclosure_runtime.lua` and `evidence_disclosure_regression.cjs`.
+
+The Stage 4 feature code now spans IA referral, case disclosure, report disclosure and evidence disclosure. **Live acceptance remains open** and should not be bypassed or described as passed based on CI.
