@@ -66,6 +66,27 @@ local function callerCalendarDomain(src)
     return 'police'
 end
 
+-- Stage 2 employer isolation is opt-in until the nullable owner_job
+-- schema migration has been applied. Existing legacy rows remain ownerless.
+local function departmentCalendarOwnership()
+    return Config and Config.Court and Config.Court.DepartmentCalendarOwnership == true
+end
+
+local function calendarOwnerJob(src)
+    local access = GetMdtAccess(src)
+    if not access or not access.authorized or not access.agency then return nil end
+    return ps.getJobName(src)
+end
+
+local function canReadOwnedCalendarEntry(src, entry)
+    if not entry or entry.job_type ~= callerCalendarDomain(src) then return false end
+    if not departmentCalendarOwnership() then return true end
+    if entry.category == 'court' then
+        return CheckPermission(src, 'court_view')
+    end
+    return entry.owner_job ~= nil and entry.owner_job == calendarOwnerJob(src)
+end
+
 -- EMS never deals with court cases, so the 'court' category is police-only.
 local function categoryAllowedForDomain(category, domain)
     if domain == 'ems' and normalizeCategory(category) == 'court' then
@@ -279,15 +300,24 @@ ps.registerCallback(resourceName .. ':server:getHearings', function(source, payl
 
     local args = { domain, fromDate, toDate }
     for _, v in ipairs(catValues) do args[#args + 1] = v end
+    local ownerClause = ''
+    if departmentCalendarOwnership() then
+        local owner = calendarOwnerJob(src)
+        if not owner then return {} end
+        -- Court scheduling remains judicial; non-court events require employer.
+        -- Historical NULL rows are intentionally not exposed by the new mode.
+        ownerClause = " AND (h.category = 'court' OR h.owner_job = ?)"
+        args[#args + 1] = owner
+    end
 
     local rows = MySQL.query.await(([[
         SELECT h.*, DATE_FORMAT(h.scheduled_at, '%%Y-%%m-%%d %%H:%%i:%%s') AS scheduled_at,
                c.case_number AS case_number, c.title AS case_title
         FROM mdt_court_hearings h
         LEFT JOIN mdt_cases c ON c.id = h.case_id
-        WHERE h.job_type = ? AND h.scheduled_at BETWEEN ? AND ?%s
+        WHERE h.job_type = ? AND h.scheduled_at BETWEEN ? AND ?%s%s
         ORDER BY h.scheduled_at ASC
-    ]]):format(catClause), args) or {}
+    ]]):format(catClause, ownerClause), args) or {}
 
     return rows
 end)
@@ -312,7 +342,7 @@ ps.registerCallback(resourceName .. ':server:getHearing', function(source, paylo
 
     if not hearing then return { success = false, error = 'Hearing not found' } end
     -- Don't leak events from the other domain (police/DOJ <-> EMS).
-    if hearing.job_type and hearing.job_type ~= callerCalendarDomain(src) then
+    if not canReadOwnedCalendarEntry(src, hearing) then
         return { success = false, error = 'Hearing not found' }
     end
 
