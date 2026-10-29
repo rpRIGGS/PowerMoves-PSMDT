@@ -271,7 +271,9 @@ end
 
 ps.registerCallback(resourceName .. ':server:getReports', function(source, page, filters)
     local src = source
-    if not CheckAuth(src) then return end
+    if not CheckAuth(src) or not CheckPermission(src, 'reports_view') then
+        return { reports = {}, total = 0 }
+    end
 
     local identifier = ps.getIdentifier(src)
     local job = ps.getJobName(src)
