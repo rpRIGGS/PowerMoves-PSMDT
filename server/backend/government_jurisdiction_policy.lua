@@ -36,13 +36,16 @@ end
 -- Unpublished records are local-only, except for an explicitly authorized
 -- state-office oversight role. County/city parentage NEVER grants visibility.
 function CanViewGovernmentJurisdictionRecord(actorJob, targetJurisdiction, published, hasStateOversight)
-    if not validJurisdiction(targetJurisdiction) then return false end
+    if not validJurisdiction(targetJurisdiction)
+        or not GovernmentJurisdictionContains(targetJurisdiction, targetJurisdiction) then return false end
     if published == true then return true end
     local policy = Config and Config.MdtAccess or {}
     local jobs = policy.GovernmentJobs or {}
     local actorJurisdiction = type(actorJob) == 'string' and jobs[actorJob] or nil
     if not validJurisdiction(actorJurisdiction) then return false end
-    if actorJurisdiction == targetJurisdiction then return true end
+    if actorJurisdiction == targetJurisdiction then
+        return GovernmentJurisdictionContains(actorJurisdiction, actorJurisdiction)
+    end
     if actorJob ~= 'sagov' or hasStateOversight ~= true then return false end
     return GovernmentJurisdictionContains(actorJurisdiction, targetJurisdiction)
 end
