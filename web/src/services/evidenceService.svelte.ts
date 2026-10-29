@@ -72,7 +72,7 @@ export function createEvidenceService() {
 
 		if (response.success) {
 			state.uploadProgress = 100;
-			return response.url || response.imageUrl;
+			return response.url;
 		}
 		throw new Error("Upload failed");
 		} catch (error) {
