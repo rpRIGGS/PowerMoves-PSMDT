@@ -114,7 +114,61 @@ local function myPublicRecordRequests()
     myPublicReleaseCopies(result)
 end
 
+local function publicGovernmentNotices()
+    if not lib or not lib.inputDialog or not lib.alertDialog then return end
+    local page = 0
+    while page >= 0 and page <= 200 do
+        local response = ps.callback(resourceName .. ':server:getPublicGovernmentNotices', {page=page})
+        if not response or response.success ~= true then
+            lib.notify({title='Government Notices',
+                description=response and response.error or 'Notice service unavailable',
+                type='error'})
+            return
+        end
+        local items = type(response.notices)=='table' and response.notices or {}
+        local options = {}
+        for index, item in ipairs(items) do
+            options[#options+1] = {
+                value = tostring(index),
+                label = tostring(item.title or 'Public notice') .. ' — '
+                    .. tostring(item.jurisdiction or '')
+            }
+        end
+        if page > 0 then options[#options+1] = {value='previous',label='Previous page'} end
+        if response.hasMore then options[#options+1] = {value='next',label='Next page'} end
+        if #options == 0 then
+            lib.alertDialog({header='Government Public Notices',
+                content='No published notices are available.'})
+            return
+        end
+        local selection = lib.inputDialog('Government Public Notices', {
+            {type='select',label='Published notices — page ' .. (page+1),
+                options=options,required=true}
+        })
+        if not selection then return end
+        if selection[1]=='next' then
+            page=page+1
+        elseif selection[1]=='previous' then
+            page=page-1
+        else
+            local index=tonumber(selection[1])
+            local item=index and items[index] or nil
+            if item then
+                lib.alertDialog({
+                    header=tostring(item.title or 'Public notice'),
+                    content=tostring(item.body or ''),
+                })
+            end
+        end
+    end
+end
+
 local serviceHandlers = {
+    government_notices = {
+        label = 'Government Public Notices',
+        icon = 'fas fa-landmark',
+        open = function() publicGovernmentNotices() end,
+    },
     records_office = {
         label = 'Records Office',
         icon = 'fas fa-folder-open',
