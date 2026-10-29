@@ -5,6 +5,7 @@
 	import type { GovernmentEmployee } from "../interfaces/IGovernment";
 	import SOP from "./SOP.svelte";
 	import GovernmentNotices from "./GovernmentNotices.svelte";
+	import GovernmentLicensing from "./GovernmentLicensing.svelte";
 	import GovernmentLicenses from "./GovernmentLicenses.svelte";
 	let { authService }: { authService: AuthService } = $props();
 	const personnel = createGovernmentPersonnelService();
@@ -87,12 +88,15 @@
 		<button class:active={activeSection === "personnel"} onclick={() => activeSection = "personnel"}>Personnel</button>
 		<button class:active={activeSection === "sop"} onclick={() => activeSection = "sop"}>Department SOP</button>
 		<button class:active={activeSection === "notices"} onclick={() => activeSection = "notices"}>Public Notices</button>
+		<button class:active={activeSection === "licensing"} onclick={() => activeSection = "licensing"}>Business Licensing</button>
 		<button class:active={activeSection === "licenses"} onclick={() => activeSection = "licenses"}>Licensing</button>
 	</nav>
 	{#if activeSection === "sop"}
 		<SOP {authService} />
 	{:else if activeSection === "notices"}
 		<GovernmentNotices {authService} />
+	{:else if activeSection === "licensing"}
+		<GovernmentLicensing {authService} />
 	{:else if activeSection === "licenses"}
 		<GovernmentLicenses {authService} />
 	{:else}
