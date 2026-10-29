@@ -41,7 +41,9 @@ end)
 -- otherwise commit a partial decision. Fail closed and surface the dependency.
 local warnedTransactionUnavailable = false
 local function hasCheckedTransactions()
-    if MySQL and type(MySQL.startTransaction) == 'function' then return true end
+    -- Older oxmysql Lua libraries synthesize functions for unknown keys in
+    -- the MySQL metatable. Only a raw method proves this API is installed.
+    if type(MySQL) == 'table' and type(rawget(MySQL, 'startTransaction')) == 'function' then return true end
     if not warnedTransactionUnavailable then
         warnedTransactionUnavailable = true
         print('[ps-mdt] Stage 5 records office: requires oxmysql v2.12.0+ MySQL.startTransaction; review and publication are disabled')
