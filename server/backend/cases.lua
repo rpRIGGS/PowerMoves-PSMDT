@@ -9,6 +9,18 @@ local function getCaseScope(source)
     return { statewide = false, agency = access.agency }
 end
 
+local function canAccessCaseId(source, caseId)
+    local id = tonumber(caseId)
+    local scope = getCaseScope(source)
+    if not id or not scope then return false end
+    local row = MySQL.single.await('SELECT assigned_department FROM mdt_cases WHERE id = ?', { id })
+    if not row then return false end
+    local current = getCaseScope(source)
+    return current ~= nil and current.agency == scope.agency
+        and current.statewide == scope.statewide
+        and (current.statewide or row.assigned_department == current.agency)
+end
+
 local function buildCaseNumber(id)
     local year = os.date('%Y')
     return ('CASE-%s-%05d'):format(year, id)
@@ -203,6 +215,7 @@ end)
 ps.registerCallback(resourceName .. ':server:linkReportToCase', function(source, reportId, caseId)
     local src = source
     if not CheckAuth(src) or not CheckPermission(src, 'cases_edit') then return { success = false, error = 'Unauthorized' } end
+    if not canAccessCaseId(src, caseId) then return { success = false, error = 'Case not found or inaccessible' } end
 
     reportId = tonumber(reportId)
     caseId = tonumber(caseId)
@@ -227,6 +240,7 @@ end)
 ps.registerCallback(resourceName .. ':server:unlinkReportFromCase', function(source, reportId, caseId)
     local src = source
     if not CheckAuth(src) or not CheckPermission(src, 'cases_edit') then return { success = false, error = 'Unauthorized' } end
+    if not canAccessCaseId(src, caseId) then return { success = false, error = 'Case not found or inaccessible' } end
 
     reportId = tonumber(reportId)
     caseId = tonumber(caseId)
@@ -241,6 +255,7 @@ end)
 ps.registerCallback(resourceName .. ':server:getCaseEvidencePage', function(source, caseId, page, limit)
     local src = source
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_view') then return { success = false, error = 'Unauthorized' } end
+    if not canAccessCaseId(src, caseId) then return { success = false, error = 'Case not found or inaccessible' } end
 
     caseId = tonumber(caseId)
     if not caseId then
@@ -406,6 +421,7 @@ end)
 ps.registerCallback(resourceName .. ':server:assignCaseOfficer', function(source, caseId, officerCitizenId, role)
     local src = source
     if not CheckAuth(src) or not CheckPermission(src, 'cases_edit') then return { success = false, error = 'Unauthorized' } end
+    if not canAccessCaseId(src, caseId) then return { success = false, error = 'Case not found or inaccessible' } end
 
     caseId = tonumber(caseId)
     if not caseId or not officerCitizenId then
@@ -436,6 +452,7 @@ end)
 ps.registerCallback(resourceName .. ':server:removeCaseOfficer', function(source, caseId, officerCitizenId)
     local src = source
     if not CheckAuth(src) or not CheckPermission(src, 'cases_edit') then return { success = false, error = 'Unauthorized' } end
+    if not canAccessCaseId(src, caseId) then return { success = false, error = 'Case not found or inaccessible' } end
 
     caseId = tonumber(caseId)
     if not caseId or not officerCitizenId then
@@ -462,6 +479,7 @@ end)
 ps.registerCallback(resourceName .. ':server:addCaseAttachment', function(source, caseId, attachment)
     local src = source
     if not CheckAuth(src) or not CheckPermission(src, 'cases_edit') then return { success = false, error = 'Unauthorized' } end
+    if not canAccessCaseId(src, caseId) then return { success = false, error = 'Case not found or inaccessible' } end
 
     caseId = tonumber(caseId)
     if not caseId or not attachment or not attachment.url then
@@ -493,6 +511,7 @@ end)
 ps.registerCallback(resourceName .. ':server:addCaseAttachmentUpload', function(source, caseId, attachment)
     local src = source
     if not CheckAuth(src) or not CheckPermission(src, 'cases_edit') then return { success = false, error = 'Unauthorized' } end
+    if not canAccessCaseId(src, caseId) then return { success = false, error = 'Case not found or inaccessible' } end
 
     caseId = tonumber(caseId)
     if not caseId or not attachment or not attachment.data or not attachment.filename then
@@ -815,6 +834,7 @@ end)
 ps.registerCallback(resourceName .. ':server:addCaseNote', function(source, caseId, content)
     local src = source
     if not CheckAuth(src) or not CheckPermission(src, 'cases_edit') then return { success = false, error = 'Unauthorized' } end
+    if not canAccessCaseId(src, caseId) then return { success = false, error = 'Case not found or inaccessible' } end
 
     caseId = tonumber(caseId)
     if not caseId or not content or content == '' then
@@ -837,6 +857,7 @@ end)
 ps.registerCallback(resourceName .. ':server:deleteCaseNote', function(source, noteId, caseId)
     local src = source
     if not CheckAuth(src) or not CheckPermission(src, 'cases_edit') then return { success = false, error = 'Unauthorized' } end
+    if not canAccessCaseId(src, caseId) then return { success = false, error = 'Case not found or inaccessible' } end
 
     noteId = tonumber(noteId)
     caseId = tonumber(caseId)
