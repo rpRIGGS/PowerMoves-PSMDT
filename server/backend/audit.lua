@@ -58,7 +58,10 @@ ps.auditLog = writeAuditLog
 
 ps.registerCallback(resourceName .. ':server:getAuditLogs', function(source, params)
     local src = source
-    if not CheckAuth(src) then return { items = {}, total = 0 } end
+    -- A general audit feed can expose information from unrelated agencies.
+    if not CheckAuth(src) or not CheckPermission(src, 'management_activity') then
+        return { items = {}, total = 0 }
+    end
 
     params = params or {}
     local entityType = params.entityType
@@ -130,7 +133,13 @@ ps.registerCallback(resourceName .. ':server:getAuditLogsByCase', function(sourc
     if not CheckAuth(src) then return {} end
 
     caseId = tonumber(caseId)
-    if not caseId then return {} end
+    if not caseId or not CheckPermission(src, 'cases_view') then return {} end
+    local access = GetMdtAccess(src)
+    if not access.authorized or not access.agency then return {} end
+    local row = MySQL.single.await('SELECT assigned_department FROM mdt_cases WHERE id = ?', { caseId })
+    if not row or (access.interfaceId ~= 'sadoj' and row.assigned_department ~= access.agency) then
+        return {}
+    end
 
     page = tonumber(page) or 1
     local max = tonumber(limit) or 10
