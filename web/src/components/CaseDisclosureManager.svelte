@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { fetchNui } from "../utils/fetchNui";
+    import { NUI_EVENTS } from "../constants/nuiEvents";
     interface Grant { id:number; recipient_citizenid:string; purpose:string; granted_at:string; revoked_at?:string|null; expires_at?:string|null; }
     let { caseId }: { caseId: number } = $props();
     let grants = $state<Grant[]>([]);
@@ -10,7 +11,7 @@
     let message = $state("");
     async function reload() {
         try {
-            const result = await fetchNui<Grant[]>("getCaseDisclosures",{caseId},[]);
+            const result = await fetchNui<Grant[]>(NUI_EVENTS.CASE.GET_CASE_DISCLOSURES,{caseId},[]);
             grants = Array.isArray(result) ? result : [];
         } catch { grants = []; }
     }
@@ -18,7 +19,7 @@
         if(busy || !recipient.trim() || purpose.trim().length<10) return;
         busy=true;message="";
         try {
-            const result=await fetchNui<{success:boolean;error?:string}>("grantCaseDisclosure",
+            const result=await fetchNui<{success:boolean;error?:string}>(NUI_EVENTS.CASE.GRANT_CASE_DISCLOSURE,
               {caseId,recipientCitizenid:recipient.trim(),purpose:purpose.trim()},{success:false});
             message=result.success?"Case detail disclosure recorded.":result.error || "Disclosure denied.";
             if(result.success){recipient="";purpose="";await reload();}
@@ -28,7 +29,7 @@
         if(busy) return;
         busy=true;message="";
         try {
-            const result=await fetchNui<{success:boolean;error?:string}>("revokeCaseDisclosure",{grantId:id},{success:false});
+            const result=await fetchNui<{success:boolean;error?:string}>(NUI_EVENTS.CASE.REVOKE_CASE_DISCLOSURE,{grantId:id},{success:false});
             message=result.success?"Disclosure revoked.":result.error || "Revocation denied.";
             await reload();
         } finally {busy=false;}
