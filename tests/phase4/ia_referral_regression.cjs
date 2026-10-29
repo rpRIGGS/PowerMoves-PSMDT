@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const server = fs.readFileSync('server/backend/ia.lua','utf8');
 const client = fs.readFileSync('client/backend/ia.lua','utf8');
 const sql = fs.readFileSync('sql/migrations/2026-10-28-ia-referrals.sql','utf8');
-for (const endpoint of ['referIAComplaintToSADLE','getSADLEIAReferrals']) {
+for (const endpoint of ['referIAComplaintToSADLE','getSADLEIAReferrals','acceptSADLEIAReferral']) {
   assert(server.includes("':server:"+endpoint+"'"), 'Server missing '+endpoint);
   assert(client.includes("RegisterNUICallback('"+endpoint+"'"),'Client missing '+endpoint);
 }
@@ -22,4 +22,10 @@ assert.match(queue,/canViewIA\(src\)/);
 assert.match(queue,/ps\.getIdentifier\(src\) ~= cid/);
 assert.match(sql,/UNIQUE KEY `idx_ia_referral_complaint`/);
 assert.match(sql,/CREATE TABLE IF NOT EXISTS `mdt_ia_referrals`/);
+const acceptStart = server.indexOf("':server:acceptSADLEIAReferral'");
+const accept = server.slice(acceptStart,server.indexOf('\\nend)',acceptStart));
+assert.match(accept,/ps\\.getJobName\\(src\\) ~= 'sadle'/);
+assert.match(accept,/canManageIA\\(src\\)/);
+assert.match(accept,/r\\.status = 'pending'/);
+assert.match(accept,/c\\.job_type = 'police'/);
 console.log('PASS Stage 4 referral bridge, employer isolation and SADLE triage rules');
