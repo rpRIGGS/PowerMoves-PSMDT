@@ -6,7 +6,7 @@ Status: **Source implementation candidate — NOT runtime accepted** (October 29
 - Configurable public-service desks using qb-target and the existing IA complaint entry point.
 - Civilian public-records request intake and request history, restricted to the initiating citizenid.
 - Records-office queue accessible only to explicitly listed `Config.PublicServices.RecordsOfficers[job][citizenid]` members, subject to MDT auth.
-- Review transitions from submitted to under_review, then denied or approved.
+- Review transitions from submitted to under_review, then denied or approved. Authorized records officers can inspect agency-scoped decision history inside the existing MDT panel.
 - Approved requests receive only records-office-authored public response text. Denied requests receive a written public explanation addressed to the original applicant. No direct disclosure of cases, reports, evidence stashes, medical charts or IA records.
 - Approved responses are scoped to the original requesting citizenid. Review and publication are written to the Stage 5 audit table.
 - Records officers open the integrated PSMDT records-office panel through a configured in-world qb-target counter; civilians submit and check requests at public service counters. No records-office slash command or separate staff ox_lib menu.
@@ -28,7 +28,7 @@ Status: **Source implementation candidate — NOT runtime accepted** (October 29
 
 ## Mandatory DEV acceptance
 - Citizen A cannot view citizen B requests or published responses, including direct callback by request number.
-- Agency A cannot review or decide agency B's requests.
+- Agency A cannot view, audit, review or decide agency B's requests, including direct history callback attempts.
 - Unlisted staff, civilians and unauthorized job switches cannot open records-office queues.
 - Two records officers racing the same decision cause only one state transition, response and audit entry.
 - Responses cannot be published before review and cannot be duplicated. Denial notice, status and audit commit together, or all roll back.
