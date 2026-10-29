@@ -293,8 +293,8 @@
                                 {#if copy.revoked_at}
                                     <p>Revoked: {copy.revoked_at} — {copy.revocation_reason || "No reason provided"}</p>
                                 {:else}
-                                    <label for="revoke-reason">Revocation reason</label>
-                                    <textarea id="revoke-reason" rows="2" maxlength="1000" bind:value={revokeReason} disabled={saving}></textarea>
+                                    <label for={"revoke-reason-" + copy.id}>Revocation reason</label>
+                                    <textarea id={"revoke-reason-" + copy.id} rows="2" maxlength="1000" bind:value={revokeReason} disabled={saving}></textarea>
                                     <button onclick={() => void revokeCopy(copy.id)} disabled={saving || !revokeReason.trim()}>Revoke this copy</button>
                                 {/if}
                             </div>
