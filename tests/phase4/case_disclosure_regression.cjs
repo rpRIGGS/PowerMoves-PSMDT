@@ -25,5 +25,6 @@ for(const path of ['sql/qbcore.sql','sql/qbx.sql','sql/migrations/2026-10-28-cas
  const schema=fs.readFileSync(path,'utf8');
  assert.match(schema,/CREATE TABLE IF NOT EXISTS \`mdt_case_disclosures\`/);
  assert.match(schema,/idx_disclosures_recipient/);
+ assert.match(schema,/recipient_job/);
 }
 console.log('PASS case-specific grants, revocation and source-scoped access contracts');
