@@ -8,6 +8,7 @@
 	import { NUI_EVENTS } from "../constants/nuiEvents";
 	import { REPORT_TYPES } from "../constants";
 	import ReportEditor from "./ReportEditor.svelte";
+	import ReportDisclosureManager from "../components/ReportDisclosureManager.svelte";
 	import type { createInstanceStateService } from "../services/instanceStateService.svelte";
 	import { createReportService } from "../services/reportService.svelte";
 	import {
@@ -232,6 +233,9 @@
 </script>
 
 {#if showEditor}
+	{#if editingReportId}
+		<ReportDisclosureManager reportId={Number(editingReportId)} />
+	{/if}
 	<ReportEditor
 		reportId={editingReportId}
 		onClose={closeEditor}
