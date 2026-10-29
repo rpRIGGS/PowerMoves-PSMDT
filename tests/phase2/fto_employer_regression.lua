@@ -55,4 +55,16 @@ env.MySQL.query.await = function(sql,args)
     return result
 end
 assert(#invoke('getFTOList',1,1,{}).entries == 0, 'Employer transfer must invalidate query')
-print('PASS exact-job FTO reads, legacy quarantine and transfer recheck')
+actor.job = 'lspd'
+local transcript = assert(callbacks['ps-mdt:server:getMyTrainingTranscript'])
+env.MySQL.query.await = function(sql,args)
+    if sql:find('WHERE a.trainee_citizenid = ?',1,true) then
+        assert(args[1]=='CID-A')
+        actor.cid='CID-CHANGED'
+        return {{fto_number='FTO-OLD',status='completed'}}
+    end
+    return original(sql,args)
+end
+assert(#transcript(1)==0, 'Character switch must invalidate permanent milestone transcript')
+actor.cid='CID-A'
+print('PASS exact-job FTO, legacy quarantine and transcript anti-transfer checks')
