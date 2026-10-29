@@ -82,6 +82,13 @@ ps.registerCallback(resourceName .. ':server:setRadio', function(source, payload
     if not cid or not newRadio then
         return { success = false, message = 'Missing citizen ID or radio frequency' }
     end
+    -- Radio changes for another employee require actual departmental
+    -- personnel authority; simply having MDT access is insufficient.
+    if cid ~= ps.getIdentifier(src) and
+        (not CheckPermission(src, 'roster_manage_officers')
+            or not CanManageMdtPersonnel(src, cid)) then
+        return { success = false, message = 'Personnel administration is limited to your department' }
+    end
  
     if not QBCore then return { success = false, message = 'Core framework not available' } end
     local targetPlayer = QBCore.Functions.GetPlayerByCitizenId(cid)
