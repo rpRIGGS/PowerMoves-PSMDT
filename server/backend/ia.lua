@@ -683,3 +683,25 @@ ps.registerCallback(resourceName .. ':server:acceptSADLEIAReferral', function(so
     end
     return {success = true}
 end)
+
+
+-- Referring agency command may check its own referral status, but cannot
+-- enumerate other agencies' submissions or see SADLE investigator notes.
+ps.registerCallback(resourceName .. ':server:getIAReferralStatus', function(source, complaintId)
+    local src = source
+    local id = tonumber(complaintId)
+    if not id or not canViewIA(src) then return {} end
+    local job, cid = ps.getJobName(src), ps.getIdentifier(src)
+    if not job or not cid or not ownsIAComplaint(src, id) then return {} end
+    if not iaReferralSchemaReady() then return {} end
+    local ok, row = pcall(MySQL.single.await, [[
+        SELECT r.id, r.status, r.created_at, r.received_at
+        FROM mdt_ia_referrals r
+        INNER JOIN mdt_ia_complaints c ON c.id = r.complaint_id
+        WHERE r.complaint_id = ? AND c.agency = ? AND c.job_type = 'police'
+        LIMIT 1
+    ]], {id, job})
+    if not canViewIA(src) or ps.getJobName(src) ~= job
+        or ps.getIdentifier(src) ~= cid or not ownsIAComplaint(src, id) then return {} end
+    return ok and row or {}
+end)
