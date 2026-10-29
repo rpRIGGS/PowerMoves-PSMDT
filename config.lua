@@ -53,7 +53,8 @@ Config.Sharing = {
                 'bcso',
                 'sahp',
                 'sasp',
-                'saspa'
+                'saspa',
+                'fib'
             },
             types = {
                 'reports',
@@ -497,7 +498,8 @@ Config.PoliceJobs = {
     'sahp',
     'sasp',
     'sadle',
-    'saspa'
+    'saspa',
+    'fib'
 }
 
 Config.DojJobType = "doj"
