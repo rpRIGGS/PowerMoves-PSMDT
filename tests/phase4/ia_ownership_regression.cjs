@@ -1,0 +1,14 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const source = fs.readFileSync('server/backend/ia.lua', 'utf8');
+const callbacks = ['getIAComplaints','getIAComplaint','assignIAComplaint'];
+for(const name of callbacks) assert(source.includes("':server:"+name+"'"),name+' missing');
+assert.match(source,/canViewIA\(src\) or ps\.getIdentifier\(src\) ~= originalCid/);
+assert.match(source,/if not canAccessIARecord\(src, complaint\) then\s*return \{ success = false, error = 'Authorization changed' \}/);
+const start = source.indexOf("':server:assignIAComplaint'");
+const end = source.indexOf("\nend)",start);
+const body = source.slice(start,end);
+assert.match(body,/CanManageMdtPersonnel\(src, assigneeCitizenId\)/);
+assert.match(body,/not ownsIAComplaint\(src, complaintId\)/);
+assert.equal((body.match(/CanManageMdtPersonnel\(src, assigneeCitizenId\)/g)||[]).length,2);
+console.log('PASS Stage 4 IA callback protections are present');
