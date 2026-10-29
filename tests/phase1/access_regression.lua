@@ -1235,6 +1235,24 @@ test('Stage 2 calendar list discards records after an employer transfer during S
     equal(#result, 0, 'Transferred employee must not receive former employer events')
 end)
 
+test('Stage 2 calendar detail drops attendees when job changes during second SQL', function()
+    identity(995, 'lspd', 'leo', 10, true)
+    env.Config.Court.DepartmentCalendarOwnership = true
+    onDojRead = function(operation, query, args)
+        if operation == 'single' then
+            expect(query:find('FROM mdt_court_hearings', 1, true))
+            return { id = 77, job_type = 'police', category = 'training', owner_job = 'lspd' }
+        end
+        equal(operation, 'query')
+        identity(995, 'bcso', 'leo', 10, true)
+        return { { id = 9, display_name = 'Confidential attendee' } }
+    end
+    local ok, response = pcall(function() return doj('getHearing', 995, { hearingId = 77 }) end)
+    env.Config.Court.DepartmentCalendarOwnership = false
+    expect(ok, tostring(response))
+    expect(not response.success, 'Attendees should be withheld after employer change')
+end)
+
 print(('Phase 1 access regressions: %d passed, %d failed, %d assertions; all SQL mocked.')
     :format(passed, failed, assertions))
 if failed > 0 then os.exit(1) end
