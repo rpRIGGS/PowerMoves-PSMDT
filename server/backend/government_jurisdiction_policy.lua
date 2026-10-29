@@ -19,16 +19,17 @@ function GovernmentJurisdictionContains(ancestor, descendant)
     local jurisdictions = configuredJurisdictions()
     local seen = {}
     local current = descendant
+    local contains = false
     while current do
         if seen[current] then return false end
         seen[current] = true
         if not validJurisdiction(current) then return false end
-        if current == ancestor then return true end
+        if current == ancestor then contains = true end
         local parent = jurisdictions[current].parent
         if parent ~= nil and (type(parent) ~= 'string' or parent == current) then return false end
         current = parent
     end
-    return false
+    return contains
 end
 
 -- Published/approved public records are visible across local governments.
