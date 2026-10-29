@@ -68,61 +68,128 @@ Config.Sharing = {
 }
 
 
--- Per-interface sharing policy. Each .net interface owns its own rules.
--- Config.Sharing above remains the original PS-MDT LEO compatibility policy.
--- Backend authorization must enforce these policies before granting record access.
+-- Department data sharing by interface
+-- The original Config.Sharing above is preserved for legacy PS-MDT handlers.
+-- Each .net interface has its own matching Mutual / OneWay configuration.
 Config.InterfaceSharing = {
+    -- SADLE.net - Law Enforcement
     sadle = {
         Mutual = {
-            types = { 'reports', 'bodycams', 'evidence', 'bolos', 'warrants' },
-            departments = { 'lspd', 'bcso', 'sahp' },
+            types = {
+                'reports',
+                'bodycams',
+                'evidence',
+                'bolos',
+                'warrants'
+            },
+            departments = {
+                'lspd',
+                'bcso',
+                'sahp'
+            }
         },
+
         OneWay = {
             {
-                viewers = { 'sadle' },
-                targets = { 'post', 'lspd', 'lspe', 'lscso', 'bcso', 'sahp', 'sasp', 'saspa', 'fib' },
-                types = { 'reports', 'bodycams', 'evidence', 'bolos', 'warrants' },
-            },
-        },
+                viewers = {
+                    'sadle'
+                },
+                targets = {
+                    'post',
+                    'lspd',
+                    'lspe',
+                    'lscso',
+                    'bcso',
+                    'sahp',
+                    'sasp',
+                    'saspa',
+                    'fib'
+                },
+                types = {
+                    'reports',
+                    'bodycams',
+                    'evidence',
+                    'bolos',
+                    'warrants'
+                }
+            }
+        }
     },
+
+    -- SADOJ.net - Department of Justice
     sadoj = {
-        Mutual = { types = {}, departments = {} },
-        OneWay = {},
-        -- Judicial access to LEO evidence/cases is separately authorized.
-        -- Sealed records never inherit ordinary department sharing.
+        Mutual = {
+            types = {},
+            departments = {}
+        },
+        OneWay = {}
     },
+
+    -- SAFR.net - Fire Rescue
     safr = {
-        Mutual = { types = {}, departments = {} },
+        Mutual = {
+            types = {},
+            departments = {}
+        },
         OneWay = {
             {
-                viewers = { 'safr' },
-                targets = { 'lsfd', 'lscfd', 'bcfd' },
-                types = { 'reports' },
-            },
-        },
+                viewers = {
+                    'safr'
+                },
+                targets = {
+                    'lsfd',
+                    'lscfd',
+                    'bcfd'
+                },
+                types = {
+                    'reports'
+                }
+            }
+        }
     },
+
+    -- SAMS.net - Medical Services
     sams = {
-        Mutual = { types = {}, departments = {} },
+        Mutual = {
+            types = {},
+            departments = {}
+        },
         OneWay = {
             {
-                viewers = { 'sams' },
-                targets = { 'pillboxmed', 'sandymed', 'paletomed', 'parsonsmed' },
-                types = { 'reports' },
-            },
-        },
-        -- Patient charts require separate patient-level authorization.
+                viewers = {
+                    'sams'
+                },
+                targets = {
+                    'pillboxmed',
+                    'sandymed',
+                    'paletomed',
+                    'parsonsmed'
+                },
+                types = {
+                    'reports'
+                }
+            }
+        }
     },
+
+    -- SAGOV.net - Government
     sagov = {
-        Mutual = { types = {}, departments = {} },
-        OneWay = {},
-        -- Government visibility is determined by jurisdiction, record status,
-        -- and explicitly authorized state oversight, not blanket sharing.
+        Mutual = {
+            types = {},
+            departments = {}
+        },
+        OneWay = {}
     },
+
+    -- SADOT.net - Transportation (inactive)
     sadot = {
         Enabled = false,
-        Mutual = { types = {}, departments = {} },
-        OneWay = {},
-    },
+        Mutual = {
+            types = {},
+            departments = {}
+        },
+        OneWay = {}
+    }
 }
 
 -- Keybinds
