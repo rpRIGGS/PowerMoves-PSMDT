@@ -9,7 +9,7 @@ const schema = read('sql/migrations/2026-10-29-public-records-intake.sql');
 const responseSchema = read('sql/migrations/2026-10-29-public-records-response.sql');
 assert.match(intake, /WHERE applicant_citizenid = \?/);
 assert.match(intake, /r\.applicant_citizenid = \?/);
-assert.match(intake, /ps\.getIdentifier\(source\) !== cid/);
+assert.match(intake, /ps\.getIdentifier\(source\) ~= cid/);
 assert.match(review, /RecordsOfficers/);
 assert.match(review, /WHERE agency = \?/);
 assert.match(review, /authorized\(source\)/);
