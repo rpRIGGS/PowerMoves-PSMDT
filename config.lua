@@ -173,6 +173,7 @@ Config.PublicServices = {
     TargetResource = 'qb-target',
     Debug = false,
     DefaultDistance = 2.0,
+    RecordsOfficers = {}, -- explicit reviewer allowlist; empty until configured
     Locations = {
         -- Stage 5: add 'public_records_request' and 'public_records_status' to a real
         -- service desk's services list to activate citizen requests. The location's
