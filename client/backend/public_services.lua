@@ -111,7 +111,10 @@ local function getOptions(location)
     local services = type(location.services) == 'table' and location.services or {}
     for _, serviceId in ipairs(services) do
         local service = serviceHandlers[serviceId]
-        if service then
+        if service and serviceId == 'public_records_request'
+            and (type(location.agency) ~= 'string' or location.agency == '') then
+            log('Skipping records request at a location with no receiving agency: ' .. tostring(location.id))
+        elseif service then
             options[#options + 1] = {
                 icon = service.icon,
                 label = service.label,
