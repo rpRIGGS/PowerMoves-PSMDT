@@ -170,5 +170,6 @@ jobs:
           bash tests/phase5/mysql_public_records.sh
           bash tests/phase6/mysql_government_notices.sh
           bash tests/phase6/mysql_government_business_licenses.sh
+          bash tests/phase6/mysql_government_property_assessments.sh
           bash tests/phase6/mysql_sadot_eligibility.sh
           bash tests/phase6/mysql_government_assessments.sh
