@@ -4,10 +4,11 @@
 	import { createGovernmentPersonnelService } from "../services/governmentPersonnelService.svelte";
 	import type { GovernmentEmployee } from "../interfaces/IGovernment";
 	import SOP from "./SOP.svelte";
+	import GovernmentNotices from "./GovernmentNotices.svelte";
 	let { authService }: { authService: AuthService } = $props();
 	const personnel = createGovernmentPersonnelService();
 	let search = $state("");
-	let activeSection = $state<"personnel" | "sop">("personnel");
+	let activeSection = $state<"personnel" | "sop" | "notices">("personnel");
 	let showPositions = $state(false);
 	let editor = $state<"hire" | "grade" | "terminate" | null>(null);
 	let selectedEmployee = $state<GovernmentEmployee | null>(null);
@@ -84,9 +85,12 @@
 	<nav class="government-module-nav" aria-label="Government modules">
 		<button class:active={activeSection === "personnel"} onclick={() => activeSection = "personnel"}>Personnel</button>
 		<button class:active={activeSection === "sop"} onclick={() => activeSection = "sop"}>Department SOP</button>
+		<button class:active={activeSection === "notices"} onclick={() => activeSection = "notices"}>Public Notices</button>
 	</nav>
 	{#if activeSection === "sop"}
 		<SOP {authService} />
+	{:else if activeSection === "notices"}
+		<GovernmentNotices {authService} />
 	{:else}
 	<div class="office-card">
 		<h2>{authService.playerInfo().department || authService.agency}</h2>
