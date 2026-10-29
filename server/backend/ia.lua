@@ -567,3 +567,82 @@ ps.registerCallback(resourceName .. ':server:deleteIANote', function(source, not
     MySQL.query.await('DELETE FROM mdt_ia_notes WHERE id = ? AND complaint_id = ?', { noteId, complaintId })
     return { success = true }
 end)
+
+-- Stage 4: local IA referrals to SADLE. This additive queue does not transfer
+-- ownership or expose all local IA files to unrelated agencies.
+local function iaReferralSchemaReady()
+    local ok = pcall(MySQL.query.await, [[
+        CREATE TABLE IF NOT EXISTS mdt_ia_referrals (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            complaint_id INT UNSIGNED NOT NULL,
+            referring_agency VARCHAR(40) NOT NULL,
+            referred_by_citizenid VARCHAR(64) NOT NULL,
+            reason VARCHAR(1000) NOT NULL,
+            status VARCHAR(24) NOT NULL DEFAULT 'pending',
+            received_by_citizenid VARCHAR(64) DEFAULT NULL,
+            received_at DATETIME DEFAULT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY idx_ia_referral_complaint (complaint_id),
+            KEY idx_ia_referral_status (status, created_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ]])
+    return ok
+end
+
+ps.registerCallback(resourceName .. ':server:referIAComplaintToSADLE', function(source, complaintId, reason)
+    local src = source
+    local id = tonumber(complaintId)
+    if not id or type(reason) ~= 'string' or #reason < 10 or #reason > 1000 then
+        return {success = false, error = 'Valid complaint and referral reason required'}
+    end
+    if not canManageIA(src) then return {success = false, error = 'Unauthorized'} end
+    local job, cid = ps.getJobName(src), ps.getIdentifier(src)
+    if not job or not cid or job == 'sadle' then
+        return {success = false, error = 'Local referring agency required'}
+    end
+    local record = MySQL.single.await(
+        'SELECT agency, job_type FROM mdt_ia_complaints WHERE id = ? LIMIT 1', {id})
+    if not record or record.agency ~= job or record.job_type ~= 'police'
+        or not canManageIA(src) then
+        return {success = false, error = 'Complaint not owned by referring agency'}
+    end
+    if not iaReferralSchemaReady() then return {success = false, error = 'Referral storage unavailable'} end
+    -- Another SQL yield may change the player's role or character.
+    if not canManageIA(src) or ps.getJobName(src) ~= job
+        or ps.getIdentifier(src) ~= cid then
+        return {success = false, error = 'Authorization changed'}
+    end
+    local ok, idOrError = pcall(MySQL.insert.await, [[
+        INSERT INTO mdt_ia_referrals
+            (complaint_id, referring_agency, referred_by_citizenid, reason, status)
+        VALUES (?, ?, ?, ?, 'pending')
+    ]], {id, job, cid, reason})
+    if not ok or not idOrError then
+        return {success = false, error = 'Referral already exists or could not be saved'}
+    end
+    if ps.auditLog then
+        ps.auditLog(src, 'ia_referred_to_sadle', 'ia_complaint', tostring(id),
+            {referral_id = idOrError, agency = job})
+    end
+    return {success = true, referralId = idOrError}
+end)
+
+ps.registerCallback(resourceName .. ':server:getSADLEIAReferrals', function(source, page)
+    local src = source
+    if ps.getJobName(src) ~= 'sadle' or not canViewIA(src) then return {} end
+    local cid = ps.getIdentifier(src)
+    if not cid or not iaReferralSchemaReady() then return {} end
+    local n = math.max(1, math.min(100, math.floor(tonumber(page) or 1)))
+    local ok, rows = pcall(MySQL.query.await, [[
+        SELECT r.id, r.complaint_id, r.referring_agency, r.status, r.reason,
+               r.created_at, c.complaint_number, c.category
+        FROM mdt_ia_referrals r
+        INNER JOIN mdt_ia_complaints c ON c.id = r.complaint_id
+        WHERE c.job_type = 'police'
+        ORDER BY r.created_at DESC, r.id DESC LIMIT 25 OFFSET ?
+    ]], {(n - 1) * 25})
+    if ps.getJobName(src) ~= 'sadle' or ps.getIdentifier(src) ~= cid or not canViewIA(src) then
+        return {}
+    end
+    return ok and rows or {}
+end)
