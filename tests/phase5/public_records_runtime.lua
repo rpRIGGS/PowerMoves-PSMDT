@@ -149,6 +149,17 @@ assert(not call('reviewPublicRecordsRequest',{id=4,action='denied',reason='Outda
 assert(not call('publishPublicRecordsResponse',{id=4,response='No uncontrolled release'}).success)
 assert(requests[4].status == beforeStatus and responses[4] == nil and #audits == beforeAudits,
     'Missing oxmysql transaction API must fail closed without writes')
+-- Simulate pre-v2.12 oxmysql: arbitrary missing keys resolve to functions
+-- through the MySQL metatable, but they are not safe transaction methods.
+setmetatable(env.MySQL, {
+    __index=function(_, key)
+        return function() error('Unexpected legacy oxmysql fallback: '..tostring(key)) end
+    end
+})
+assert(not call('reviewPublicRecordsRequest',{id=4,action='denied',reason='Legacy metatable'}).success)
+assert(not call('publishPublicRecordsResponse',{id=4,response='Legacy metatable'}).success)
+assert(requests[4].status == beforeStatus and responses[4] == nil and #audits == beforeAudits)
+setmetatable(env.MySQL, nil)
 env.MySQL.startTransaction = originalTx
 
 print('PASS Stage 5 agency isolation, counter/duty, rollback and oxmysql compatibility denial')
