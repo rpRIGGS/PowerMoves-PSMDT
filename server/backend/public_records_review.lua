@@ -51,6 +51,15 @@ local function hasCheckedTransactions()
     return false
 end
 
+-- Warn during resource startup instead of discovering an incompatible
+-- oxmysql installation only after a records officer attempts publication.
+if type(CreateThread) == 'function' then
+    CreateThread(function()
+        Wait(1000)
+        hasCheckedTransactions()
+    end)
+end
+
 local function validId(value)
     local id = tonumber(value)
     return id and id >= 1 and id % 1 == 0 and id or nil
