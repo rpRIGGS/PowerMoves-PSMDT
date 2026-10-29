@@ -21,18 +21,29 @@ ps.registerCallback(resourceName .. ':server:canUsePublicRecordsOffice', functio
     return {success = authorized(source) ~= nil}
 end)
 
-ps.registerCallback(resourceName .. ':server:getPublicRecordsOfficeQueue', function(source)
+ps.registerCallback(resourceName .. ':server:getPublicRecordsOfficeQueue', function(source, payload)
     local cid, agency = authorized(source)
     if not cid then return {success = false, error = 'Access denied'} end
+    local page = type(payload) == 'table' and tonumber(payload.page) or 0
+    if not page or page < 0 or page % 1 ~= 0 or page > 200 then
+        return {success = false, error = 'Invalid queue page'}
+    end
+    local pageSize = 50
     local ok, rows = pcall(MySQL.query.await, [[
-        SELECT id, request_number, agency, subject, description, status, created_at
+        SELECT id, request_number, applicant_citizenid, agency, subject,
+               description, status, created_at
         FROM mdt_public_record_requests WHERE agency = ?
-        ORDER BY created_at DESC LIMIT 100
-    ]], {agency})
+        ORDER BY CASE WHEN status IN ('submitted', 'under_review') THEN 0 ELSE 1 END,
+                 created_at ASC, id ASC
+        LIMIT ? OFFSET ?
+    ]], {agency, pageSize + 1, page * pageSize})
     if not ok or authorized(source) ~= cid or ps.getJobName(source) ~= agency then
         return {success = false, error = 'Access changed'}
     end
-    return {success = true, requests = rows or {}}
+    rows = type(rows) == 'table' and rows or {}
+    local more = #rows > pageSize
+    if more then rows[#rows] = nil end
+    return {success = true, requests = rows, page = page, hasMore = more}
 end)
 
 -- Staff-only administrative decision history. The join rechecks request
