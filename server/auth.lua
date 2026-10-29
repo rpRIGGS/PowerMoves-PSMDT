@@ -454,6 +454,44 @@ function GetGovernmentPropertyAssessorAccess(source)
     }
 end
 
+-- Budget scope is independent of generic government roster and boss status.
+function GetGovernmentBudgetAccess(source)
+    local initial=GetGovernmentRosterAccess(source)
+    if not initial then return nil end
+    local ok,row=pcall(MySQL.single.await,
+        'SELECT permissions FROM mdt_permission_roles WHERE job = ? AND grade = ?',
+        {initial.agency,initial.grade})
+    if not ok then return nil end
+    local grants={}
+    if row then
+        if type(row.permissions)=='table' then grants=row.permissions
+        elseif type(row.permissions)=='string' then
+            local decoded,items=pcall(json.decode,row.permissions)
+            if decoded and type(items)=='table' then grants=items end
+        end
+    else
+        local defaults=(Config.PermissionDefaults or {})[initial.agency] or {}
+        local items=defaults[tostring(initial.grade)]
+        if type(items)=='table' then grants=items end
+    end
+    local now=GetGovernmentRosterAccess(source)
+    if not now or now.citizenid~=initial.citizenid
+        or now.agency~=initial.agency or now.grade~=initial.grade
+        or now.jurisdiction~=initial.jurisdiction then return nil end
+    local policy=(Config.MdtAccess or {}).GovernmentBudgets or {}
+    local function allowed(key)
+        return type(policy[key])=='string' and policy[key]~=''
+            and contains(grants,policy[key])
+    end
+    return {
+        citizenid=now.citizenid,agency=now.agency,
+        jurisdiction=now.jurisdiction,
+        canDraft=allowed('DraftPermission'),
+        canApprove=allowed('ApprovePermission'),
+        hasStateOversight=now.agency=='sagov' and allowed('StateOversightPermission'),
+    }
+end
+
 function CheckPermission(source, permName)
     if not permName or not CheckAuth(source) then return false end
     local access = GetMdtAccess(source)
