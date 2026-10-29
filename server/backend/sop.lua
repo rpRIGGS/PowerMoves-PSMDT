@@ -1,9 +1,19 @@
 local resourceName = tostring(GetCurrentResourceName())
 
+local function canReadOwnDepartmentSOP(source)
+    if CheckAuth(source) then return true end
+    -- Government only gains a read-only view of its own employer SOP.
+    -- No legacy police/medical SOP mutations become available.
+    local access = GetMdtAccess(source)
+    return access.authorized == true and access.interfaceId == 'sagov'
+        and access.jobType == 'gov' and access.agency == ps.getJobName(source)
+end
+
+
 -- Get all SOP categories with their sections for the officer's department
 ps.registerCallback(resourceName .. ':server:getSOPCategories', function(source)
     local src = source
-    if not CheckAuth(src) then return {} end
+    if not canReadOwnDepartmentSOP(src) then return {} end
 
     local jobName = ps.getJobName(src)
     if not jobName or jobName == '' then return {} end
@@ -204,7 +214,7 @@ end)
 -- Get SOP settings for the officer's department
 ps.registerCallback(resourceName .. ':server:getSOPSettings', function(source)
     local src = source
-    if not CheckAuth(src) then return {} end
+    if not canReadOwnDepartmentSOP(src) then return {} end
 
     local jobName = ps.getJobName(src)
     if not jobName or jobName == '' then return {} end
