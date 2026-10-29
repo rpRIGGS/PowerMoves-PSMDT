@@ -335,6 +335,46 @@ function GetGovernmentNoticeAccess(source)
     }
 end
 
+-- Government licensing roles are independent of roster/boss and notices roles.
+-- A valid local government employment is necessary but never sufficient to
+-- approve or revoke a license. Every callback rechecks after SQL yields.
+function GetGovernmentLicenseAccess(source)
+    local original = GetGovernmentRosterAccess(source)
+    if not original then return nil end
+    local ok, row = pcall(MySQL.single.await,
+        'SELECT permissions FROM mdt_permission_roles WHERE job = ? AND grade = ?',
+        {original.agency, original.grade})
+    if not ok then return nil end
+    local grants = {}
+    if row then
+        if type(row.permissions) == 'table' then grants = row.permissions
+        elseif type(row.permissions) == 'string' then
+            local parsed, values = pcall(json.decode, row.permissions)
+            if parsed and type(values) == 'table' then grants = values end
+        end
+    else
+        local defaults = (Config.PermissionDefaults or {})[original.agency] or {}
+        local values = defaults[tostring(original.grade)]
+        if type(values) == 'table' then grants = values end
+    end
+    local current = GetGovernmentRosterAccess(source)
+    if not current or original.citizenid ~= current.citizenid
+        or original.agency ~= current.agency or original.grade ~= current.grade
+        or original.jurisdiction ~= current.jurisdiction then return nil end
+    local permissions = ((Config.MdtAccess or {}).GovernmentLicensing or {})
+    local function allowed(key)
+        local name = permissions[key]
+        return type(name) == 'string' and name ~= '' and contains(grants, name)
+    end
+    return {
+        citizenid = current.citizenid, agency = current.agency,
+        jurisdiction = current.jurisdiction,
+        canReview = allowed('ReviewPermission'),
+        canApprove = allowed('ApprovePermission'),
+        canRevoke = allowed('RevokePermission'),
+    }
+end
+
 function CheckPermission(source, permName)
     if not permName or not CheckAuth(source) then return false end
     local access = GetMdtAccess(source)
