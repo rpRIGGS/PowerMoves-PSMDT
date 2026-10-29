@@ -1036,8 +1036,8 @@
 										</div>
 										<div class="ia-history-meta">
 											<span style="flex:1;">
-												{record.trainee_name === selectedOfficer ? `${selectedOfficer.firstName} ${selectedOfficer.lastName}` : '' ? 'Trainer' : 'Trainee'}:
-												{record.trainee_name === selectedOfficer ? `${selectedOfficer.firstName} ${selectedOfficer.lastName}` : '' ? record.trainer_name : record.trainee_name}
+												{record.trainee_name === (selectedOfficer ? `${selectedOfficer.firstName} ${selectedOfficer.lastName}` : '') ? 'Trainer' : 'Trainee'}:
+												{record.trainee_name === (selectedOfficer ? `${selectedOfficer.firstName} ${selectedOfficer.lastName}` : '') ? record.trainer_name : record.trainee_name}
 											</span>
 											{#if record.phase_name}
 												<span style="color: rgba(255,255,255,0.5); font-size: 9px;">{record.phase_name}</span>
