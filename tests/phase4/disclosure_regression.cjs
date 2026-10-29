@@ -16,4 +16,5 @@ for(const path of ['sql/qbcore.sql','sql/qbx.sql']) {
  const sql=fs.readFileSync(path,'utf8');
  for(const tbl of ['mdt_case_disclosures','mdt_report_disclosures']) assert.ok(sql.includes('CREATE TABLE IF NOT EXISTS `'+tbl+'`'),path+': '+tbl);
 }
+assert.ok(cases.includes("current.agency !== scope.agency") || cases.includes("current.agency ~= scope.agency"), 'Case list requires employer recheck');
 console.log('PASS case and report grant, revocation and redacted case detail invariants');
