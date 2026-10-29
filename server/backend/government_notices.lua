@@ -78,7 +78,17 @@ ps.registerCallback(resourceName .. ':server:getGovernmentNotices', function(sou
             and CanViewGovernmentJurisdictionRecord(
                 access.agency, row.jurisdiction, published, stateOversight == 1
             ) then
-            visible[#visible+1] = row
+            -- Published notices are public; employee IDs and internal
+            -- record metadata remain confined to the owning department.
+            if row.agency ~= access.agency and published then
+                visible[#visible+1] = {
+                    id=row.id, agency=row.agency, jurisdiction=row.jurisdiction,
+                    title=row.title, body=row.body, status=row.status,
+                    published_at=row.published_at, updated_at=row.updated_at,
+                }
+            else
+                visible[#visible+1] = row
+            end
         end
     end
     return {
