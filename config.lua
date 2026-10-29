@@ -606,6 +606,48 @@ Config.FireJobs = {
 -- Interface identity is separate from the legacy police/EMS calendar domain.
 -- These mappings grant entry to an interface, not access to another agency's
 -- records or authority over another branch of government.
+-- MDT interface registry. One resource, six independently identified domains.
+-- The first three domains adapt the original LEO/DOJ/EMS PS-MDT workflows.
+-- FIRE and GOV extend the same MDT architecture; DOT stays disabled.
+Config.Interfaces = {
+    sadle = {
+        JobType = 'leo',
+        Jobs = Config.PoliceJobs,
+        Sharing = Config.Sharingleo,
+        Enabled = true,
+    },
+    sadoj = {
+        JobType = 'doj',
+        Jobs = Config.DojJobs,
+        Sharing = Config.Sharingdoj,
+        Enabled = true,
+    },
+    sams = {
+        JobType = 'ems',
+        Jobs = Config.MedicalJobs,
+        Sharing = Config.Sharingems,
+        Enabled = true,
+    },
+    safr = {
+        JobType = 'fire',
+        Jobs = Config.FireJobs,
+        Sharing = Config.Sharingfire,
+        Enabled = true,
+    },
+    sagov = {
+        JobType = 'gov',
+        Jobs = { 'sagov', 'bcgov', 'lscgov', 'lsgov' },
+        Sharing = Config.Sharinggov,
+        Enabled = true,
+    },
+    sadot = {
+        JobType = 'mechanic',
+        Jobs = {},
+        Sharing = Config.Sharingdot,
+        Enabled = false,
+    },
+}
+
 Config.MdtAccess = {
     -- 'legacy' preserves existing boss grants. Switch to 'explicit' ONLY after
     -- setting approved MDT permissions for each active job/leadership grade.
