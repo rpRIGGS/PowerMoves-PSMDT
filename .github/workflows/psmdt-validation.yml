@@ -135,4 +135,6 @@ jobs:
           MARIADB_USER: psmdt
           MARIADB_DATABASE: psmdt_test
           MYSQL_PWD: dev_test_only
-        run: bash tests/phase4/mysql_disclosures.sh
+        run: |
+          bash tests/phase4/mysql_disclosures.sh
+          bash tests/phase5/mysql_public_records.sh
