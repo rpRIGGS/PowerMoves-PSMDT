@@ -76,6 +76,8 @@ jobs:
         run: lua5.4 tests/phase6/government_jurisdiction_policy.lua
       - name: Stage 6 government notices privacy and publication regression
         run: lua5.4 tests/phase6/government_notices_runtime.lua
+      - name: Stage 6 legislation and official-vote runtime regression
+        run: lua5.4 tests/phase6/government_legislation_runtime.lua
       - name: Stage 6 annual government budgets authority regression
         run: lua5.4 tests/phase6/government_budgets_runtime.lua
       - name: Stage 6 SADOT tow permit eligibility regression
