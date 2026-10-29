@@ -67,6 +67,64 @@ Config.Sharing = {
     },
 }
 
+
+-- Per-interface sharing policy. Each .net interface owns its own rules.
+-- Config.Sharing above remains the original PS-MDT LEO compatibility policy.
+-- Backend authorization must enforce these policies before granting record access.
+Config.InterfaceSharing = {
+    sadle = {
+        Mutual = {
+            types = { 'reports', 'bodycams', 'evidence', 'bolos', 'warrants' },
+            departments = { 'lspd', 'bcso', 'sahp' },
+        },
+        OneWay = {
+            {
+                viewers = { 'sadle' },
+                targets = { 'post', 'lspd', 'lspe', 'lscso', 'bcso', 'sahp', 'sasp', 'saspa', 'fib' },
+                types = { 'reports', 'bodycams', 'evidence', 'bolos', 'warrants' },
+            },
+        },
+    },
+    sadoj = {
+        Mutual = { types = {}, departments = {} },
+        OneWay = {},
+        -- Judicial access to LEO evidence/cases is separately authorized.
+        -- Sealed records never inherit ordinary department sharing.
+    },
+    safr = {
+        Mutual = { types = {}, departments = {} },
+        OneWay = {
+            {
+                viewers = { 'safr' },
+                targets = { 'lsfd', 'lscfd', 'bcfd' },
+                types = { 'reports' },
+            },
+        },
+    },
+    sams = {
+        Mutual = { types = {}, departments = {} },
+        OneWay = {
+            {
+                viewers = { 'sams' },
+                targets = { 'pillboxmed', 'sandymed', 'paletomed', 'parsonsmed' },
+                types = { 'reports' },
+            },
+        },
+        -- Patient charts require separate patient-level authorization.
+    },
+    sagov = {
+        Mutual = { types = {}, departments = {} },
+        OneWay = {},
+        -- Government visibility is determined by jurisdiction, record status,
+        -- and explicitly authorized state oversight, not blanket sharing.
+    },
+    sadot = {
+        Enabled = false,
+        Mutual = { types = {}, departments = {} },
+        OneWay = {},
+    },
+}
+
 -- Keybinds
 Config.Keys = {
     -- https://docs.fivem.net/docs/game-references/controls/ | Default QWERTY
