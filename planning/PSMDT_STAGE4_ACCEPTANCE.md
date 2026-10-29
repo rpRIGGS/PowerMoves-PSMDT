@@ -52,3 +52,12 @@ Updated: October 29, 2026. Runtime FiveM deployment remains with the server owne
 - Existing broad DOJ court permissions, defense roster assignments and legal-discovery approval/notice rules are **not redefined**. A court/attorney permission matrix still requires sign-off before tightening access that previously existed.
 - Source test CI uses mocked SQL. It cannot prove real MySQL transactional isolation, migration success, GTA client rendering, cross-resource calls or role/job behavior.
 - No production migrations, FiveM runtime acceptance or user deployment has been performed in this conversation. Do not mark Stage 4 fully accepted until the rows above have actual PASS results.
+
+## Automated source and SQL validation — latest checkpoint
+
+GitHub Actions run **40811653998** passed all three jobs:
+- `lua-regressions`: production callback mocks including IA handoff and disclosed-case confidentiality, session-change checks, and existing functional regressions.
+- `frontend-validation`: Svelte/TypeScript and compiled NUI build, UI regressions.
+- `stage4-mariadb`: real temporary MariaDB 11 applying the three Stage 4 disclosure/referral migrations, testing recipient job scoping, revocation, expiry, duplicate IA referral prevention and idempotent acceptance.
+
+These results validate implementation source and test-database SQL, **not** live FiveM deployment. Cross-department scenario outcomes above still require an actual development server and approved DOJ/defense permission policy. No tests were run against the user's server or records.
