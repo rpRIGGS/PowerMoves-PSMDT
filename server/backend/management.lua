@@ -295,7 +295,15 @@ ps.registerCallback(resourceName .. ':server:updatePermissionRole', function(sou
     -- Keep the configured role grants; a framework boss flag is not an
     -- instruction to replace them with every MDT capability.
 
+    -- The permission checks and role lookups above may yield. Reconfirm that
+    -- this character still belongs to the same employer and can manage roles.
+    local access = GetMdtAccess(src)
+    if not access.authorized or access.agency ~= jobName
+        or not CheckPermission(src, 'management_permissions') then
+        return { success = false, message = 'Authorization changed; refresh and retry' }
+    end
     local updatedBy = ps.getIdentifier(src)
+    if not updatedBy then return { success = false, message = 'Unauthorized' } end
     MySQL.update.await([[
         INSERT INTO mdt_permission_roles (job, grade, permissions, updated_by)
         VALUES (?, ?, ?, ?)
