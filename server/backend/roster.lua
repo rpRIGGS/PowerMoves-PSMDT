@@ -912,6 +912,11 @@ ps.registerCallback('ps-mdt:server:fireOfficer', function(source, payload)
         return { success = false, message = 'You cannot fire yourself' }
     end
 
+    if not CheckAuth(src) or not CheckPermission(src, 'roster_manage_officers')
+        or not CanManageMdtPersonnel(src, citizenid) then
+        return { success = false, message = 'Personnel authorization changed' }
+    end
+
     if not setOfficerJob(targetSrc, 'unemployed', 0) then
         return { success = false, message = 'Failed to terminate officer (framework error)' }
     end
