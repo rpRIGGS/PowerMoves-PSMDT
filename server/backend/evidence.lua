@@ -407,10 +407,8 @@ ps.registerCallback(resourceName .. ':server:getEvidenceCustody', function(sourc
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_view') then return {} end
 
     evidenceId = tonumber(evidenceId)
-    if not canEditEvidenceRecord(src, evidenceId) then return { success = false, error = 'Evidence not found or inaccessible' } end
-    if not evidenceId then
-        return {}
-    end
+    if not evidenceId then return {} end
+    if not canEditEvidenceRecord(src, evidenceId) then return {} end
 
     local custody = MySQL.query.await([[
         SELECT id, evidence_id, from_citizenid, to_citizenid, action, notes, created_at
