@@ -314,7 +314,15 @@ ps.registerCallback(resourceName .. ':server:getIAComplaints', function(source, 
         LIMIT ? OFFSET ?
     ]]):format(whereClause)
 
+    local originalCid = ps.getIdentifier(src)
+    local originalJob = ps.getJobName(src)
     local ok, rows = pcall(MySQL.query.await, query, values)
+    -- Returning an IA list after an employment/character switch leaks
+    -- confidential investigations even if the initial query was scoped.
+    if not canViewIA(src) or ps.getIdentifier(src) ~= originalCid
+        or ps.getJobName(src) ~= originalJob then
+        return { complaints = {}, hasMore = false }
+    end
 
     if not ok then
         ps.warn('[getIAComplaints] query failed: ' .. tostring(rows))
@@ -349,6 +357,9 @@ ps.registerCallback(resourceName .. ':server:getIAComplaint', function(source, d
         ORDER BY created_at DESC
     ]], { complaintId })
 
+    if not canAccessIARecord(src, complaint) then
+        return { success = false, error = 'Authorization changed' }
+    end
     return {
         success = true,
         data = {
