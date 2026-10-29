@@ -56,6 +56,11 @@ local function addLocation(target, location, defaults)
     if not finite(distance) or distance <= 0 then distance = 2.0 end
     if not finite(radius) or radius <= 0 then radius = 1.5 end
 
+    if location.shape ~= 'poly' and location.shape ~= 'circle' and location.shape ~= nil then
+        log('Unsupported public service zone shape at ' .. location.id)
+        return
+    end
+
     local name = 'psmdt_public_' .. location.id
     if registeredZones[name] then return end
     local debugPoly = defaults.Debug == true
@@ -123,6 +128,9 @@ end)
 AddEventHandler('onClientResourceStart', function(resourceName)
     local settings = Config and Config.PublicServices
     if settings and resourceName == (settings.TargetResource or 'qb-target') then
+        -- The target resource loses its zones on restart; our Lua state does not.
+        -- Clear stale registration markers before restoring configured service desks.
+        registeredZones = {}
         Wait(250)
         registerPublicLocations()
     end
