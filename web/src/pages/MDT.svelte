@@ -22,9 +22,22 @@
 
     let opacityStyle = $state("opacity: 1");
     let recordsOfficeOpen = $state(false);
+    let recordsOfficeOpenSignal = $state(0);
 
     // Physical qb-target counter selects this panel inside the existing tablet.
-    useNuiEvent("openRecordsOffice", () => { recordsOfficeOpen = true; });
+    useNuiEvent("openRecordsOffice", () => {
+        recordsOfficeOpen = true;
+        recordsOfficeOpenSignal += 1;
+    });
+    // Acknowledge only once the authenticated, non-civilian MDT can actually
+    // render the records-office panel. The client retries if initialization
+    // happened after its first open message.
+    $effect(() => {
+        const signal = recordsOfficeOpenSignal;
+        if (signal > 0 && recordsOfficeOpen && authService.isAuthorized && !authService.isCivilian) {
+            void fetchNui(NUI_EVENTS.PUBLIC_RECORDS.ACK_OFFICE_OPEN, { signal }, { success: true });
+        }
+    });
     useNuiEvent<{ visible?: boolean }>("setVisible", (data) => {
         if (data?.visible === false) recordsOfficeOpen = false;
     });
