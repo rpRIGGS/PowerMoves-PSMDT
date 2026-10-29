@@ -507,8 +507,18 @@ ps.registerCallback(resourceName .. ':server:assignIAComplaint', function(source
         return { success = true }
     end
 
+    -- A department investigator cannot be assigned to another employer's
+    -- confidential IA case merely by submitting their citizen ID.
+    if not CanManageMdtPersonnel(src, assigneeCitizenId)
+        or not canManageIA(src) or not ownsIAComplaint(src, complaintId) then
+        return { success = false, error = 'Investigator must belong to your authorized department' }
+    end
     local profile = MySQL.single.await('SELECT fullname FROM mdt_profiles WHERE citizenid = ?', { assigneeCitizenId })
     local assigneeName = profile and profile.fullname or 'Unknown'
+    if not CanManageMdtPersonnel(src, assigneeCitizenId)
+        or not canManageIA(src) or not ownsIAComplaint(src, complaintId) then
+        return { success = false, error = 'Authorization changed' }
+    end
 
     MySQL.update.await('UPDATE mdt_ia_complaints SET assigned_to = ?, assigned_to_name = ? WHERE id = ?', {
         assigneeCitizenId,
