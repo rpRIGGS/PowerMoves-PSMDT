@@ -448,3 +448,8 @@ RegisterNUICallback('getDisclosedEvidenceDetail', function(data,cb)
     cb(ps.callback(resourceName .. ':server:getDisclosedEvidenceDetail',data.evidenceId)
         or {success=false})
 end)
+
+RegisterNUICallback('getEvidenceDisclosures', function(data,cb)
+    if not MDTOpen or type(data)~='table' then cb({}) return end
+    cb(ps.callback(resourceName .. ':server:getEvidenceDisclosures',data.evidenceId) or {})
+end)
