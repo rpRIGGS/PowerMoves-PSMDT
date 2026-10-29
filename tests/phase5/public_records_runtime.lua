@@ -10,6 +10,7 @@ local requests = {
 }
 local responses, audits = {}, {}
 local forceAuditFailure, forceResponseFailure = false, false
+local transferDuringLockedRead = false
 
 local function snapshot()
     local states, reply, count = {}, {}, #audits
@@ -27,6 +28,10 @@ local function query(sql, params)
     if sql:find('FOR UPDATE', 1, true) then
         local row = requests[params[1]]
         if not row or row.agency ~= params[2] then return {} end
+        if transferDuringLockedRead then
+            actor.job='bcso'
+            transferDuringLockedRead=false
+        end
         return {{status=row.status, applicant_citizenid=row.applicant_citizenid}}
     end
     if sql:find('UPDATE mdt_public_record_requests', 1, true) then
@@ -114,6 +119,11 @@ actor.duty=true;actor.atDesk=false
 assert(not call('publishPublicRecordsResponse',{id=3,response='Offsite'}).success)
 actor.atDesk=true
 
+transferDuringLockedRead=true
+assert(not call('publishPublicRecordsResponse',{id=4,response='Must fail after transfer'}).success)
+assert(requests[4].status=='under_review' and responses[4]==nil,
+    'Employer transfer during row lock must not release anything')
+actor.job='lspd'
 forceAuditFailure=true
 assert(not call('reviewPublicRecordsRequest',{id=3,action='denied',reason='Deny'}).success)
 assert(requests[3].status=='under_review' and #audits==2, 'Audit failure must roll back status')
