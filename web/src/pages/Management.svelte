@@ -12,11 +12,12 @@
 	import ManagementSOP from "../components/management/ManagementSOP.svelte";
 	import ManagementVisibility from "../components/management/ManagementVisibility.svelte";
 	import ManagementFTO from "../components/management/ManagementFTO.svelte";
+	import ManagementAccreditations from "../components/management/ManagementAccreditations.svelte";
 	import type { AuthService } from "../services/authService.svelte";
 
 	let { authService }: { authService?: AuthService } = $props();
 
-	type View = "activity" | "bulletins" | "permissions" | "tracking" | "tags" | "jailfines" | "templates" | "awards" | "licenses" | "colors" | "sop" | "visibility" | "fto";
+	type View = "activity" | "bulletins" | "permissions" | "tracking" | "tags" | "jailfines" | "templates" | "awards" | "licenses" | "colors" | "sop" | "visibility" | "fto" | "accreditations";
 
 	const EMS_HIDDEN_TABS: View[] = ["jailfines", "tracking", "awards"];
 	const DOJ_HIDDEN_TABS: View[] = ["bulletins", "activity", "jailfines", "tracking", "licenses", "awards", "colors", "sop", "visibility", "fto", "tags", "templates"];
@@ -34,6 +35,7 @@
 		{ key: "colors", label: "Colors", permission: "management_settings" },
 		{ key: "sop", label: "SOP", permission: "sop_manage" },
 		{ key: "fto", label: "FTO", permission: "fto_manage" },
+		{ key: "accreditations", label: "Accreditations", permission: "roster_manage_certifications" },
 		{ key: "visibility", label: "Visibility", permission: "management_permissions" },
 	];
 
@@ -51,7 +53,9 @@
 		return authService.hasPermission(tab.permission);
 	}
 
-	let permittedTabs = $derived(tabs.filter(canSeeTab));
+	let permittedTabs = $derived(tabs.filter(tab =>
+		canSeeTab(tab) && (tab.key !== "accreditations" || ["sadle", "post", "safr", "sams"].includes(authService?.agency ?? ""))
+	));
 	let view = $state<View | null>(null);
 	// Choose an existing permitted section before mounting its component. This
 	// also drops a selected section when its role grant is revoked.
@@ -91,6 +95,8 @@
 			<ManagementSOP {authService} />
 		{:else if activeView === "fto"}
 			<ManagementFTO jobType={authService?.jobType} />
+		{:else if activeView === "accreditations"}
+			<ManagementAccreditations {authService} />
 		{:else if activeView === "visibility"}
 			<ManagementVisibility jobType={authService?.jobType} />
 		{:else}
