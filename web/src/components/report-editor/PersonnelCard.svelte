@@ -24,6 +24,7 @@
 		onUpdate,
 		actions,
 	}: Props = $props();
+	const normalizedTypeOptions = $derived(Object.values(typeOptions ?? {}));
 </script>
 
 <div class="person-card">
@@ -45,13 +46,13 @@
 		</button>
 	</div>
 	<div class="card-details">
-		{#if type && typeOptions && typeOptions.length > 0}
+		{#if type && normalizedTypeOptions.length > 0}
 			<select
 				value={type}
 				onchange={(e) => onUpdate(id, "type", e.currentTarget.value)}
 				class="detail-select"
 			>
-				{#each typeOptions as option}
+				{#each normalizedTypeOptions as option}
 					<option value={option}>{option}</option>
 				{/each}
 			</select>
