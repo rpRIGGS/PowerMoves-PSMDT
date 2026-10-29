@@ -494,6 +494,9 @@ ps.registerCallback(resourceName .. ':server:linkEvidenceToCase', function(sourc
         return { success = false, error = 'Invalid evidence or case' }
     end
 
+    if not CanAccessMdtCase(src, caseId) then
+        return { success = false, error = 'Case not found or inaccessible' }
+    end
     local caseExists = MySQL.single.await('SELECT id FROM mdt_cases WHERE id = ?', { caseId })
     if not caseExists then
         return { success = false, error = 'Case #' .. tostring(caseId) .. ' does not exist' }
