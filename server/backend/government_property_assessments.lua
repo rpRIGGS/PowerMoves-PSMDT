@@ -77,8 +77,16 @@ ps.registerCallback(resourceName..':server:getGovernmentPropertyAssessments',fun
     rows=type(rows)=='table' and rows or {}
     local more=#rows>50
     if more then rows[#rows]=nil end
+    local jurisdictions={}
+    local cfg=((Config or {}).MdtAccess or {}).GovernmentJurisdictions or {}
+    for key,value in pairs(cfg) do
+        if localArea(key) then
+            jurisdictions[#jurisdictions+1]={id=key,label=value.label or key}
+        end
+    end
+    table.sort(jurisdictions,function(a,b)return a.id<b.id end)
     return {success=true,assessments=rows,page=page,hasMore=more,
-        canAssess=access.canAssess==true}
+        jurisdictions=jurisdictions,canAssess=access.canAssess==true}
 end)
 
 -- Manual intake for a property created by the existing PS Realtor/Housing.
