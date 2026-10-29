@@ -87,6 +87,17 @@ local function canReadOwnedCalendarEntry(src, entry)
     return entry.owner_job ~= nil and entry.owner_job == calendarOwnerJob(src)
 end
 
+-- Opt-in department guard; unreconciled legacy non-court events stay private.
+local function canMutateOwnedCalendarEntry(src, entry, hearingId)
+    if not entry or entry.job_type ~= callerCalendarDomain(src) then return false end
+    if not departmentCalendarOwnership() then return true end
+    if entry.category == 'court' then return true end
+    local owner = MySQL.scalar.await(
+        'SELECT owner_job FROM mdt_court_hearings WHERE id = ?', { hearingId }
+    )
+    return owner ~= nil and owner == calendarOwnerJob(src)
+end
+
 -- EMS never deals with court cases, so the 'court' category is police-only.
 local function categoryAllowedForDomain(category, domain)
     if domain == 'ems' and normalizeCategory(category) == 'court' then
@@ -672,7 +683,7 @@ ps.registerCallback(resourceName .. ':server:updateHearing', function(source, pa
     -- Gate by the hearing's CURRENT category
     local existing = MySQL.single.await('SELECT category, status, job_type, judge_cid, judge_name FROM mdt_court_hearings WHERE id = ?', { hearingId })
     if not existing then return { success = false, error = 'Hearing not found' } end
-    if existing.job_type ~= callerCalendarDomain(src) then return { success = false, error = 'Unauthorized calendar' } end
+    if not canMutateOwnedCalendarEntry(src, existing, hearingId) then return { success = false, error = 'Unauthorized calendar' } end
     local targetCategory = data.category ~= nil and normalizeCategory(data.category) or existing.category
     if not categoryAllowedForDomain(targetCategory, callerCalendarDomain(src)) then
         return { success = false, error = 'Category not allowed for this department' }
@@ -765,7 +776,7 @@ ps.registerCallback(resourceName .. ':server:deleteHearing', function(source, pa
 
     local existing = MySQL.single.await('SELECT category, job_type FROM mdt_court_hearings WHERE id = ?', { hearingId })
     if not existing then return { success = false, error = 'Hearing not found' } end
-    if existing.job_type ~= callerCalendarDomain(src) then
+    if not canMutateOwnedCalendarEntry(src, existing, hearingId) then
         return { success = false, error = 'Unauthorized calendar' }
     end
     if not CheckPermission(src, permForCategory(existing.category, 'delete')) then
@@ -799,7 +810,7 @@ ps.registerCallback(resourceName .. ':server:addHearingAttendee', function(sourc
 
     local existing = MySQL.single.await('SELECT category, status, job_type FROM mdt_court_hearings WHERE id = ?', { hearingId })
     if not existing then return { success = false, error = 'Hearing not found' } end
-    if existing.job_type ~= callerCalendarDomain(src) then
+    if not canMutateOwnedCalendarEntry(src, existing, hearingId) then
         return { success = false, error = 'Unauthorized calendar' }
     end
     if isLockedStatus(existing.status) then
@@ -834,11 +845,11 @@ ps.registerCallback(resourceName .. ':server:removeHearingAttendee', function(so
 
     -- Gate by the parent hearing's category
     local row = MySQL.single.await([[
-        SELECT h.category, h.job_type FROM mdt_court_attendees a
+        SELECT h.id AS hearing_id, h.category, h.job_type FROM mdt_court_attendees a
         JOIN mdt_court_hearings h ON h.id = a.hearing_id
         WHERE a.id = ?
     ]], { attendeeId })
-    if not row or row.job_type ~= callerCalendarDomain(src) then
+    if not canMutateOwnedCalendarEntry(src, row, row and row.hearing_id) then
         return { success = false, error = 'Unauthorized calendar or attendee not found' }
     end
     if row and not CheckPermission(src, permForCategory(row.category, 'edit')) then
@@ -865,7 +876,7 @@ ps.registerCallback(resourceName .. ':server:setHearingStatus', function(source,
 
     local existing = MySQL.single.await('SELECT category, status, warrant_reportid, defendant_cid, job_type FROM mdt_court_hearings WHERE id = ?', { hearingId })
     if not existing then return { success = false, error = 'Hearing not found' } end
-    if existing.job_type ~= callerCalendarDomain(src) then return { success = false, error = 'Unauthorized calendar' } end
+    if not canMutateOwnedCalendarEntry(src, existing, hearingId) then return { success = false, error = 'Unauthorized calendar' } end
     if existing.category == 'court' and not HasMdtJudicialAuthority(src) then
         return { success = false, error = 'Judicial authority required for court status' }
     end
@@ -1025,7 +1036,7 @@ ps.registerCallback(resourceName .. ':server:addHearingAttendeesBulk', function(
 
     local existing = MySQL.single.await('SELECT category, status, job_type FROM mdt_court_hearings WHERE id = ?', { hearingId })
     if not existing then return { success = false, error = 'Hearing not found' } end
-    if existing.job_type ~= callerCalendarDomain(src) then
+    if not canMutateOwnedCalendarEntry(src, existing, hearingId) then
         return { success = false, error = 'Unauthorized calendar' }
     end
     if isLockedStatus(existing.status) then return { success = false, error = 'Hearing is locked' } end
