@@ -492,6 +492,51 @@ function GetGovernmentBudgetAccess(source)
     }
 end
 
+-- Official legislative votes and certifications are role grants, not
+-- QBCore boss powers, state personnel oversight, or arbitrary NUI fields.
+function GetGovernmentLegislationAccess(source)
+    local initial=GetGovernmentRosterAccess(source)
+    if not initial then return nil end
+    local rules=(Config.MdtAccess or {}).GovernmentLegislation or {}
+    local jobs=(Config.MdtAccess or {}).GovernmentJobs or {}
+    if jobs[initial.agency]~=initial.jurisdiction then return nil end
+    local ok,row=pcall(MySQL.single.await,
+        'SELECT permissions FROM mdt_permission_roles WHERE job = ? AND grade = ?',
+        {initial.agency,initial.grade})
+    if not ok then return nil end
+    local permissions={}
+    if row then
+        if type(row.permissions)=='table' then permissions=row.permissions
+        elseif type(row.permissions)=='string' then
+            local parsed,value=pcall(json.decode,row.permissions)
+            if parsed and type(value)=='table' then permissions=value end
+        end
+    else
+        local defaults=(Config.PermissionDefaults or {})[initial.agency] or {}
+        if type(defaults[tostring(initial.grade)])=='table' then
+            permissions=defaults[tostring(initial.grade)]
+        end
+    end
+    local current=GetGovernmentRosterAccess(source)
+    if not current or initial.citizenid~=current.citizenid
+        or initial.agency~=current.agency or initial.grade~=current.grade
+        or initial.jurisdiction~=current.jurisdiction then return nil end
+    local function granted(name)
+        return type(name)=='string' and name~=''
+            and contains(permissions,name) == true
+    end
+    return {
+        citizenid=current.citizenid,agency=current.agency,
+        jurisdiction=current.jurisdiction,grade=current.grade,
+        canDraft=granted(rules.DraftPermission),
+        canVote=granted(rules.VotePermission),
+        canCertify=granted(rules.CertifyPermission),
+        canPublish=granted(rules.PublishPermission),
+        hasStateOversight=current.agency=='sagov'
+            and granted(rules.StateOversightPermission),
+    }
+end
+
 function CheckPermission(source, permName)
     if not permName or not CheckAuth(source) then return false end
     local access = GetMdtAccess(source)
