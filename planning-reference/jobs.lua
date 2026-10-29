@@ -739,7 +739,25 @@ sadoj = {
 	},
 	
 	--- FLEET MECHANICS ---
-	sahpfleet = {
+	sadot = {
+    label = 'San Andreas Department of Transportation',
+    type = 'mechanic',
+    defaultDuty = true,
+    offDutyPay = false,
+    grades = {
+        ['0'] = { name = 'DOT Trainee', payment = 0 },
+        ['1'] = { name = 'Transportation Services Officer', payment = 200 },
+        ['2'] = { name = 'Licensing Specialist', payment = 250 },
+        ['3'] = { name = 'Compliance Inspector', payment = 300 },
+        ['4'] = { name = 'Senior Compliance Inspector', payment = 350 },
+        ['5'] = { name = 'Licensing Supervisor', isboss = true, payment = 400 },
+        ['6'] = { name = 'Transportation Enforcement Supervisor', isboss = true, payment = 450 },
+        ['7'] = { name = 'Deputy Director', isboss = true, payment = 500 },
+        ['8'] = { name = 'Director of Transportation', isboss = true, payment = 550 },
+    },
+},
+
+sahpfleet = {
 		label = 'San Andreas Highway Patrol Fleet Maintenance',
 		type = 'mechanic',
 		defaultDuty = true,
