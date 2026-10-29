@@ -46,7 +46,7 @@ end
 -- Court Cases
 ps.registerCallback(resourceName .. ':server:getCourtCases', function(source, page, limit, status, case_type, search)
     local src = source
-    if not CheckAuth(src) then return { cases = {}, total = 0 } end
+    if not CheckAuth(src) or not CheckPermission(src, 'court_view') then return { cases = {}, total = 0 } end
 
     page = tonumber(page) or 1
     limit = tonumber(limit) or 20
@@ -108,7 +108,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:getCourtCase', function(source, caseId)
     local src = source
-    if not CheckAuth(src) then return nil end
+    if not CheckAuth(src) or not CheckPermission(src, 'court_view') then return nil end
 
     caseId = tonumber(caseId)
     if not caseId then return nil end
@@ -119,7 +119,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:createCourtCase', function(source, payload)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'court_create') then return { success = false, error = 'Unauthorized' } end
 
     payload = payload or {}
     local title = payload.title or 'Untitled Court Case'
@@ -164,7 +164,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:updateCourtCase', function(source, caseId, payload)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'court_edit') then return { success = false, error = 'Unauthorized' } end
 
     caseId = tonumber(caseId)
     if not caseId then return { success = false, error = 'Invalid case id' } end
@@ -224,7 +224,7 @@ end)
 -- Warrant Requests
 ps.registerCallback(resourceName .. ':server:getWarrantRequests', function(source, page, limit, status)
     local src = source
-    if not CheckAuth(src) then return { requests = {}, total = 0 } end
+    if not CheckAuth(src) or not CheckPermission(src, 'warrants_view') then return { requests = {}, total = 0 } end
 
     page = tonumber(page) or 1
     limit = tonumber(limit) or 20
@@ -270,7 +270,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:createWarrantRequest', function(source, payload)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'warrants_issue') then return { success = false, error = 'Unauthorized' } end
 
     payload = payload or {}
     local citizenid = payload.citizenid
@@ -543,7 +543,7 @@ end)
 -- Court Orders
 ps.registerCallback(resourceName .. ':server:getCourtOrders', function(source, page, limit, orderType, status)
     local src = source
-    if not CheckAuth(src) then return { orders = {}, total = 0 } end
+    if not CheckAuth(src) or not CheckPermission(src, 'court_view') then return { orders = {}, total = 0 } end
 
     page = tonumber(page) or 1
     limit = tonumber(limit) or 20
@@ -715,7 +715,7 @@ end)
 -- Legal Documents
 ps.registerCallback(resourceName .. ':server:getLegalDocuments', function(source, page, limit, docType, status)
     local src = source
-    if not CheckAuth(src) then return { documents = {}, total = 0 } end
+    if not CheckAuth(src) or not CheckPermission(src, 'court_view') then return { documents = {}, total = 0 } end
 
     page = tonumber(page) or 1
     limit = tonumber(limit) or 20
@@ -769,7 +769,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:getLegalDocument', function(source, docId)
     local src = source
-    if not CheckAuth(src) then return nil end
+    if not CheckAuth(src) or not CheckPermission(src, 'court_view') then return nil end
 
     docId = tonumber(docId)
     if not docId then return nil end
@@ -919,7 +919,7 @@ end)
 -- DOJ Dashboard
 ps.registerCallback(resourceName .. ':server:getDojDashboard', function(source)
     local src = source
-    if not CheckAuth(src) then return {} end
+    if not CheckAuth(src) or not CheckPermission(src, 'court_view') then return {} end
 
     local pendingWarrants = MySQL.single.await(
         "SELECT COUNT(*) AS count FROM mdt_warrant_requests WHERE status = 'pending'"
