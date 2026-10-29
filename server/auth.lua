@@ -143,6 +143,9 @@ end
 function CheckAuth(source)
     local identity = runtimeIdentity(source)
     if not identity or not identity.primaryInterfaceId or identity.jobType == 'gov' then return false end
+    -- Legacy callbacks must honor disabled interfaces too; NUI access alone is not a guard.
+    local interface = (Config.Interfaces or {})[identity.primaryInterfaceId]
+    if not interface or interface.Enabled ~= true then return false end
     -- Legacy callbacks often use CheckAuth without CheckPermission. Enforce
     -- the same on-duty rule at that boundary rather than relying on the UI.
     return identity.jobType == 'doj' or Config.OnlyShowOnDuty ~= true or identity.onDuty == true
