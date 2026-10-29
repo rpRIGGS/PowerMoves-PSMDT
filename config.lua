@@ -558,6 +558,13 @@ Config.MdtAccess = {
         los_santos_county = { label = 'Los Santos County', parent = 'state' },
         los_santos_city = { label = 'City of Los Santos', parent = 'los_santos_county' },
     },
+    -- Government public notices (not legislation). No roles/grades inherit
+    -- authoring, publishing or statewide internal visibility automatically.
+    GovernmentNotices = {
+        ManagePermission = 'government_notice_manage',
+        PublishPermission = 'government_notice_publish',
+        StateOversightPermission = 'government_notice_oversight',
+    },
     GovernmentPersonnel = {
         -- Read-only oversight requires this exact permission on a sagov
         -- job/grade row in mdt_permission_roles, or Config.PermissionDefaults
