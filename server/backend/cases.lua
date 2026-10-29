@@ -22,18 +22,19 @@ local function canAccessCaseId(source, caseId)
 end
 
 local function hasCaseDisclosure(source, caseId)
-    local actor = ps.getIdentifier(source)
+    local actor, employer = ps.getIdentifier(source), ps.getJobName(source)
     local access = GetMdtAccess(source)
-    if not actor or not access or not access.authorized
+    if not actor or not employer or not access or not access.authorized
         or not CheckAuth(source) or not CheckPermission(source, 'cases_view') then return false end
     local row = MySQL.single.await([[
         SELECT id FROM mdt_case_disclosures
         WHERE case_id = ? AND recipient_citizenid = ? AND recipient_job = ?
           AND revoked_at IS NULL AND (expires_at IS NULL OR expires_at > NOW())
         LIMIT 1
-    ]], {caseId, actor, ps.getJobName(source)})
+    ]], {caseId, actor, employer})
     return row ~= nil and CheckAuth(source)
         and CheckPermission(source, 'cases_view') and ps.getIdentifier(source) == actor
+        and ps.getJobName(source) == employer
 end
 
 local function buildCaseNumber(id)
