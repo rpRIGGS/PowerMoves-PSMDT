@@ -256,9 +256,11 @@ function CanViewStatewideServiceRoster(source, interfaceId)
     end
     if type(permissions) ~= 'table' or not contains(permissions, policy.RosterPermission) then return false end
     local current = runtimeIdentity(source)
-    if not current or current.citizenid ~= initial.citizenid or current.job ~= initial.job
+    if not current or not current.gradeValid
+        or current.citizenid ~= initial.citizenid or current.job ~= initial.job
         or current.grade ~= initial.grade or current.onDuty ~= initial.onDuty
-        or current.primaryInterfaceId ~= interfaceId then return false end
+        or current.primaryInterfaceId ~= interfaceId
+        or not contains(policy.OversightJobs, current.job) then return false end
     local currentAccess = GetMdtAccess(source)
     return currentAccess.authorized == true and currentAccess.interfaceId == interfaceId
 end
