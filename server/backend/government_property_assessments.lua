@@ -118,7 +118,7 @@ ps.registerCallback(resourceName..':server:queueGovernmentPropertyAssessment',fu
                 (property_id,jurisdiction,tax_year,property_type,
                  property_owner_snapshot,submitted_by_citizenid)
             VALUES (?,?,?,?,?,?)
-        ]],{id,area,year,classification,property[1].owner_citizenid,access.citizenid})
+        ]],{id,area,year,classification,property[1].owner_citizenid or '',access.citizenid})
         if not changed(inserted) then return false end
         local nextState={status='pending',jurisdiction=area,tax_year=year,
             property_owner_snapshot=property[1].owner_citizenid,
