@@ -44,7 +44,6 @@ Config.Sharingleo = {
             'sasp',
             'saspa',
             'sadle',
-
         },
     },
     OneWay = {
@@ -62,7 +61,6 @@ Config.Sharingleo = {
                 'sahp',
                 'sasp',
                 'saspa',
-
             },
             types = {
                 'reports',
@@ -72,7 +70,6 @@ Config.Sharingleo = {
                 'warrants',
             },
         },
-
     },
 }
 
@@ -822,7 +819,6 @@ Config.Interfaces = {
         Jobs = Config.PoliceJobs,
         OversightJobs = {
             'sadle',
-
         },
         Departments = {
             'police',
