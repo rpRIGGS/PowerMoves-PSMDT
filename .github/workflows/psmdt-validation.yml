@@ -80,6 +80,8 @@ jobs:
         run: lua5.4 tests/phase6/sadot_tow_eligibility.lua
       - name: Stage 6 business licensing authority and rollback regression
         run: lua5.4 tests/phase6/government_business_licenses_runtime.lua
+      - name: Stage 6 assessor jurisdiction and audit regression
+        run: lua5.4 tests/phase6/government_property_assessments_runtime.lua
       - name: Government SOP regression
         run: lua5.4 tests/phase1/government_sop_regression.lua
       - name: Government roster regression
