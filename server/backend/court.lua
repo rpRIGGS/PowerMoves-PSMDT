@@ -376,23 +376,39 @@ ps.registerCallback(resourceName .. ':server:getMissedHearings', function(source
     local cid = ps.getIdentifier(src)
     if not cid then return {} end
 
-    local rows = MySQL.query.await([[
+    local domain = callerCalendarDomain(src)
+    local args = { cid, domain }
+    local scopeSql = ''
+    if departmentCalendarOwnership() then
+        local owner = calendarOwnerJob(src)
+        if not owner then return {} end
+        scopeSql = " AND ((h.category = 'court' AND ? = 1) OR (h.category <> 'court' AND h.owner_job = ?))"
+        args[#args + 1] = CheckPermission(src, 'court_view') and 1 or 0
+        args[#args + 1] = owner
+    end
+    local rows = MySQL.query.await(([[
         SELECT h.id AS hearing_id, h.title, h.category, h.location,
-               DATE_FORMAT(h.scheduled_at, '%Y-%m-%d %H:%i') AS scheduled_at
+               DATE_FORMAT(h.scheduled_at, '%%Y-%%m-%%d %%H:%%i') AS scheduled_at
         FROM mdt_court_attendees a
         JOIN mdt_court_hearings h ON h.id = a.hearing_id
-        WHERE a.citizenid = ?
-          AND a.notified_at IS NOT NULL
-          AND a.delivered_at IS NULL
+        WHERE a.citizenid = ? AND h.job_type = ?
+          AND a.notified_at IS NOT NULL AND a.delivered_at IS NULL%s
         ORDER BY h.scheduled_at DESC
         LIMIT 15
-    ]], { cid }) or {}
+    ]]):format(scopeSql), args) or {}
 
+    -- Only acknowledge events actually returned to the currently authorized
+    -- employee. Do not consume another employer's pending invitations.
     if #rows > 0 then
-        MySQL.update.await([[
-            UPDATE mdt_court_attendees SET delivered_at = NOW()
+        local ids = {}
+        for _, row in ipairs(rows) do ids[#ids + 1] = tonumber(row.hearing_id) end
+        local placeholders = string.rep('?,', #ids - 1) .. '?'
+        local values = { cid }
+        for _, id in ipairs(ids) do values[#values + 1] = id end
+        MySQL.update.await(([[UPDATE mdt_court_attendees
+            SET delivered_at = NOW()
             WHERE citizenid = ? AND notified_at IS NOT NULL AND delivered_at IS NULL
-        ]], { cid })
+              AND hearing_id IN (%s)]]):format(placeholders), values)
     end
 
     return rows
