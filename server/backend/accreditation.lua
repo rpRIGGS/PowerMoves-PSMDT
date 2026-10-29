@@ -78,6 +78,7 @@ ps.registerCallback(resourceName .. ':server:getMyAccreditations', function(sour
     local citizenid = ps.getIdentifier(source)
     if not citizenid then return {} end
     local ok, rows = pcall(readByCitizen, citizenid)
+    if not CheckAuth(source) or ps.getIdentifier(source) ~= citizenid then return {} end
     return ok and rows or {}
 end)
 
@@ -89,7 +90,12 @@ ps.registerCallback(resourceName .. ':server:getPersonnelAccreditations', functi
         if not CheckPermission(source, 'roster_manage_certifications')
             or not CanManageMdtPersonnel(source, citizenid) then return {} end
     end
+    local originalActor, originalJob = ps.getIdentifier(source), ps.getJobName(source)
     local ok, rows = pcall(readByCitizen, citizenid)
+    if not CheckAuth(source) or ps.getIdentifier(source) ~= originalActor
+        or ps.getJobName(source) ~= originalJob then return {} end
+    if citizenid ~= originalActor and (not CheckPermission(source, 'roster_manage_certifications')
+        or not CanManageMdtPersonnel(source, citizenid)) then return {} end
     return ok and rows or {}
 end)
 
