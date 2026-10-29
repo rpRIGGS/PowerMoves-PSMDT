@@ -26,3 +26,30 @@ ps.registerCallback(resourceName .. ':server:getPublicRecordsOfficeQueue', funct
     end
     return {success = true, requests = rows or {}}
 end)
+
+-- Administrative review only: this never releases source records.
+ps.registerCallback(resourceName .. ':server:reviewPublicRecordsRequest', function(source, data)
+    local cid, job = authorized(source)
+    if not cid or type(data) ~= 'table' then return {success = false} end
+    local id = tonumber(data.id)
+    local action = data.action
+    local note = data.reason
+    if not id or id < 1 or id % 1 ~= 0 then return {success = false} end
+    if action ~= 'under_review' and action ~= 'denied' then return {success = false} end
+    if type(note) ~= 'string' then return {success = false} end
+    note = note:match('^%s*(.-)%s*$')
+    if #note < 1 or #note > 1000 then return {success = false} end
+    local from = action == 'under_review' and 'submitted' or 'under_review'
+    if authorized(source) ~= cid or ps.getJobName(source) ~= job then return {success = false} end
+    local ok, committed = pcall(MySQL.transaction.await, {
+        {query = 'UPDATE mdt_public_record_requests SET status = ? WHERE id = ? AND agency = ? AND status = ?',
+         values = {action, id, job, from}},
+        {query = [[INSERT INTO mdt_public_record_request_audit
+         (request_id, agency, actor_citizenid, action, reason)
+         SELECT id, agency, ?, ?, ? FROM mdt_public_record_requests
+         WHERE id = ? AND agency = ? AND status = ?]],
+         values = {cid, action, note, id, job, action}}
+    })
+    if not ok or not committed then return {success = false, error = 'Database error'} end
+    return {success = true}
+end)
