@@ -172,6 +172,7 @@ end)
 ps.registerCallback(resourceName .. ':server:closeWarrant', function(source, data)
     local src = source
     if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if IsMdtAttorneyGeneral(src) then return { success = false, error = 'Prosecution access cannot close warrants' } end
     if not CheckPermission(src, 'warrants_close') then
         return { success = false, error = 'Insufficient permissions' }
     end
