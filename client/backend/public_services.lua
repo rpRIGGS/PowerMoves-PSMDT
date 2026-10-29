@@ -199,13 +199,13 @@ local function myBusinessLicenseApplications()
     end
     local details={}
     for _,item in ipairs(rows) do
-        details[#details+1]=('**%s** — %s (%s)\\nAuthority: %s\\nLicense: %s\\nDecision: %s')
+        details[#details+1]=('**%s** — %s (%s)\nAuthority: %s\nLicense: %s\nDecision: %s')
             :format(tostring(item.business_name),tostring(item.status),
                 tostring(item.id),tostring(item.agency),
                 tostring(item.license_number or 'Not issued'),
                 tostring(item.decision_reason or 'Awaiting review'))
     end
-    lib.alertDialog({header='My Business Licenses',content=table.concat(details,'\\n\\n')})
+    lib.alertDialog({header='My Business Licenses',content=table.concat(details,'\n\n')})
 end
 
 
