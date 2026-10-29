@@ -332,7 +332,7 @@ sadoj = {
 			['5'] = { name = 'Director of Operations', isboss = true, payment = 500 },
 		},
 	},
-	ambulance = {
+	sams = {
 		label = 'San Andreas Medical Services',
 		type = 'ems',
 		defaultDuty = true,
