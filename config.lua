@@ -174,6 +174,10 @@ Config.PublicServices = {
     Debug = false,
     DefaultDistance = 2.0,
     Locations = {
+        -- Stage 5: add 'public_records_request' and 'public_records_status' to a real
+        -- service desk's services list to activate citizen requests. The location's
+        -- agency is the receiving records office, verified server-side; do not
+        -- publish fictitious MLO coordinates. Record releases are NOT enabled.
         -- Configure actual MLO coordinates before use. Examples:
         -- {
         --     id = 'ag_office_front_desk',
