@@ -1,15 +1,15 @@
 local resourceName = tostring(GetCurrentResourceName())
 
 local function getEffectiveJobType(src)
-    local jobType = ps.getJobType(src)
-    local jobName = ps.getJobName(src)
-    if Config.DojJobs then
-        for _, name in ipairs(Config.DojJobs) do
-            if name == jobName then return 'doj' end
-        end
-    end
-    if Config.DojJobType and jobType == Config.DojJobType then return 'doj' end
-    return jobType
+    -- Match the authenticated MDT interface instead of relying on a QBCore
+    -- job type alone. Fire and hospital records remain separate domains.
+    local access = GetMdtAccess(src)
+    if not access or not access.authorized or access.isCivilian then return nil end
+    if access.interfaceId == 'sadle' then return 'leo' end
+    if access.interfaceId == 'sadoj' then return 'doj' end
+    if access.interfaceId == 'safr' then return 'fire' end
+    if access.interfaceId == 'sams' then return 'ems' end
+    return nil
 end
 
 -- A new report may carry an originating agency ('owner') restriction.
