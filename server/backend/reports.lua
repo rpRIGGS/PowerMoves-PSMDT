@@ -44,6 +44,21 @@ local function collectCitizenIds(reportData)
     return citizenids
 end
 
+-- A named Stage 4 disclosure is read-only; it never grants report writes.
+local function hasReportDisclosure(src, reportId)
+    if not CheckAuth(src) or not CheckPermission(src, 'reports_view') then return false end
+    local cid=ps.getIdentifier(src)
+    if not cid then return false end
+    local ok, row=pcall(MySQL.single.await, [[
+        SELECT id FROM mdt_report_disclosures
+        WHERE report_id = ? AND recipient_citizenid = ?
+          AND revoked_at IS NULL AND (expires_at IS NULL OR expires_at > NOW())
+        LIMIT 1
+    ]], {reportId,cid})
+    return ok and row ~= nil and CheckAuth(src)
+        and CheckPermission(src,'reports_view') and ps.getIdentifier(src)==cid
+end
+
 local function checkReportAccess(src, reportId)
     if not src or not reportId then
         return false
@@ -56,6 +71,7 @@ local function checkReportAccess(src, reportId)
     if not identifier then
         return false
     end
+    if hasReportDisclosure(src,reportId) then return true end
 
     -- DOJ may read ordinary operational reports, but not restricted fire or
     -- hospital reports merely by knowing the report ID. Explicitly shared
