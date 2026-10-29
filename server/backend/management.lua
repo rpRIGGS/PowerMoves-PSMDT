@@ -197,7 +197,9 @@ ps.registerCallback(resourceName .. ':server:getPermissionRoles', function(sourc
     for gradeKeyString, gradeData in pairs(grades) do
         local isBoss = isBossGrade(gradeData)
         local permissions = storedByGrade[gradeKeyString]
-        if permissions == nil or isBoss then
+        -- Stored per-grade permissions take precedence, including boss grades.
+        -- QBCore isboss supplies the initial default, not a perpetual override.
+        if permissions == nil then
             permissions = getDefaultRolePermissions(jobName, gradeKeyString, isBoss, job)
         end
         permissions = filterRolePermissions(jobName, job, gradeKeyString, permissions)
