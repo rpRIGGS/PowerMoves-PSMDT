@@ -11,6 +11,7 @@ local requests = {
 local responses, audits = {}, {}
 local forceAuditFailure, forceResponseFailure = false, false
 local transferDuringLockedRead = false
+local transferDuringAuditWrite = false
 
 local function snapshot()
     local states, reply, count = {}, {}, #audits
@@ -55,6 +56,7 @@ local function query(sql, params)
     if sql:find('INSERT INTO mdt_public_record_request_audit', 1, true) then
         if forceAuditFailure then return {affectedRows=0} end
         audits[#audits+1] = {request_id=params[1], action=params[4] or 'approved'}
+        if transferDuringAuditWrite then actor.job='bcso'; transferDuringAuditWrite=false end
         return {affectedRows=1, insertId=#audits}
     end
     error('Unexpected transactional SQL: '..sql)
@@ -137,6 +139,11 @@ transferDuringLockedRead=true
 assert(not call('publishPublicRecordsResponse',{id=4,response='Must fail after transfer'}).success)
 assert(requests[4].status=='under_review' and responses[4]==nil,
     'Employer transfer during row lock must not release anything')
+actor.job='lspd'
+transferDuringAuditWrite=true
+assert(not call('publishPublicRecordsResponse',{id=4,response='Commit-time transfer'}).success)
+assert(requests[4].status=='under_review' and responses[4]==nil,
+    'Job change after audit write must roll back the entire release')
 actor.job='lspd'
 forceAuditFailure=true
 assert(not call('reviewPublicRecordsRequest',{id=3,action='denied',reason='Deny'}).success)
