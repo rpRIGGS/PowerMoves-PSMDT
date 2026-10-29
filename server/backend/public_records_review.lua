@@ -28,79 +28,117 @@ ps.registerCallback(resourceName .. ':server:getPublicRecordsOfficeQueue', funct
     return {success = true, requests = rows or {}}
 end)
 
--- Administrative review only: this never releases source records.
+-- Approved public replies are deliberately authored text, not raw case,
+-- evidence, IA, report, or medical records.
+local function validId(value)
+    local id = tonumber(value)
+    return id and id >= 1 and id % 1 == 0 and id or nil
+end
+
+local function validText(value, maxLength)
+    if type(value) ~= 'string' then return nil end
+    local trimmed = value:match('^%s*(.-)%s*$')
+    if #trimmed < 1 or #trimmed > maxLength then return nil end
+    return trimmed
+end
+
+local function updatedExactlyOne(result)
+    return type(result) == 'table' and tonumber(result.affectedRows) == 1
+end
+
+local function insertedExactlyOne(result)
+    return type(result) == 'table' and tonumber(result.affectedRows) == 1
+end
+
+-- MySQL.startTransaction gives every statement the SAME connection and lets us
+-- inspect affectedRows. Standard MySQL.transaction.await only returns a boolean
+-- and can commit a transaction after a no-op UPDATE or INSERT ... SELECT.
 ps.registerCallback(resourceName .. ':server:reviewPublicRecordsRequest', function(source, data)
     local cid, job = authorized(source)
-    if not cid or type(data) ~= 'table' then return {success = false} end
-    local id = tonumber(data.id)
+    if not cid or type(data) ~= 'table' then return {success = false, error = 'Access denied'} end
+
+    local id = validId(data.id)
     local action = data.action
-    local note = data.reason
-    if not id or id < 1 or id % 1 ~= 0 then return {success = false} end
-    if action ~= 'under_review' and action ~= 'denied' and action ~= 'approved' then return {success = false} end
-    if type(note) ~= 'string' then return {success = false} end
-    note = note:match('^%s*(.-)%s*$')
-    if #note < 1 or #note > 1000 then return {success = false} end
-    local from = action == 'under_review' and 'submitted' or 'under_review'
-    if action == 'approved' then return {success = false, error = 'Use the reviewed public response workflow'} end
-    local found, current = pcall(MySQL.single.await,
-        'SELECT status FROM mdt_public_record_requests WHERE id = ? AND agency = ? LIMIT 1',
-        {id, job})
-    if not found or not current or current.status ~= from then
-        return {success = false, error = 'Request is unavailable or already processed'}
+    local reason = validText(data.reason, 1000)
+    if not id or not reason or (action ~= 'under_review' and action ~= 'denied') then
+        return {success = false, error = 'Invalid review decision'}
     end
-    if authorized(source) ~= cid or ps.getJobName(source) ~= job then return {success = false} end
-    local ok, committed = pcall(MySQL.transaction.await, {
-        {query = 'UPDATE mdt_public_record_requests SET status = ? WHERE id = ? AND agency = ? AND status = ?',
-         values = {action, id, job, from}},
-        {query = [[INSERT INTO mdt_public_record_request_audit
-         (request_id, agency, actor_citizenid, action, reason)
-         SELECT id, agency, ?, ?, ? FROM mdt_public_record_requests
-         WHERE id = ? AND agency = ? AND status = ? AND ROW_COUNT() = 1]],
-         values = {cid, action, note, id, job, action}}
-    })
-    if not ok or not committed then return {success = false, error = 'Database error'} end
-    return {success = true}
+
+    local previous = action == 'under_review' and 'submitted' or 'under_review'
+    local ok, committed = pcall(MySQL.startTransaction, function(query)
+        local rows = query([[
+            SELECT status FROM mdt_public_record_requests
+            WHERE id = ? AND agency = ? FOR UPDATE
+        ]], {id, job})
+        if type(rows) ~= 'table' or not rows[1] or rows[1].status ~= previous then
+            return false
+        end
+        if authorized(source) ~= cid or ps.getJobName(source) ~= job then return false end
+
+        local changed = query([[
+            UPDATE mdt_public_record_requests SET status = ?
+            WHERE id = ? AND agency = ? AND status = ?
+        ]], {action, id, job, previous})
+        if not updatedExactlyOne(changed) then return false end
+
+        local audit = query([[
+            INSERT INTO mdt_public_record_request_audit
+                (request_id, agency, actor_citizenid, action, reason)
+            VALUES (?, ?, ?, ?, ?)
+        ]], {id, job, cid, action, reason})
+        if not insertedExactlyOne(audit) then return false end
+        return true
+    end)
+    if not ok or committed ~= true then
+        return {success = false, error = 'Request was not changed; refresh the records queue'}
+    end
+    return {success = true, status = action}
 end)
 
--- Approval publishes only text manually authored by a designated records officer.
--- No direct queries to criminal, IA, medical or evidence record stores occur here.
 ps.registerCallback(resourceName .. ':server:publishPublicRecordsResponse', function(source, data)
     local cid, job = authorized(source)
-    if not cid or type(data) ~= 'table' then return {success = false} end
-    local id, body = tonumber(data.id), data.response
-    if not id or id < 1 or id % 1 ~= 0 or type(body) ~= 'string' then return {success = false} end
-    body = body:match('^%s*(.-)%s*$')
-    if #body < 1 or #body > 12000 then return {success = false, error = 'Invalid public response' } end
-    local ok, request = pcall(MySQL.single.await, [[
-        SELECT applicant_citizenid FROM mdt_public_record_requests
-        WHERE id = ? AND agency = ? AND status = 'under_review' LIMIT 1
-    ]], {id, job})
-    if not ok or not request or type(request.applicant_citizenid) ~= 'string' then
-        return {success = false, error = 'Request is not reviewable'}
+    if not cid or type(data) ~= 'table' then return {success = false, error = 'Access denied'} end
+    local id = validId(data.id)
+    local responseText = validText(data.response, 12000)
+    if not id or not responseText then
+        return {success = false, error = 'A valid public response is required'}
     end
-    if authorized(source) ~= cid or ps.getJobName(source) ~= job then return {success = false} end
-    -- One transaction changes the request state and inserts exactly one public response.
-    local success, committed = pcall(MySQL.transaction.await, {
-        {query = [[UPDATE mdt_public_record_requests SET status = 'approved'
-                    WHERE id = ? AND agency = ? AND status = 'under_review']],
-         values = {id, job}},
-        {query = [[INSERT INTO mdt_public_record_responses
-                    (request_id, agency, recipient_citizenid, response_text, issued_by_citizenid)
-                   SELECT id, agency, applicant_citizenid, ?, ?
-                   FROM mdt_public_record_requests WHERE id = ? AND agency = ?
-                     AND status = 'approved' AND ROW_COUNT() = 1]],
-         values = {body, cid, id, job}},
-        {query = [[INSERT INTO mdt_public_record_request_audit
-                     (request_id, agency, actor_citizenid, action, reason)
-                   SELECT id, agency, ?, 'approved', 'Public response issued'
-                   FROM mdt_public_record_requests
-                   WHERE id = ? AND agency = ? AND status = 'approved'
-                     AND ROW_COUNT() = 1]],
-         values = {cid, id, job}},
-    })
-    if not success or committed ~= true then return {success = false, error = 'Response not saved'} end
-    local valid, row = pcall(MySQL.single.await,
-        'SELECT id FROM mdt_public_record_responses WHERE request_id = ? AND agency = ? AND issued_by_citizenid = ?',
-        {id, job, cid})
-    return {success = valid and row ~= nil, error = valid and row == nil and 'Request already processed' or nil}
+
+    local ok, committed = pcall(MySQL.startTransaction, function(query)
+        local rows = query([[
+            SELECT applicant_citizenid, status FROM mdt_public_record_requests
+            WHERE id = ? AND agency = ? FOR UPDATE
+        ]], {id, job})
+        local record = type(rows) == 'table' and rows[1] or nil
+        if not record or record.status ~= 'under_review'
+            or type(record.applicant_citizenid) ~= 'string' or record.applicant_citizenid == '' then
+            return false
+        end
+        if authorized(source) ~= cid or ps.getJobName(source) ~= job then return false end
+
+        local inserted = query([[
+            INSERT INTO mdt_public_record_responses
+                (request_id, agency, recipient_citizenid, response_text, issued_by_citizenid)
+            VALUES (?, ?, ?, ?, ?)
+        ]], {id, job, record.applicant_citizenid, responseText, cid})
+        if not insertedExactlyOne(inserted) then return false end
+
+        local changed = query([[
+            UPDATE mdt_public_record_requests SET status = 'approved'
+            WHERE id = ? AND agency = ? AND status = 'under_review'
+        ]], {id, job})
+        if not updatedExactlyOne(changed) then return false end
+
+        local audit = query([[
+            INSERT INTO mdt_public_record_request_audit
+                (request_id, agency, actor_citizenid, action, reason)
+            VALUES (?, ?, ?, 'approved', 'Public response issued')
+        ]], {id, job, cid})
+        if not insertedExactlyOne(audit) then return false end
+        return true
+    end)
+    if not ok or committed ~= true then
+        return {success = false, error = 'Response was not issued; refresh the records queue'}
+    end
+    return {success = true, status = 'approved'}
 end)
