@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS `mdt_case_disclosures` (
  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
  `case_id` INT UNSIGNED NOT NULL,
  `recipient_citizenid` VARCHAR(64) NOT NULL,
+ `recipient_job` VARCHAR(64) NOT NULL,
  `purpose` VARCHAR(255) NOT NULL,
  `granted_by_citizenid` VARCHAR(64) NOT NULL,
  `granted_by_job` VARCHAR(64) NOT NULL,
