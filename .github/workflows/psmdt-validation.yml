@@ -83,6 +83,7 @@ jobs:
           node tests/phase1/unique_callback_regression.cjs
           node tests/phase3/accreditation_schema_regression.cjs
           node tests/phase4/ia_ownership_regression.cjs
+          node tests/phase4/ia_referral_regression.cjs
           node tests/basics/navigation_regression.cjs
           node tests/basics/dashboard_routes_regression.cjs
           node tests/ems_dashboard/frontend_regression.cjs
