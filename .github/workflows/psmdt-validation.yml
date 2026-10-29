@@ -1,0 +1,73 @@
+name: PSMDT Stage 1 Validation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'config.lua'
+      - 'server/**'
+      - 'client/**'
+      - 'web/**'
+      - 'tests/**'
+      - '.github/workflows/psmdt-validation.yml'
+  pull_request:
+    paths:
+      - 'config.lua'
+      - 'server/**'
+      - 'client/**'
+      - 'web/**'
+      - 'tests/**'
+      - '.github/workflows/psmdt-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lua-regressions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Lua 5.4
+        run: sudo apt-get update && sudo apt-get install -y lua5.4
+      - name: Check Lua syntax
+        run: |
+          find server client -type f -name '*.lua' -print0 | xargs -0 -r luac5.4 -p
+          luac5.4 -p config.lua
+      - name: Stage 1 access regression
+        run: lua5.4 tests/phase1/access_regression.lua
+      - name: EMS dashboard server regression
+        run: lua5.4 tests/ems_dashboard/server_regression.lua
+      - name: Government roster regression
+        run: lua5.4 tests/phase2/government_roster_regression.lua
+      - name: Government employment regression
+        run: lua5.4 tests/phase3/government_employment_regression.lua
+
+  frontend-validation:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Type and Svelte validation
+        run: npm run check
+      - name: Build NUI
+        run: npm run build
+      - name: Frontend regressions
+        working-directory: .
+        run: |
+          node tests/basics/navigation_regression.cjs
+          node tests/basics/dashboard_routes_regression.cjs
+          node tests/ems_dashboard/frontend_regression.cjs
+          node tests/phase1/auth_frontend_regression.cjs
+          node tests/phase1/check-frontend.cjs
+          node tests/phase2/government_frontend_regression.cjs
+          node tests/phase3/government_frontend_regression.cjs
