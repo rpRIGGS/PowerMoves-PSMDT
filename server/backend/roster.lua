@@ -141,7 +141,6 @@ ps.registerCallback('ps-mdt:server:getRosterList', function(source)
     -- Fire and hospitals still use the shared legacy responder domain.
     local access = GetMdtAccess(source)
     if not access or not access.authorized then return { roster = {}, activeUnits = {} } end
-    local domain = GetMdtDomain(source)
     local jobList, matchFn, defaultDept, scopeJobType
     if access.jobType == 'doj' and access.agency ~= (Config.MdtAccess and Config.MdtAccess.AttorneyGeneral and Config.MdtAccess.AttorneyGeneral.job) then
         -- DOJ's court interface includes different employers (SADOJ and law
