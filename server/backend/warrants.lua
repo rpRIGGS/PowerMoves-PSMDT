@@ -94,6 +94,7 @@ function GetActiveWarrantsData(src)
 
     -- SQL and name resolution can yield while the source changes character or job.
     if src ~= nil and (not canReadWarrantData(src)
+        or not CheckPermission(src, 'warrants_view')
         or ps.getIdentifier(src) ~= citizenid or ps.getJobName(src) ~= jobName) then return {} end
     return results
 end
