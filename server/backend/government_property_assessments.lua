@@ -49,6 +49,7 @@ local function snapshot(row)
         property_owner_snapshot=row.property_owner_snapshot,
         property_type=row.property_type,assessed_value=row.assessed_value,
         government_owned=row.government_owned,tax_exempt=row.tax_exempt,
+        exemption_reason=row.exemption_reason,
         version=row.version,
     })
 end
@@ -67,7 +68,7 @@ ps.registerCallback(resourceName..':server:getGovernmentPropertyAssessments',fun
     end
     local ok,rows=pcall(MySQL.query.await,[[
         SELECT a.property_id,a.jurisdiction,a.tax_year,a.property_type,a.assessed_value,
-               a.government_owned,a.tax_exempt,a.status,a.version,
+               a.government_owned,a.tax_exempt,a.exemption_reason,a.status,a.version,
                a.reviewed_by_citizenid,a.decision_reason,a.created_at,
                p.street,p.region,p.for_sale
         FROM mdt_government_property_assessments a
@@ -152,15 +153,17 @@ ps.registerCallback(resourceName..':server:decideGovernmentPropertyAssessment',f
         or (action~='approved' and action~='rejected' and action~='reopen') then
         return {success=false,error='Invalid assessment decision'}
     end
-    local value,area,kind,owned,exempt
+    local value,area,kind,owned,exempt,exemptionReason
     if action=='approved' then
         value=validMoney(data.assessedValue)
         area=data.jurisdiction
         kind=data.propertyType
         owned=data.governmentOwned
         exempt=data.taxExempt
+        exemptionReason=exempt and text(data.exemptionReason,1000) or nil
         if not value or area~=areaKey or not categories[kind]
-            or type(owned)~='boolean' or type(exempt)~='boolean' then
+            or type(owned)~='boolean' or type(exempt)~='boolean'
+            or (exempt and not exemptionReason) then
             return {success=false,error='Assessment requires value, classification and explicit exemption determination'}
         end
     end
@@ -168,7 +171,7 @@ ps.registerCallback(resourceName..':server:decideGovernmentPropertyAssessment',f
     local ok,committed=pcall(MySQL.startTransaction,function(query)
         local rows=query([[
             SELECT property_id,jurisdiction,tax_year,property_type,assessed_value,
-                   government_owned,tax_exempt,status,version,property_owner_snapshot
+                   government_owned,tax_exempt,exemption_reason,status,version,property_owner_snapshot
             FROM mdt_government_property_assessments
             WHERE property_id = ? AND jurisdiction = ? AND tax_year = ? FOR UPDATE
         ]],{id,areaKey,year})
@@ -188,6 +191,7 @@ ps.registerCallback(resourceName..':server:decideGovernmentPropertyAssessment',f
             jurisdiction=action=='approved' and area or record.jurisdiction,
             property_type=action=='approved' and kind or record.property_type,
             assessed_value=action=='approved' and value or record.assessed_value,
+            exemption_reason=action=='approved' and exemptionReason or record.exemption_reason,
             government_owned=action=='approved' and (owned and 1 or 0)
                 or record.government_owned,
             tax_exempt=action=='approved' and (exempt and 1 or 0)
@@ -199,11 +203,12 @@ ps.registerCallback(resourceName..':server:decideGovernmentPropertyAssessment',f
                 UPDATE mdt_government_property_assessments
                 SET status='approved',version=version+1,assessed_value=?,
                     property_type=?,government_owned=?,tax_exempt=?,
+                    exemption_reason=?,
                     reviewed_by_citizenid=?,decision_reason=?
                 WHERE property_id=? AND jurisdiction=? AND tax_year=?
                     AND status='pending' AND version=?
             ]],{value,kind,owned and 1 or 0,exempt and 1 or 0,
-                access.citizenid,reason,id,areaKey,year,version})
+                exemptionReason or '',access.citizenid,reason,id,areaKey,year,version})
         else
             result=query([[
                 UPDATE mdt_government_property_assessments
