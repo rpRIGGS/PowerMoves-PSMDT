@@ -13,6 +13,9 @@ local env = setmetatable({
         getIdentifier=function() return actor.citizenid end,
     },
     CheckAuth=function() return actor.duty end,
+    CanManageMdtPersonnel=function(_, citizenid)
+        return actor.job == 'sams' and citizenid == 'SUBORDINATE-1'
+    end,
     CheckPermission=function(_,permission)
         return actor.permission and permission == 'roster_manage_certifications'
     end,
@@ -69,4 +72,13 @@ assert(#selfRead(1)==0, 'Credential read must reject changed character')
 actor.citizenid='STATE-1'
 assert(#selfRead(1)==1, 'Credential owner should see their records')
 assert(writes==1)
+local personnelRead=assert(callbacks['ps-mdt:server:getPersonnelAccreditations'])
+assert(#personnelRead(1,'SUBORDINATE-1')==1, 'Supervisor with grant should see subordinate credentials')
+readHook=function() actor.job='pillboxmed' end
+assert(#personnelRead(1,'SUBORDINATE-1')==0, 'Cross-employer transfer must invalidate supervisor read')
+actor.job='sams'
+actor.permission=false
+assert(#personnelRead(1,'SUBORDINATE-1')==0, 'Missing supervisor grant should deny read')
+actor.permission=true
+
 print('PASS issuer validation and credential read anti-transfer regressions')
