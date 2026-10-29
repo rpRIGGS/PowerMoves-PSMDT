@@ -1111,7 +1111,7 @@
 				<label class="bw-label">Charges</label>
 				<div class="bw-charges">
 					{#each report.charges.filter(c => c.citizenid === benchWarrantModal.suspect?.citizenid) as charge}
-						<span class="bw-charge-chip">{charge.charge || charge.title || 'Unknown'} {charge.count > 1 ? `x${charge.count}` : ''}</span>
+						<span class="bw-charge-chip">{charge.charge || 'Unknown'} {charge.count > 1 ? `x${charge.count}` : ''}</span>
 					{:else}
 						<span class="bw-no-charges">No charges for this suspect</span>
 					{/each}
