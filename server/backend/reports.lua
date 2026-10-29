@@ -69,7 +69,7 @@ local function checkReportAccess(src, reportId)
     local job = ps.getJobName(src)
     local jobType = getEffectiveJobType(src)
 
-    if not identifier then
+    if not identifier or not jobType then
         return false
     end
     if hasReportDisclosure(src,reportId) then return true end
@@ -278,6 +278,7 @@ ps.registerCallback(resourceName .. ':server:getReports', function(source, page,
     local identifier = ps.getIdentifier(src)
     local job = ps.getJobName(src)
     local jobType = getEffectiveJobType(src)
+    if not jobType then return { reports = {}, total = 0 } end
 
     local pageNumber = tonumber(page) or 1
     pageNumber = math.max(1, pageNumber)
