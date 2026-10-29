@@ -615,6 +615,22 @@ Config.MdtAccess = {
     -- 'leo_roster_oversight' stored job/grade permission. Being a boss in one
     -- of these jobs does NOT itself grant cross-agency roster visibility.
     LeoRosterOversightJobs = { 'sadle' },
+    -- Statewide service oversight is distinct from ordinary employer access.
+    -- These are candidate oversight employers, NOT blanket record-sharing
+    -- grants. Server callbacks must require explicit permissions and preserve
+    -- employer-owned records. Medical charts are never shared by this setting.
+    ServiceOversight = {
+        safr = {
+            OversightJobs = { 'safr' },
+            DepartmentJobs = { 'lsfd', 'lscfd', 'bcfd' },
+            RosterPermission = 'fire_roster_oversight',
+        },
+        sams = {
+            OversightJobs = { 'sams' },
+            DepartmentJobs = { 'pillboxmed', 'sandymed', 'paletomed', 'parsonsmed' },
+            RosterPermission = 'medical_roster_oversight',
+        },
+    },
     AttorneyGeneral = { job = 'sadle', grade = 11 },
     JudicialGrades = {
         sadoj = { 8, 9, 10 },
