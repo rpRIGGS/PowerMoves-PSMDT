@@ -204,6 +204,7 @@ export const NUI_EVENTS = {
 		GET_MY_TRAINING_TRANSCRIPT: "getMyTrainingTranscript",
 		GET_MY_ACCREDITATIONS: "getMyAccreditations",
 		GET_PERSONNEL_ACCREDITATIONS: "getPersonnelAccreditations",
+		GET_ISSUED_ACCREDITATIONS: "getIssuedAccreditations",
 		ISSUE_ACCREDITATION: "issueAccreditation",
 		CREATE_FTO_ASSIGNMENT: "createFTOAssignment",
 		UPDATE_FTO_ASSIGNMENT: "updateFTOAssignment",
