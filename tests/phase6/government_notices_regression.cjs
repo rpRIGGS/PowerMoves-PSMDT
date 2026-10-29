@@ -44,6 +44,11 @@ assert.match(backend, /version = version \+ 1/);
 assert.match(backend, /sameAccess\(source, access\)/);
 assert.match(backend, /row\.status == 'published'/);
 assert.match(backend, /CanViewGovernmentJurisdictionRecord/);
+assert.match(backend, /getPublicGovernmentNotices/);
+assert.match(backend, /PublicServiceDeskAllows\(source, nil, 'government_notices'\)/);
+assert.match(backend, /WHERE status = 'published'/);
+assert.match(client, /government_notices/);
+
 assert.doesNotMatch(backend, /RegisterCommand/);
 for(const action of ['getGovernmentNotices','createGovernmentNotice','editGovernmentNotice','publishGovernmentNotice']) {
   assert.match(backend,new RegExp("server:" + action));
