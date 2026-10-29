@@ -10,7 +10,7 @@
 	let { authService }: { authService: AuthService } = $props();
 	const personnel = createGovernmentPersonnelService();
 	let search = $state("");
-	let activeSection = $state<"personnel" | "sop" | "notices" | "licenses">("personnel");
+	let activeSection = $state<"personnel" | "sop" | "notices" | "licensing" | "licenses">("personnel");
 	let showPositions = $state(false);
 	let editor = $state<"hire" | "grade" | "terminate" | null>(null);
 	let selectedEmployee = $state<GovernmentEmployee | null>(null);
@@ -89,7 +89,7 @@
 		<button class:active={activeSection === "sop"} onclick={() => activeSection = "sop"}>Department SOP</button>
 		<button class:active={activeSection === "notices"} onclick={() => activeSection = "notices"}>Public Notices</button>
 		<button class:active={activeSection === "licensing"} onclick={() => activeSection = "licensing"}>Business Licensing</button>
-		<button class:active={activeSection === "licenses"} onclick={() => activeSection = "licenses"}>Licensing</button>
+		<button class:active={activeSection === "licenses"} onclick={() => activeSection = "licenses"}>Vending Permits</button>
 	</nav>
 	{#if activeSection === "sop"}
 		<SOP {authService} />
