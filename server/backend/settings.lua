@@ -327,9 +327,12 @@ ps.registerCallback(resourceName .. ':server:saveReportTemplate', function(sourc
 
     if templateId then
         -- Update existing
-        MySQL.update.await('UPDATE mdt_report_templates SET `name` = ?, `type` = ?, `content` = ?, `job_type` = ? WHERE `id` = ?', {
-            name, tmplType, content, jobType, templateId
+        local changed = MySQL.update.await('UPDATE mdt_report_templates SET `name` = ?, `type` = ?, `content` = ? WHERE `id` = ? AND `job_type` = ?', {
+            name, tmplType, content, templateId, jobType
         })
+        if not changed or changed < 1 then
+            return { success = false, message = 'Template not found in your interface or unchanged' }
+        end
     else
         -- Insert new
         templateId = MySQL.insert.await('INSERT INTO mdt_report_templates (`name`, `type`, `content`, `job_type`) VALUES (?, ?, ?, ?)', {
@@ -360,7 +363,21 @@ ps.registerCallback(resourceName .. ':server:deleteReportTemplate', function(sou
         return { success = false, message = 'Invalid template ID' }
     end
 
-    MySQL.update.await('DELETE FROM mdt_report_templates WHERE `id` = ?', { id })
+    local access = GetMdtAccess(src)
+    if not access.authorized or access.isCivilian then
+        return { success = false, message = 'Unauthorized interface' }
+    end
+    local jobType = access.interfaceId == 'safr' and 'fire'
+        or access.interfaceId == 'sadoj' and 'doj'
+        or access.interfaceId == 'sams' and 'ems'
+        or access.interfaceId == 'sadle' and 'leo'
+        or nil
+    if not jobType then return { success = false, message = 'Unsupported interface' } end
+
+    local changed = MySQL.update.await('DELETE FROM mdt_report_templates WHERE `id` = ? AND `job_type` = ?', { id, jobType })
+    if not changed or changed < 1 then
+        return { success = false, message = 'Template not found in your interface' }
+    end
 
     if ps.auditLog then
         ps.auditLog(src, 'settings_updated', 'settings', 'report_template_' .. tostring(id), { action = 'deleted' })
