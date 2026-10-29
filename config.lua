@@ -635,6 +635,14 @@ Config.Interfaces = {
         Jobs = { 'sagov', 'bcgov', 'lscgov', 'lsgov' },
         Sharing = Config.Sharinggov,
         Enabled = true,
+        -- Government oversight is scoped by jurisdiction and explicit role
+        -- permissions; it never inherits LEO or DOJ record sharing.
+        Jurisdictions = {
+            sagov = 'state',
+            bcgov = 'blaine_county',
+            lscgov = 'los_santos_county',
+            lsgov = 'los_santos_city',
+        },
     },
     sadot = {
         JobType = 'mechanic',
