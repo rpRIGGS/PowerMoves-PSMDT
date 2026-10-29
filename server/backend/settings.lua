@@ -271,8 +271,17 @@ ps.registerCallback(resourceName .. ':server:getReportTemplates', function(sourc
     local src = source
     if not CheckAuth(src) then return {} end
 
-    local jobType = (type(data) == 'table' and data.jobType) or 'all'
-    -- Return templates matching the job type or 'all'
+    -- Derive the template domain from the authenticated interface, never from
+    -- the client-supplied jobType (which could expose another service's templates).
+    local access = GetMdtAccess(src)
+    if not access.authorized or access.isCivilian then return {} end
+    local jobType = access.interfaceId == 'safr' and 'fire'
+        or access.interfaceId == 'sadoj' and 'doj'
+        or access.interfaceId == 'sams' and 'ems'
+        or access.interfaceId == 'sadle' and 'leo'
+        or nil
+    if not jobType then return {} end
+    -- Return templates matching the authenticated interface or shared templates.
     local rows = MySQL.query.await(
         'SELECT `id`, `name`, `type`, `content`, `job_type` FROM mdt_report_templates WHERE `job_type` = ? OR `job_type` = ? ORDER BY `type`, `name`',
         { jobType, 'all' }
@@ -299,10 +308,19 @@ ps.registerCallback(resourceName .. ':server:saveReportTemplate', function(sourc
         return { success = false, message = 'Name, type, and content are required' }
     end
 
-    local jobType = tostring(payload.jobType or 'all'):sub(1, 10)
-    -- Validate job_type
-    if jobType ~= 'leo' and jobType ~= 'ems' and jobType ~= 'all' then
-        jobType = 'all'
+    -- Templates belong to the author's authenticated interface. An editor
+    -- cannot select 'all' or another domain to publish across departments.
+    local access = GetMdtAccess(src)
+    if not access.authorized or access.isCivilian then
+        return { success = false, message = 'Unauthorized interface' }
+    end
+    local jobType = access.interfaceId == 'safr' and 'fire'
+        or access.interfaceId == 'sadoj' and 'doj'
+        or access.interfaceId == 'sams' and 'ems'
+        or access.interfaceId == 'sadle' and 'leo'
+        or nil
+    if not jobType then
+        return { success = false, message = 'Unsupported interface' }
     end
 
     local templateId = payload.id and tonumber(payload.id) or nil
