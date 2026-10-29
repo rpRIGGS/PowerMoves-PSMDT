@@ -668,3 +668,118 @@ RegisterNetEvent(resourceName .. ':server:openEvidenceStash', function(stashId)
         return
     end
 end)
+
+-- Stage 4 discovery is deliberately separate from evidence mutation/stash APIs.
+-- A named recipient can view redacted metadata + custody only, never transfer.
+local function disclosedEvidenceScope(src, id)
+    if not CheckAuth(src) or not CheckPermission(src,'evidence_view') then return false end
+    local cid,job=ps.getIdentifier(src),ps.getJobName(src)
+    if not cid or not job then return false end
+    local ok,record=pcall(MySQL.single.await,[[
+        SELECT g.id
+        FROM mdt_evidence_disclosures g
+        INNER JOIN mdt_evidence_items e ON e.id = g.evidence_id
+        LEFT JOIN mdt_cases c ON c.id = e.case_id
+        WHERE g.evidence_id = ? AND g.recipient_citizenid = ? AND g.recipient_job = ?
+          AND g.revoked_at IS NULL
+          AND (e.case_id IS NULL OR c.assigned_department = g.granted_by_job)
+        LIMIT 1
+    ]],{id,cid,job})
+    return ok and record~=nil and CheckAuth(src)
+        and CheckPermission(src,'evidence_view') and ps.getIdentifier(src)==cid
+        and ps.getJobName(src)==job
+end
+
+ps.registerCallback(resourceName .. ':server:grantEvidenceDisclosure', function(source, evidenceId, recipientCid, purpose)
+    local src,id=source,tonumber(evidenceId)
+    if not id or type(recipientCid)~='string' or #recipientCid<2 or #recipientCid>64
+        or type(purpose)~='string' or #purpose<10 or #purpose>255 then
+        return {success=false,error='Evidence, recipient and purpose required'}
+    end
+    if not CheckAuth(src) or not CheckPermission(src,'evidence_transfer')
+        or not canEditEvidenceRecord(src,id) then return {success=false,error='Unauthorized'} end
+    local actor,employer=ps.getIdentifier(src),ps.getJobName(src)
+    if not actor or not employer then return {success=false,error='Unauthorized'} end
+    local recipientJob=MySQL.scalar.await([[
+        SELECT JSON_UNQUOTE(JSON_EXTRACT(job, '$.name'))
+        FROM players WHERE citizenid = ? LIMIT 1
+    ]],{recipientCid})
+    if not recipientJob or recipientJob=='' or not CheckAuth(src)
+        or not CheckPermission(src,'evidence_transfer')
+        or ps.getIdentifier(src)~=actor or ps.getJobName(src)~=employer
+        or not canEditEvidenceRecord(src,id) then
+        return {success=false,error='Authorization changed'}
+    end
+    local ok,grantId=pcall(MySQL.insert.await,[[
+        INSERT INTO mdt_evidence_disclosures
+            (evidence_id,recipient_citizenid,recipient_job,purpose,granted_by_citizenid,granted_by_job)
+        SELECT e.id, ?, ?, ?, ?, ?
+        FROM mdt_evidence_items e
+        LEFT JOIN mdt_cases c ON c.id = e.case_id
+        WHERE e.id = ?
+          AND (c.assigned_department = ? OR (e.case_id IS NULL AND e.created_by = ?))
+    ]],{recipientCid,recipientJob,purpose,actor,employer,id,employer,actor})
+    if not ok or not tonumber(grantId) or tonumber(grantId)<=0 then
+        return {success=false,error='Could not store evidence disclosure'}
+    end
+    if ps.auditLog then ps.auditLog(src,'evidence_disclosure_granted','evidence',id,
+        {grant_id=grantId,recipient=recipientCid,purpose=purpose}) end
+    return {success=true,grantId=grantId}
+end)
+
+ps.registerCallback(resourceName .. ':server:revokeEvidenceDisclosure', function(source, grantId)
+    local src,id=source,tonumber(grantId)
+    if not id or not CheckAuth(src) or not CheckPermission(src,'evidence_transfer') then
+        return {success=false,error='Unauthorized'}
+    end
+    local actor,employer=ps.getIdentifier(src),ps.getJobName(src)
+    if not actor or not employer then return {success=false,error='Unauthorized'} end
+    local ok,changed=pcall(MySQL.update.await,[[
+        UPDATE mdt_evidence_disclosures
+        SET revoked_at = NOW(), revoked_by_citizenid = ?
+        WHERE id = ? AND granted_by_job = ? AND revoked_at IS NULL
+    ]],{actor,id,employer})
+    if not ok or tonumber(changed)~=1 then return {success=false,error='Grant not found'} end
+    if ps.auditLog then ps.auditLog(src,'evidence_disclosure_revoked','evidence_disclosure',id,{employer=employer}) end
+    return {success=true}
+end)
+
+ps.registerCallback(resourceName .. ':server:getDisclosedEvidence', function(source)
+    local src=source
+    if not CheckAuth(src) or not CheckPermission(src,'evidence_view') then return {} end
+    local cid,job=ps.getIdentifier(src),ps.getJobName(src)
+    if not cid or not job then return {} end
+    local ok,rows=pcall(MySQL.query.await,[[
+        SELECT e.id,e.case_id,e.report_id,e.title,e.type,e.serial,e.created_at,
+               g.purpose,g.granted_at
+        FROM mdt_evidence_disclosures g
+        INNER JOIN mdt_evidence_items e ON e.id = g.evidence_id
+        LEFT JOIN mdt_cases c ON c.id = e.case_id
+        WHERE g.recipient_citizenid = ? AND g.recipient_job = ?
+          AND g.revoked_at IS NULL
+          AND (e.case_id IS NULL OR c.assigned_department = g.granted_by_job)
+        ORDER BY g.granted_at DESC LIMIT 100
+    ]],{cid,job})
+    if not CheckAuth(src) or not CheckPermission(src,'evidence_view')
+        or ps.getIdentifier(src)~=cid or ps.getJobName(src)~=job then return {} end
+    return ok and rows or {}
+end)
+
+ps.registerCallback(resourceName .. ':server:getDisclosedEvidenceDetail', function(source, evidenceId)
+    local src,id=source,tonumber(evidenceId)
+    if not id or not disclosedEvidenceScope(src,id) then return {success=false,error='Unauthorized'} end
+    local item=MySQL.single.await([[
+        SELECT id,case_id,report_id,title,type,serial,notes,location,stored,last_holder,
+               created_by,created_at,updated_at
+        FROM mdt_evidence_items WHERE id = ?
+    ]],{id})
+    if not item or not disclosedEvidenceScope(src,id) then return {success=false,error='Unauthorized'} end
+    local custody=MySQL.query.await([[
+        SELECT id,evidence_id,from_citizenid,to_citizenid,action,notes,created_at
+        FROM mdt_evidence_custody WHERE evidence_id = ? ORDER BY created_at DESC
+    ]],{id})
+    if not disclosedEvidenceScope(src,id) then return {success=false,error='Authorization changed'} end
+    if ps.auditLog then ps.auditLog(src,'evidence_disclosure_accessed','evidence',id,
+        {recipient=ps.getIdentifier(src)}) end
+    return {success=true,data={item=item,custody=custody or {}}}
+end)
