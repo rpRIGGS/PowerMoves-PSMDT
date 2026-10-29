@@ -36,6 +36,28 @@ local function myPublicRecordRequests()
             tostring(row.agency or ''))
     end
     lib.alertDialog({header = 'My Public Records Requests', content = table.concat(lines, '\\n\\n')})
+    local approved = {}
+    for _, item in ipairs(result) do
+        if item.status == 'approved' and type(item.request_number) == 'string' then
+            approved[#approved + 1] = {
+                label = item.request_number .. ' — ' .. tostring(item.subject or ''),
+                value = item.request_number
+            }
+        end
+    end
+    if #approved > 0 and lib.inputDialog then
+        local selection = lib.inputDialog('Read an approved response', {
+            {type = 'select', label = 'Approved request', options = approved, required = true}
+        })
+        if selection then
+            local response = ps.callback(resourceName .. ':server:getMyPublicRecordsResponse', selection[1])
+            if response and response.success and response.response then
+                lib.alertDialog({header = 'Public records response', content = tostring(response.response.response_text)})
+            else
+                lib.notify({title = 'Records response', description = 'Response unavailable', type = 'error'})
+            end
+        end
+    end
 end
 
 local serviceHandlers = {
