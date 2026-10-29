@@ -51,6 +51,9 @@ local function issuerFamily(source)
     local job = ps.getJobName(source)
     if job == 'post' then return 'leo' end
     if job == 'safr' then return 'fire' end
+    -- SAMS is the statewide medical accreditor. The existing explicit
+    -- certification-management grant is required for issuance.
+    if job == 'sams' then return 'ems' end
     -- SADLE is the accreditor; accreditation officers must have their own
     -- approved grant rather than inheriting permission solely from a job label.
     if job == 'sadle' then return 'leo' end
@@ -120,6 +123,12 @@ ps.registerCallback(resourceName .. ':server:issueAccreditation', function(sourc
     end
     local found = MySQL.scalar.await('SELECT citizenid FROM players WHERE citizenid = ? LIMIT 1', {citizenid})
     if not found then return {success = false, message = 'Character not found'} end
+    -- The target-citizen lookup may yield. Revalidate the exact issuer and
+    -- actor before adding a permanent credential to the shared ledger.
+    if not CheckAuth(source) or issuerFamily(source) ~= family
+        or not CheckPermission(source, 'roster_manage_certifications') then
+        return {success = false, message = 'Authorization changed'}
+    end
     local issuer = ps.getJobName(source)
     local actor = ps.getIdentifier(source)
     if not issuer or not actor or not ensureSchema() then
