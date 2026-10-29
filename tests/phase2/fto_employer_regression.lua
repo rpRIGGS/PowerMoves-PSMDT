@@ -89,4 +89,20 @@ assert(not create(1,{trainee_citizenid='OTHER-AGENCY',trainer_citizenid='CID-TRA
     'Managers must not enroll trainees from other departments')
 assert(not create(1,{trainee_citizenid='CID-TRAINEE',trainer_citizenid='OTHER-AGENCY'}).success,
     'Managers must not appoint outside field trainers')
+actor.job, actor.cid, actor.authorized = 'lspd', 'CID-A', true
+local insertCount = 0
+env.MySQL.single.await = function(sql,args)
+    if sql:find('SELECT id FROM mdt_fto_assignments WHERE trainee_citizenid',1,true) then return nil end
+    if sql:find('SELECT id FROM mdt_fto_phases WHERE job',1,true) then return {id=11} end
+    return nil
+end
+env.MySQL.insert = {await=function(sql,args)
+    assert(sql:find('INSERT INTO mdt_fto_assignments',1,true))
+    assert(args[#args]=='lspd', 'Created FTO record must be tagged with employer')
+    insertCount=insertCount+1
+    return 28
+end}
+env.MySQL.update = {await=function() return 1 end}
+local created=create(1,{trainee_citizenid='CID-TRAINEE',trainer_citizenid='CID-TRAINER'})
+assert(created.success and insertCount==1, 'Same-employer training must still be creatable')
 print('PASS FTO employer scopes, confidential DOR ratings and same-department training checks')
