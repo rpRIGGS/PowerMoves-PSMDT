@@ -1,5 +1,17 @@
 local resourceName = tostring(GetCurrentResourceName())
 
+local function canEditEvidenceRecord(source, evidenceId)
+    local id = tonumber(evidenceId)
+    if not id then return false end
+    local row = MySQL.single.await('SELECT case_id, created_by FROM mdt_evidence_items WHERE id = ?', { id })
+    if not row then return false end
+    if row.case_id then return CanAccessMdtCase(source, row.case_id) end
+    -- No reliable historic employer marker exists on unlinked evidence.
+    -- Fail closed for another creator rather than expose unknown agency records.
+    local cid = ps.getIdentifier(source)
+    return cid ~= nil and row.created_by == cid and GetMdtAccess(source).authorized == true
+end
+
 ps.registerCallback(resourceName .. ':server:getEvidenceItems', function(source, page, limit, filters)
     local src = source
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_view') then return { success = false, error = 'Unauthorized' } end
@@ -169,6 +181,9 @@ ps.registerCallback(resourceName .. ':server:addEvidenceItem', function(source, 
     if payload.caseId and tostring(payload.caseId) ~= '' then
         local n = tonumber(payload.caseId)
         if n then
+            if not CanAccessMdtCase(src, n) then
+                return { success = false, error = 'Case not found or inaccessible' }
+            end
             local row = MySQL.single.await('SELECT id FROM mdt_cases WHERE id = ?', { n })
             if not row then
                 return { success = false, error = 'Case #' .. tostring(n) .. ' doesnt exist' }
@@ -228,6 +243,7 @@ ps.registerCallback(resourceName .. ':server:updateEvidenceItem', function(sourc
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_transfer') then return { success = false, error = 'Unauthorized' } end
 
     evidenceId = tonumber(evidenceId)
+    if not canEditEvidenceRecord(src, evidenceId) then return { success = false, error = 'Evidence not found or inaccessible' } end
     if not evidenceId or not evidence then
         return { success = false, error = 'Invalid evidence' }
     end
@@ -297,6 +313,7 @@ ps.registerCallback(resourceName .. ':server:deleteEvidenceItem', function(sourc
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_transfer') then return { success = false, error = 'Unauthorized' } end
 
     evidenceId = tonumber(evidenceId)
+    if not canEditEvidenceRecord(src, evidenceId) then return { success = false, error = 'Evidence not found or inaccessible' } end
     if not evidenceId then
         return { success = false, error = 'Invalid evidence id' }
     end
@@ -318,6 +335,7 @@ ps.registerCallback(resourceName .. ':server:transferEvidenceItem', function(sou
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_transfer') then return { success = false, error = 'Unauthorized' } end
 
     evidenceId = tonumber(evidenceId)
+    if not canEditEvidenceRecord(src, evidenceId) then return { success = false, error = 'Evidence not found or inaccessible' } end
     if not evidenceId or not toCitizenId then
         return { success = false, error = 'Invalid evidence transfer' }
     end
@@ -345,6 +363,7 @@ ps.registerCallback(resourceName .. ':server:getEvidenceCustody', function(sourc
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_view') then return {} end
 
     evidenceId = tonumber(evidenceId)
+    if not canEditEvidenceRecord(src, evidenceId) then return { success = false, error = 'Evidence not found or inaccessible' } end
     if not evidenceId then
         return {}
     end
@@ -364,6 +383,7 @@ ps.registerCallback(resourceName .. ':server:logEvidenceViewed', function(source
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_view') then return { success = false } end
 
     evidenceId = tonumber(evidenceId)
+    if not canEditEvidenceRecord(src, evidenceId) then return { success = false, error = 'Evidence not found or inaccessible' } end
     if not evidenceId then return { success = false } end
 
     local citizenid = ps.getIdentifier(src)
@@ -381,6 +401,7 @@ ps.registerCallback(resourceName .. ':server:addEvidenceImage', function(source,
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_upload') then return { success = false, error = 'Unauthorized' } end
 
     evidenceId = tonumber(evidenceId)
+    if not canEditEvidenceRecord(src, evidenceId) then return { success = false, error = 'Evidence not found or inaccessible' } end
     if not evidenceId or not image then
         return { success = false, error = 'Invalid image' }
     end
@@ -457,6 +478,7 @@ ps.registerCallback(resourceName .. ':server:linkEvidenceToCase', function(sourc
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_transfer') then return { success = false, error = 'Unauthorized' } end
 
     evidenceId = tonumber(evidenceId)
+    if not canEditEvidenceRecord(src, evidenceId) then return { success = false, error = 'Evidence not found or inaccessible' } end
     reportId = tonumber(reportId)
 
     local numericCaseId = tonumber(caseId)
@@ -501,6 +523,7 @@ ps.registerCallback(resourceName .. ':server:linkEvidenceToReport', function(sou
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_transfer') then return { success = false, error = 'Unauthorized' } end
 
     evidenceId = tonumber(evidenceId)
+    if not canEditEvidenceRecord(src, evidenceId) then return { success = false, error = 'Evidence not found or inaccessible' } end
     reportId = tonumber(reportId)
 
     if not evidenceId or not reportId then
@@ -528,6 +551,7 @@ ps.registerCallback(resourceName .. ':server:createCaseFromEvidence', function(s
     if not CheckAuth(src) or not CheckPermission(src, 'cases_create') then return { success = false, error = 'Unauthorized' } end
 
     evidenceId = tonumber(evidenceId)
+    if not canEditEvidenceRecord(src, evidenceId) then return { success = false, error = 'Evidence not found or inaccessible' } end
     reportId = tonumber(reportId)
     if not evidenceId then
         return { success = false, error = 'Invalid evidence' }
