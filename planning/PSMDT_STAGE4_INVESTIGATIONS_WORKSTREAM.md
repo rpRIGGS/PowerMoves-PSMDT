@@ -46,3 +46,13 @@ New modules and NUI controls provide individually named, read-only disclosure fo
 - Automated source/mocked-SQL tests live in `tests/phase4/` and GitHub Actions. The required real acceptance is documented at `planning/PSMDT_STAGE4_ACCEPTANCE.md`.
 
 **Not approved for live Stage 4 sign-off yet:** court/DOJ role matrix decisions, cross-office prosecutorial/defense consent policies, full evidence discovery attachments, true database migration/runtime acceptance, audit retention and attorney assignment edge cases. Existing judicial permissions are intentionally preserved rather than silently narrowed by these changes.
+
+## Stage 4 read-only discovery hardening
+
+- Named cross-employer case grants now return a case summary **without** internal notes, attachment URLs, linked-report listings or officer details. Independent report/evidence access continues to require separate authorization.
+- The case listing and case detail callbacks reject stale database results if a source switches character, employment or duty. The report list requires `reports_view` before SQL and rechecks identity and permissions before returning results.
+- DOJ court-case list/detail callbacks also revalidate their exact character, employer, `court_view` permission and duty after SQL queries.
+- `tests/phase4/disclosed_case_runtime.lua` exercises the real case callback under mocked SQL for active grants, redaction, revocation, changing jobs and character swaps. `tests/phase4/disclosure_regression.cjs` checks the associated security contracts. Both are in GitHub Actions.
+- This protects the new named-grant route; it does not redefine the existing judicial docket visibility or create unapproved courtroom role permissions.
+
+**Source quality and live acceptance remain separate.** Do not declare Stage 4 accepted until the real Stage 4 acceptance matrix has recorded passing tests against a development server, with agreed DOJ and defense role policies.
