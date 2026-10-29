@@ -40,6 +40,12 @@ ps.registerCallback(resourceName .. ':server:reviewPublicRecordsRequest', functi
     note = note:match('^%s*(.-)%s*$')
     if #note < 1 or #note > 1000 then return {success = false} end
     local from = action == 'under_review' and 'submitted' or 'under_review'
+    local found, current = pcall(MySQL.single.await,
+        'SELECT status FROM mdt_public_record_requests WHERE id = ? AND agency = ? LIMIT 1',
+        {id, job})
+    if not found or not current or current.status ~= from then
+        return {success = false, error = 'Request is unavailable or already processed'}
+    end
     if authorized(source) ~= cid or ps.getJobName(source) ~= job then return {success = false} end
     local ok, committed = pcall(MySQL.transaction.await, {
         {query = 'UPDATE mdt_public_record_requests SET status = ? WHERE id = ? AND agency = ? AND status = ?',
@@ -47,7 +53,7 @@ ps.registerCallback(resourceName .. ':server:reviewPublicRecordsRequest', functi
         {query = [[INSERT INTO mdt_public_record_request_audit
          (request_id, agency, actor_citizenid, action, reason)
          SELECT id, agency, ?, ?, ? FROM mdt_public_record_requests
-         WHERE id = ? AND agency = ? AND status = ?]],
+         WHERE id = ? AND agency = ? AND status = ? AND ROW_COUNT() = 1]],
          values = {cid, action, note, id, job, action}}
     })
     if not ok or not committed then return {success = false, error = 'Database error'} end
