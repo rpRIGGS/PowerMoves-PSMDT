@@ -6,6 +6,7 @@ local callbacks = {
     createGovernmentNotice = 'createGovernmentNotice',
     editGovernmentNotice = 'editGovernmentNotice',
     publishGovernmentNotice = 'publishGovernmentNotice',
+    withdrawGovernmentNotice = 'withdrawGovernmentNotice',
 }
 for name, callback in pairs(callbacks) do
     RegisterNUICallback(name, function(data, cb)
