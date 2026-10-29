@@ -41,6 +41,7 @@ for (const base of [qbcoreSchema, qbxSchema]) {
 assert.match(intake, /WHERE applicant_citizenid = \?/);
 assert.match(intake, /r\.applicant_citizenid = \?/);
 assert.match(intake, /ps\.getIdentifier\(source\) ~= cid/);
+assert.match(intake, /Request saved; session changed before confirmation/);
 assert.match(intake, /PublicServiceDeskAllows\(source, nil, 'public_records_status'\)/);
 assert.match(intake, /PublicServiceDeskAllows\(source, agency, 'public_records_request'\)/);
 assert.match(locations, /function PublicServiceDeskAllows/);
@@ -49,6 +50,7 @@ assert.match(review, /RecordsOfficers/);
 assert.match(review, /PublicServiceDeskAllows\(src, job, 'records_office'\)/);
 assert.match(review, /WHERE agency = \?/);
 assert.match(review, /MySQL\.startTransaction/);
+assert.match(review, /rawget\(MySQL, 'startTransaction'\)/);
 assert.match(review, /FOR UPDATE/);
 assert.match(review, /affectedRows/);
 assert.doesNotMatch(review, /MySQL\.transaction\.await/);
