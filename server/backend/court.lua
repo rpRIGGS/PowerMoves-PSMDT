@@ -451,7 +451,10 @@ ps.registerCallback(resourceName .. ':server:createHearing', function(source, pa
     if departmentCalendarOwnership() then
         local owner = calendarOwnerJob(src)
         if not owner then return { success = false, error = 'Invalid department' } end
-        sql = sql:gsub('job_type%)', 'job_type, owner_job)'):gsub('?, ?, ?%)', '?, ?, ?, ?)')
+        sql = sql:gsub('job_type%)', 'job_type, owner_job)')
+        sql = sql:gsub('VALUES %(([^\n]+)%)', function(placeholders)
+            return 'VALUES (' .. placeholders .. ', ?)'
+        end)
         args[#args + 1] = owner
     end
     local hearingId = MySQL.insert.await(sql, args)
