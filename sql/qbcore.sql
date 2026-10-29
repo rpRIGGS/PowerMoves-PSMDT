@@ -1456,6 +1456,7 @@ CREATE TABLE IF NOT EXISTS `mdt_court_hearings` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `idx_mdt_court_hearings_schedule` (`job_type`,`scheduled_at`),
+  KEY `idx_mdt_hearings_owner_schedule` (`owner_job`,`scheduled_at`),
   KEY `idx_mdt_court_hearings_status` (`status`),
   KEY `idx_mdt_court_hearings_case` (`case_id`),
   CONSTRAINT `FK_mdt_court_hearings_cases` FOREIGN KEY (`case_id`) REFERENCES `mdt_cases` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
