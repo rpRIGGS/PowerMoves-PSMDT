@@ -84,7 +84,32 @@
         }
     }
 
-    onMount(() => { void reload(); });
+    onMount(() => {
+        let active = true;
+        void reload();
+        // Clear cached confidential queue data when a player leaves the
+        // configured counter or loses their job/duty/allowlist entitlement.
+        const interval = setInterval(async () => {
+            if (!active || loading || saving) return;
+            try {
+                const access = await fetchNui<{success:boolean}>(
+                    "canUsePublicRecordsOffice", {}, {success:false}
+                );
+                if (active && !access?.success) {
+                    items = [];
+                    selected = null;
+                    onClose();
+                }
+            } catch {
+                if (active) {
+                    items = [];
+                    selected = null;
+                    onClose();
+                }
+            }
+        }, 2500);
+        return () => { active = false; clearInterval(interval); };
+    });
 </script>
 
 <section class="office">
