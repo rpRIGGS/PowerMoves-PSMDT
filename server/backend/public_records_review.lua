@@ -34,6 +34,28 @@ ps.registerCallback(resourceName .. ':server:getPublicRecordsOfficeQueue', funct
     return {success = true, requests = rows or {}}
 end)
 
+-- Staff-only administrative decision history. The join rechecks request
+-- ownership by the officer's actual employing agency on every retrieval.
+ps.registerCallback(resourceName .. ':server:getPublicRecordRequestAudit', function(source, requestId)
+    local cid, job = authorized(source)
+    local id = tonumber(requestId)
+    if not cid or not id or id < 1 or id % 1 ~= 0 then
+        return {success = false, error = 'Records office access denied'}
+    end
+    local ok, rows = pcall(MySQL.query.await, [[
+        SELECT a.action, a.reason, a.actor_citizenid, a.created_at
+        FROM mdt_public_record_request_audit a
+        INNER JOIN mdt_public_record_requests r
+            ON r.id = a.request_id AND r.agency = a.agency
+        WHERE a.request_id = ? AND r.agency = ?
+        ORDER BY a.created_at ASC, a.id ASC LIMIT 100
+    ]], {id, job})
+    if not ok or authorized(source) ~= cid or ps.getJobName(source) ~= job then
+        return {success = false, error = 'Records office access changed'}
+    end
+    return {success = true, entries = rows or {}}
+end)
+
 -- Approved public replies are deliberately authored text, not raw case,
 -- evidence, IA, report, or medical records.
 -- The checked, row-locked transaction API is supported by oxmysql v2.12.0+.
