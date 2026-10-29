@@ -44,6 +44,8 @@ jobs:
         run: lua5.4 tests/phase1/access_regression.lua
       - name: EMS dashboard server regression
         run: lua5.4 tests/ems_dashboard/server_regression.lua
+      - name: Government SOP regression
+        run: lua5.4 tests/phase1/government_sop_regression.lua
       - name: Government roster regression
         run: lua5.4 tests/phase2/government_roster_regression.lua
       - name: Government employment regression
