@@ -565,6 +565,13 @@ Config.MdtAccess = {
         PublishPermission = 'government_notice_publish',
         StateOversightPermission = 'government_notice_oversight',
     },
+    GovernmentLicensing = {
+        ReviewPermission = 'government_license_review',
+        ApprovePermission = 'government_license_approve',
+        RevokePermission = 'government_license_revoke',
+        -- No blanket boss, county-to-city, or statewide grant.
+        -- Licenses are issued by the receiving local/state authority.
+    },
     GovernmentPersonnel = {
         -- Read-only oversight requires this exact permission on a sagov
         -- job/grade row in mdt_permission_roles, or Config.PermissionDefaults
