@@ -1218,6 +1218,23 @@ test('Stage 2 calendar notifications acknowledge only returned authorized event 
     equal(#databaseWrites, writesBefore + 1)
 end)
 
+test('Stage 2 calendar list discards records after an employer transfer during SQL', function()
+    identity(994, 'lspd', 'leo', 10, true)
+    env.Config.Court.DepartmentCalendarOwnership = true
+    onDojRead = function(operation, query, args)
+        equal(operation, 'query')
+        equal(args[#args], 'lspd')
+        identity(994, 'bcso', 'leo', 10, true)
+        return { { id = 71, title = 'LSPD training', category = 'training', owner_job = 'lspd' } }
+    end
+    local ok, result = pcall(function()
+        return doj('getHearings', 994, { from = '2026-11-01 00:00:00', to = '2026-12-01 00:00:00' })
+    end)
+    env.Config.Court.DepartmentCalendarOwnership = false
+    expect(ok, tostring(result))
+    equal(#result, 0, 'Transferred employee must not receive former employer events')
+end)
+
 print(('Phase 1 access regressions: %d passed, %d failed, %d assertions; all SQL mocked.')
     :format(passed, failed, assertions))
 if failed > 0 then os.exit(1) end
