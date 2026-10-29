@@ -23,7 +23,7 @@ export function validateNuiMessage(data: any): {
 		try {
 			// Check serialization size
 			const serialized = JSON.stringify(data);
-			if (serialized.length > NUI_SECURITY_CONFIG.MAX_NUI_MESSAGE_SIZE) {
+			if (serialized.length > NUI_SECURITY_CONFIG.MAX_DATA_SIZE) {
 				return {
 					isValid: false,
 					sanitized: {},
