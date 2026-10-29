@@ -542,6 +542,10 @@ Config.MdtAccess = {
         JobType = 'mechanic',
         PublicServiceNumber = '511',
         FirstAcceptExclusive = true,
+        -- Empty until actual mechanic employer jobs and real SADOT authority
+        -- grades are vetted. Ordinary mechanic job type is not a tow license.
+        AllowedOperatorJobs = {},
+        RequireQualifiedVehicle = true,
     },
     FireJobs = Config.FireJobs,
     GovernmentJobs = {
