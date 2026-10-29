@@ -61,8 +61,13 @@ end)
  
 ps.registerCallback(resourceName .. ':server:getCallsign', function(source, payload)
     if not CheckAuth(source) then return { callsign = '' } end
-    local cid = payload.citizenid
+    local cid = type(payload) == 'table' and (payload.citizenid or payload.cid) or nil
     if not cid then return { callsign = '' } end
+    if cid ~= ps.getIdentifier(source)
+        and (not CheckPermission(source, 'roster_manage_officers')
+            or not CanManageMdtPersonnel(source, cid)) then
+        return { callsign = '' }
+    end
  
     if not QBCore then return { success = false, message = 'Core framework not available' } end
     local Player = QBCore.Functions.GetPlayerByCitizenId(cid)
