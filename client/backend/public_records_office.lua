@@ -6,14 +6,20 @@ local function notice(message, kind)
 end
 
 local function chooseDecision(item)
-    local options = {
-        {label = 'Mark Under Review', value = 'under_review'},
-        {label = 'Deny Request', value = 'denied'},
-        {label = 'Approve and publish public response', value = 'approved'},
-    }
+    local options
+    if item.status == 'submitted' then
+        options = {{label = 'Mark Under Review', value = 'under_review'}}
+    elseif item.status == 'under_review' then
+        options = {
+            {label = 'Deny Request', value = 'denied'},
+            {label = 'Approve and publish public response', value = 'approved'}
+        }
+    else
+        return
+    end
     local choice = lib.inputDialog('Request ' .. tostring(item.request_number or item.id), {
         {type = 'select', label = 'Decision', options = options, required = true},
-        {type = 'textarea', label = 'Reason', required = true},
+        {type = 'textarea', label = 'Reason or public response', required = true},
     })
     if not choice then return end
     local response
