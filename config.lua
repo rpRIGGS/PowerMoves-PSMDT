@@ -672,12 +672,7 @@ Config.MdtAccess = {
         RequireQualifiedVehicle = true,
     },
     FireJobs = Config.FireJobs,
-    GovernmentJobs = {
-        sagov = 'state',
-        bcgov = 'blaine_county',
-        lscgov = 'los_santos_county',
-        lsgov = 'los_santos_city',
-    },
+    GovernmentJobs = Config.Interfaces.sagov.Jurisdictions,
     -- Organizational metadata only. Parent jurisdictions do not inherit access
     -- to another government's personnel or unpublished records.
     GovernmentJurisdictions = {
