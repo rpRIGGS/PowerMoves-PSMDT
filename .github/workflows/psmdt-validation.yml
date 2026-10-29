@@ -52,6 +52,8 @@ jobs:
         run: lua5.4 tests/phase2/fto_employer_regression.lua
       - name: State accreditation issuer regression
         run: lua5.4 tests/phase3/accreditation_issuer_regression.lua
+      - name: Case disclosure runtime regression
+        run: lua5.4 tests/phase4/case_disclosure_runtime.lua
       - name: IA referral runtime regression
         run: lua5.4 tests/phase4/ia_referral_runtime.lua
       - name: Government SOP regression
