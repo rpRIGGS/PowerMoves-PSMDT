@@ -21,6 +21,13 @@
     const instanceStateService = createInstanceStateService(tabService);
 
     let opacityStyle = $state("opacity: 1");
+    let recordsOfficeOpen = $state(false);
+
+    // Physical qb-target counter selects this panel inside the existing tablet.
+    useNuiEvent("openRecordsOffice", () => { recordsOfficeOpen = true; });
+    useNuiEvent<{ visible?: boolean }>("setVisible", (data) => {
+        if (data?.visible === false) recordsOfficeOpen = false;
+    });
 
     function handleOpacityStyleChange(style: string): void {
         opacityStyle = style;
@@ -167,6 +174,8 @@
                             {authService}
                             {tabService}
                             {instanceStateService}
+                            {recordsOfficeOpen}
+                            onCloseRecordsOffice={() => { recordsOfficeOpen = false; }}
                     />
                     {/key}
                 </div>
