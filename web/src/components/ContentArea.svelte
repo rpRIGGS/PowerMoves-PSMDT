@@ -38,6 +38,7 @@
 	import type { createTabService } from "../services/tabService.svelte";
 	import BulletInBoard from "@/pages/BulletInBoard.svelte";
 	import Government from "../pages/Government.svelte";
+    import RecordsOffice from "../pages/RecordsOffice.svelte";
 
 	interface Props {
 		authService: AuthService;
@@ -45,7 +46,7 @@
 		instanceStateService: ReturnType<typeof createInstanceStateService>;
 	}
 
-	let { authService, tabService, instanceStateService }: Props = $props();
+	let { authService, tabService, instanceStateService, recordsOfficeOpen, onCloseRecordsOffice }: Props = $props();
 
 	let contentZoom = $state("130%");
 	let sopAgreed = $state(false);
@@ -161,6 +162,9 @@
 </script>
 
 <div class="content-area" style="zoom: {contentZoom};">
+    {#if recordsOfficeOpen && authService.isAuthorized && !authService.isCivilian}
+        <RecordsOffice onClose={onCloseRecordsOffice} />
+    {/if}
 	{#if authService.isCivilian}
 		<CivilianView {authService} />
 	{:else if authService.isAuthorized && authService.interfaceId === 'sagov'}
