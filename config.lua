@@ -179,7 +179,8 @@ Config.PublicServices = {
         -- and 'records_office' at authorized staff counters to open the same MDT NUI.
         -- No /recordsdesk command; actual vector3/poly locations are configured here. The location's
         -- agency is the receiving records office, verified server-side; do not
-        -- publish fictitious MLO coordinates. Record releases are NOT enabled.
+        -- publish fictitious MLO coordinates. Public decision notices are issued
+        -- only by allowlisted records officers and delivered to the applicant.
         -- Configure actual MLO coordinates before use. Examples:
         -- {
         --     id = 'ag_office_front_desk',
