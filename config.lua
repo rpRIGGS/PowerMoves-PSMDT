@@ -42,22 +42,38 @@ Config.Sharingleo = {
     OneWay = {
         -- SADLE statewide oversight of other LEO agencies, including FIB.
         {
-            viewers = { 'sadle' },
+            viewers ={
+                'sadle',
+            },
             targets = {
                 'post', 'lspd', 'lspe', 'lscso', 'bcso',
                 'sahp', 'sasp', 'saspa', 'fib'
             },
-            types = { 'reports', 'bodycams', 'evidence', 'bolos', 'warrants' }
+            types ={
+                'reports',
+                'bodycams',
+                'evidence',
+                'bolos',
+                'warrants',
+            }
         },
         -- FIB statewide/federal investigative oversight. SADLE is a separate
         -- agency and remains visible to authorized FIB investigators.
         {
-            viewers = { 'fib' },
+            viewers ={
+                'fib',
+            },
             targets = {
                 'post', 'lspd', 'lspe', 'lscso', 'bcso',
                 'sahp', 'sasp', 'saspa', 'sadle'
             },
-            types = { 'reports', 'bodycams', 'evidence', 'bolos', 'warrants' }
+            types ={
+                'reports',
+                'bodycams',
+                'evidence',
+                'bolos',
+                'warrants',
+            }
         }
     }
 }
@@ -173,17 +189,50 @@ Config.Dispatch = {
 -- 10-codes offered in the "Create Call" modal. `code` shows in the dropdown,
 -- `label` is the human name (also used as the call title if none is typed).
 Config.DispatchCodes = {
-    { code = '10-13', label = 'Officer Needs Assistance' },
-    { code = '10-71', label = 'Shooting' },
-    { code = '10-90', label = 'Robbery' },
-    { code = '10-80', label = 'Pursuit' },
-    { code = '10-15', label = 'Civil Disturbance' },
-    { code = '10-52', label = 'Ambulance Needed' },
-    { code = '10-53', label = 'Vehicle Accident' },
-    { code = '10-66', label = 'Suspicious Activity' },
-    { code = '10-11', label = 'Traffic Stop' },
-    { code = '10-62', label = 'Meet Complainant' },
-    { code = '911',   label = 'General 911 Call' },
+    {
+        code = '10-13',
+        label = 'Officer Needs Assistance',
+    },
+    {
+        code = '10-71',
+        label = 'Shooting',
+    },
+    {
+        code = '10-90',
+        label = 'Robbery',
+    },
+    {
+        code = '10-80',
+        label = 'Pursuit',
+    },
+    {
+        code = '10-15',
+        label = 'Civil Disturbance',
+    },
+    {
+        code = '10-52',
+        label = 'Ambulance Needed',
+    },
+    {
+        code = '10-53',
+        label = 'Vehicle Accident',
+    },
+    {
+        code = '10-66',
+        label = 'Suspicious Activity',
+    },
+    {
+        code = '10-11',
+        label = 'Traffic Stop',
+    },
+    {
+        code = '10-62',
+        label = 'Meet Complainant',
+    },
+    {
+        code = '911',
+        label = 'General 911 Call',
+    },
 }
 
 -- Wolfknight Plate Reader Settings
@@ -341,7 +390,10 @@ Config.Housing = {
             },
             join = {
                 table = 'houselocations',                 -- definitions table
-                on    = { left = 'house', right = 'name' }, -- player_houses.house = houselocations.name
+                on    ={
+                    left = 'house',
+                    right = 'name',
+                }, -- player_houses.house = houselocations.name
                 columns = {                                -- pull these fields from the joined table instead
                     name   = 'label',
                     coords = 'coords',
@@ -472,8 +524,14 @@ Config.WeaponImagePath = 'nui://ox_inventory/web/images/'
 -- vehicle is being held while impounded.
 Config.Impound = {
     Lots = {
-        { id = 'lspd',   label = 'LSPD Impound' },
-        { id = 'paleto', label = 'Paleto Impound' },
+        {
+            id = 'lspd',
+            label = 'LSPD Impound',
+        },
+        {
+            id = 'paleto',
+            label = 'Paleto Impound',
+        },
     },
 
     -- Impound reasons offered in the MDT, each with a default fee (the officer
@@ -483,14 +541,46 @@ Config.Impound = {
     -- always change it before filing. Omit it and the reason falls back to
     -- DefaultDuration.
     Reasons = {
-        { label = 'Evidence / Investigation', fee = 0,    hold = 'hold' },
-        { label = 'Reckless Driving',         fee = 750,  hold = '1d' },
-        { label = 'Illegal Parking',          fee = 250,  hold = 'immediate' },
-        { label = 'Unregistered Vehicle',     fee = 500,  hold = 'immediate' },
-        { label = 'Stolen Vehicle Recovery',  fee = 0,    hold = 'immediate' },
-        { label = 'DUI',                      fee = 1500, hold = '3d' },
-        { label = 'Illegal Modifications',    fee = 1000, hold = '1d' },
-        { label = 'Abandoned Vehicle',        fee = 300,  hold = 'immediate' },
+        {
+            label = 'Evidence / Investigation',
+            fee = 0,
+            hold = 'hold',
+        },
+        {
+            label = 'Reckless Driving',
+            fee = 750,
+            hold = '1d',
+        },
+        {
+            label = 'Illegal Parking',
+            fee = 250,
+            hold = 'immediate',
+        },
+        {
+            label = 'Unregistered Vehicle',
+            fee = 500,
+            hold = 'immediate',
+        },
+        {
+            label = 'Stolen Vehicle Recovery',
+            fee = 0,
+            hold = 'immediate',
+        },
+        {
+            label = 'DUI',
+            fee = 1500,
+            hold = '3d',
+        },
+        {
+            label = 'Illegal Modifications',
+            fee = 1000,
+            hold = '1d',
+        },
+        {
+            label = 'Abandoned Vehicle',
+            fee = 300,
+            hold = 'immediate',
+        },
     },
 
     DefaultFee = 500,
@@ -506,11 +596,30 @@ Config.Impound = {
     --   days = nil  → held until an officer decides otherwise
     -- The fee still has to be paid on top; the hold is about time, not money.
     Durations = {
-        { id = 'immediate', label = 'Releasable immediately', days = 0 },
-        { id = '1d',        label = '1 day',                  days = 1 },
-        { id = '3d',        label = '3 days',                 days = 3 },
-        { id = '7d',        label = '7 days',                 days = 7 },
-        { id = 'hold',      label = 'Until an officer releases it' },
+        {
+            id = 'immediate',
+            label = 'Releasable immediately',
+            days = 0,
+        },
+        {
+            id = '1d',
+            label = '1 day',
+            days = 1,
+        },
+        {
+            id = '3d',
+            label = '3 days',
+            days = 3,
+        },
+        {
+            id = '7d',
+            label = '7 days',
+            days = 7,
+        },
+        {
+            id = 'hold',
+            label = 'Until an officer releases it',
+        },
     },
     DefaultDuration = 'hold',
 
@@ -777,10 +886,21 @@ Config.MdtAccess = {
     -- Organizational metadata only. Parent jurisdictions do not inherit access
     -- to another government's personnel or unpublished records.
     GovernmentJurisdictions = {
-        state = { label = 'State of San Andreas' },
-        blaine_county = { label = 'Blaine County', parent = 'state' },
-        los_santos_county = { label = 'Los Santos County', parent = 'state' },
-        los_santos_city = { label = 'City of Los Santos', parent = 'los_santos_county' },
+        state ={
+            label = 'State of San Andreas',
+        },
+        blaine_county ={
+            label = 'Blaine County',
+            parent = 'state',
+        },
+        los_santos_county ={
+            label = 'Los Santos County',
+            parent = 'state',
+        },
+        los_santos_city ={
+            label = 'City of Los Santos',
+            parent = 'los_santos_county',
+        },
     },
     -- Government public notices (not legislation). No roles/grades inherit
     -- authoring, publishing or statewide internal visibility automatically.
@@ -850,9 +970,16 @@ Config.MdtAccess = {
             RosterPermission = 'medical_roster_oversight',
         },
     },
-    AttorneyGeneral = { job = 'sadle', grade = 11 },
+    AttorneyGeneral ={
+        job = 'sadle',
+        grade = 11,
+    },
     JudicialGrades = {
-        sadoj = { 8, 9, 10 },
+        sadoj ={
+            8,
+            9,
+            10,
+        },
     },
     -- Explicit permission ceilings also define the starting grants for boss
     -- grades. QBCore isboss stays unchanged; it is not universal MDT authority.
@@ -1022,7 +1149,10 @@ Config.MugshotCamera = {
 -- Security Camera Viewer
 Config.CameraViewer = {
     RotationSpeed = 0.15,
-    ZoomClamp = { min = 0.25, max = 10.0 },
+    ZoomClamp ={
+        min = 0.25,
+        max = 10.0,
+    },
     StartingZoom = 3.0,
     ZoomStep = 0.1,
     FovMin = 10.0,
@@ -1061,7 +1191,15 @@ Config.Dashcam = {
     UpdateInterval = 250,
     Positions = {
         models = {
-            ['police']  = { side = 0.0, forward = 0.75, height = 0.55, pitch = 1.0, rearForward = 1.2, rearHeight = 0.60, rearPitch = 1.0 },
+            ['police']  ={
+                side = 0.0,
+                forward = 0.75,
+                height = 0.55,
+                pitch = 1.0,
+                rearForward = 1.2,
+                rearHeight = 0.60,
+                rearPitch = 1.0,
+            },
             -- ['police2'] = { side = 0.0, forward = 1.1, height = 0.85, pitch = -6.0 },
 
             -- Example with a rear camera tuned separately:
@@ -1181,8 +1319,18 @@ Config.Bodycam = {
 -- To add a new status, just append a new entry — no other file needs to change.
 Config.OfficerStatus = {
     list = {
-        { id = 'active', label = 'Active', color = '#22C55E', icon = '●' },
-        { id = 'busy',   label = 'Busy',   color = '#F59E0B', icon = '●' },
+        {
+            id = 'active',
+            label = 'Active',
+            color = '#22C55E',
+            icon = '●',
+        },
+        {
+            id = 'busy',
+            label = 'Busy',
+            color = '#F59E0B',
+            icon = '●',
+        },
         -- Examples for future statuses (uncomment / adjust as needed):
         -- { id = 'enroute',   label = 'En Route',   color = '#3B82F6', icon = '●' },
         -- { id = 'unavailable', label = 'Unavailable', color = '#EF4444', icon = '●' },
@@ -1269,12 +1417,30 @@ Config.CameraPlacer = {
 
 -- Which Weapons should be allowed to be registered manually
 Config.Weapons = {
-    { model = "weapon_heavypistol", label = "Heavy Pistol" },
-    { model = "weapon_sniperrifle", label = "Hunting Rifle" },
-    { model = "weapon_ceramicpistol", label = "Ceramic Pistol" },
-    { model = "weapon_doubleaction", label = "Double-Action Revolver" },
-    { model = "weapon_navyrevolver", label = "Navy Revolver" },
-    { model = "weapon_musket", label = "Musket" },
+    {
+        model = "weapon_heavypistol",
+        label = "Heavy Pistol",
+    },
+    {
+        model = "weapon_sniperrifle",
+        label = "Hunting Rifle",
+    },
+    {
+        model = "weapon_ceramicpistol",
+        label = "Ceramic Pistol",
+    },
+    {
+        model = "weapon_doubleaction",
+        label = "Double-Action Revolver",
+    },
+    {
+        model = "weapon_navyrevolver",
+        label = "Navy Revolver",
+    },
+    {
+        model = "weapon_musket",
+        label = "Musket",
+    },
 }
 -- ============================================================================
 --  Court / Calendar (hearings, meetings, trainings)
@@ -1337,21 +1503,80 @@ Config.Court = {
     -- onlyOnDuty: only include players currently on duty
     Groups = {
         -- Police / DOJ domain
-        { id = 'all_officers', label = 'All Officers',  role = 'officer',  domain = 'police', jobs = Config.PoliceJobs },
-        { id = 'rookies',      label = 'Rookies',       role = 'officer',  domain = 'police', jobs = Config.PoliceJobs, maxGrade = 1 },
-        { id = 'on_duty',      label = 'On-Duty Units', role = 'officer',  domain = 'police', jobs = Config.PoliceJobs, onlyOnDuty = true },
-        { id = 'all_doj',      label = 'All DOJ',       role = 'attendee', domain = 'police', jobs = Config.DojJobs },
+        {
+            id = 'all_officers',
+            label = 'All Officers',
+            role = 'officer',
+            domain = 'police',
+            jobs = Config.PoliceJobs,
+        },
+        {
+            id = 'rookies',
+            label = 'Rookies',
+            role = 'officer',
+            domain = 'police',
+            jobs = Config.PoliceJobs,
+            maxGrade = 1,
+        },
+        {
+            id = 'on_duty',
+            label = 'On-Duty Units',
+            role = 'officer',
+            domain = 'police',
+            jobs = Config.PoliceJobs,
+            onlyOnDuty = true,
+        },
+        {
+            id = 'all_doj',
+            label = 'All DOJ',
+            role = 'attendee',
+            domain = 'police',
+            jobs = Config.DojJobs,
+        },
         { id = 'judges',       label = 'Judges',        role = 'judge',    domain = 'police', jobs = { 'sadoj' }, minGrade = 8, maxGrade = 10 },
         { id = 'lawyers',      label = 'Lawyers',       role = 'attendee', domain = 'police', jobs = { 'lawyer' } },
 
         -- Fire Rescue uses the shared legacy EMS calendar domain, but is a
         -- distinct QBCore job type. Keep fire-specific quick-add audiences.
-        { id = 'all_fire',       label = 'All Fire Rescue', role = 'attendee', domain = 'ems', jobs = Config.FireJobs },
-        { id = 'fire_on_duty',   label = 'On-Duty Fire',     role = 'attendee', domain = 'ems', jobs = Config.FireJobs, onlyOnDuty = true },
+        {
+            id = 'all_fire',
+            label = 'All Fire Rescue',
+            role = 'attendee',
+            domain = 'ems',
+            jobs = Config.FireJobs,
+        },
+        {
+            id = 'fire_on_duty',
+            label = 'On-Duty Fire',
+            role = 'attendee',
+            domain = 'ems',
+            jobs = Config.FireJobs,
+            onlyOnDuty = true,
+        },
         -- Hospital EMS domain
-        { id = 'all_ems',       label = 'All EMS',        role = 'attendee', domain = 'ems', jobs = Config.MedicalJobs },
-        { id = 'ems_rookies',   label = 'EMS Rookies',    role = 'trainee',  domain = 'ems', jobs = Config.MedicalJobs, maxGrade = 1 },
-        { id = 'ems_on_duty',   label = 'On-Duty EMS',    role = 'attendee', domain = 'ems', jobs = Config.MedicalJobs, onlyOnDuty = true },
+        {
+            id = 'all_ems',
+            label = 'All EMS',
+            role = 'attendee',
+            domain = 'ems',
+            jobs = Config.MedicalJobs,
+        },
+        {
+            id = 'ems_rookies',
+            label = 'EMS Rookies',
+            role = 'trainee',
+            domain = 'ems',
+            jobs = Config.MedicalJobs,
+            maxGrade = 1,
+        },
+        {
+            id = 'ems_on_duty',
+            label = 'On-Duty EMS',
+            role = 'attendee',
+            domain = 'ems',
+            jobs = Config.MedicalJobs,
+            onlyOnDuty = true,
+        },
     },
 }
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -1388,7 +1613,9 @@ Config.Radio = {
             start = '+radiotalk',
             stop = '-radiotalk',
             keyCmd = '+radiotalk',
-            startCandidates = { '+radiotalk' },
+            startCandidates ={
+                '+radiotalk',
+            },
         },
         ['saltychat'] = {
             type = 'command',
@@ -1396,7 +1623,11 @@ Config.Radio = {
             stop = '-primaryRadio',
             keyCmd = '+primaryRadio',
             -- SaltyChat forks name this differently; first registered wins.
-            startCandidates = { '+primaryRadio', '+radioPrimary', '+SaltyChat_RadioPrimary' },
+            startCandidates ={
+                '+primaryRadio',
+                '+radioPrimary',
+                '+SaltyChat_RadioPrimary',
+            },
         },
         ['yaca'] = {
             type = 'export',
@@ -1410,8 +1641,17 @@ Config.Radio = {
 
     -- 'auto' detection order: { system = key in Systems, resource = res name }.
     AutoDetect = {
-        { system = 'pma-voice', resource = 'pma-voice' },
-        { system = 'saltychat', resource = 'saltychat' },
-        { system = 'yaca',      resource = 'yaca-voice' },
+        {
+            system = 'pma-voice',
+            resource = 'pma-voice',
+        },
+        {
+            system = 'saltychat',
+            resource = 'saltychat',
+        },
+        {
+            system = 'yaca',
+            resource = 'yaca-voice',
+        },
     },
 }
