@@ -297,6 +297,9 @@ ps.registerCallback(resourceName .. ':server:getHearings', function(source, payl
     local fromDate = payload.from or os.date('%Y-%m-01 00:00:00')
     local toDate   = payload.to   or os.date('%Y-%m-%d 23:59:59')
     local domain   = callerCalendarDomain(src)
+    local originalCid = ps.getIdentifier(src)
+    if not originalCid then return {} end
+    local originalOwner = departmentCalendarOwnership() and calendarOwnerJob(src) or nil
 
     -- Optional category filter (array of category names)
     local catClause, catValues = '', {}
@@ -330,6 +333,9 @@ ps.registerCallback(resourceName .. ':server:getHearings', function(source, payl
         WHERE h.job_type = ? AND h.scheduled_at BETWEEN ? AND ?%s%s
         ORDER BY h.scheduled_at ASC
     ]]):format(catClause, ownerClause), args) or {}
+    if not CheckAuth(src) or not canViewCalendar(src)
+        or ps.getIdentifier(src) ~= originalCid or callerCalendarDomain(src) ~= domain then return {} end
+    if departmentCalendarOwnership() and calendarOwnerJob(src) ~= originalOwner then return {} end
 
     return rows
 end)
@@ -343,6 +349,9 @@ ps.registerCallback(resourceName .. ':server:getHearing', function(source, paylo
     payload = payload or {}
     local hearingId = tonumber(payload.hearingId)
     if not hearingId then return { success = false, error = 'Missing hearing id' } end
+    local originalCid = ps.getIdentifier(src)
+    local originalOwner = departmentCalendarOwnership() and calendarOwnerJob(src) or nil
+    if not originalCid then return { success = false, error = 'Unauthorized' } end
 
     local hearing = MySQL.single.await([[
         SELECT h.*, DATE_FORMAT(h.scheduled_at, '%Y-%m-%d %H:%i:%s') AS scheduled_at,
@@ -353,6 +362,11 @@ ps.registerCallback(resourceName .. ':server:getHearing', function(source, paylo
     ]], { hearingId })
 
     if not hearing then return { success = false, error = 'Hearing not found' } end
+    if not CheckAuth(src) or not canViewCalendar(src)
+        or ps.getIdentifier(src) ~= originalCid then return { success = false, error = 'Unauthorized' } end
+    if departmentCalendarOwnership() and calendarOwnerJob(src) ~= originalOwner then
+        return { success = false, error = 'Authorization changed' }
+    end
     -- Don't leak events from the other domain (police/DOJ <-> EMS).
     if not canReadOwnedCalendarEntry(src, hearing) then
         return { success = false, error = 'Hearing not found' }
