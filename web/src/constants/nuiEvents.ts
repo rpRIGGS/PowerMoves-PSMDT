@@ -347,6 +347,7 @@ export const NUI_EVENTS = {
 	PUBLIC_RECORDS: {
         OPEN_OFFICE: "openRecordsOffice",
         OFFICE_QUEUE: "getPublicRecordsOfficeQueue",
+        OFFICE_AUDIT: "getPublicRecordRequestAudit",
         CHECK_OFFICE_ACCESS: "canUsePublicRecordsOffice",
         REVIEW_REQUEST: "reviewPublicRecordsRequest",
         PUBLISH_RESPONSE: "publishPublicRecordsResponse",
