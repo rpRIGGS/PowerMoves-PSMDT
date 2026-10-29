@@ -11,6 +11,9 @@ Status: **Source implementation candidate — NOT runtime accepted** (October 29
 - Approved responses are scoped to the original requesting citizenid. Review and publication are written to the Stage 5 audit table.
 - Records officers open the integrated PSMDT records-office panel through a configured in-world qb-target counter; civilians submit and check requests at public service counters. No records-office slash command or separate staff ox_lib menu.
 - Source contract test: `tests/phase5/public_records_regression.cjs`, linked into GitHub Actions.
+- Lua callback mocks cover citizen ownership, staff decision transactions, and server-side circle/poly geometry.
+- The records-office panel rechecks counter proximity and staff entitlement while open; losing access clears cached request details.
+- Decision and approval paths use `MySQL.startTransaction` with row locks and affected-row checks, rather than treating an empty update as success.
 
 ## Before testing
 1. Back up DEV database and PSMDT.
@@ -20,7 +23,8 @@ Status: **Source implementation candidate — NOT runtime accepted** (October 29
    - `sql/migrations/2026-10-29-public-records-response.sql`
 3. Configure actual public desk coordinates, agency names and services (`public_records_request`, `public_records_status`, `records_office` for staff counters).
 4. Explicitly allowlist real records officers. Default `RecordsOfficers = {}` means no reviewer has access.
-5. Test separate characters, departments, on/off-duty access and resource restarts.
+5. Confirm the deployed oxmysql version supports `MySQL.startTransaction` (check the installed resource). If not, stop rather than silently bypassing transaction checks.
+6. Test separate characters, departments, on/off-duty access and resource restarts.
 
 ## Mandatory DEV acceptance
 - Citizen A cannot view citizen B requests or published responses, including direct callback by request number.
@@ -35,7 +39,7 @@ Status: **Source implementation candidate — NOT runtime accepted** (October 29
 - Run Lua syntax, CI source checks and MariaDB migration/integration tests; inspect FiveM F8 and server logs.
 
 ## Limitations / unresolved
-- Source writes are committed, but current-turn GitHub Actions results and DEV FiveM results are not verified.
+- Source writes are committed, but the latest GitHub Actions results and DEV FiveM results have **not** been independently verified. Do not describe unexecuted regressions as passing.
 - Approval requires deliberate manual redaction by the authorized records officer. No document attachment, advanced legal exemptions, fee collection, notice mailing, or downloadable release package is provided.
 - Decide whether Stage 5 scope requires additional public applications (business licensing and property services are allocated to Stage 6 in current roadmap).
 - Production deployment and final Stage 5 acceptance require actual DEV test signoff. Do not treat this document as proof of working live functionality.
