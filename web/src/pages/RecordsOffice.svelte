@@ -16,6 +16,13 @@
     }
     interface QueueResult { success: boolean; error?: string; requests?: RequestItem[]; }
     interface DecisionResult { success: boolean; error?: string; }
+    interface AuditEntry {
+        action: string;
+        reason: string;
+        actor_citizenid: string;
+        created_at: string;
+    }
+    interface AuditResult { success: boolean; entries?: AuditEntry[]; error?: string; }
 
     let items = $state<RequestItem[]>([]);
     let selected = $state<RequestItem | null>(null);
@@ -25,6 +32,24 @@
     let info = $state("");
     let loading = $state(false);
     let saving = $state(false);
+    let history = $state<AuditEntry[]>([]);
+    let historyLoading = $state(false);
+
+    async function loadHistory(id: number) {
+        history = [];
+        historyLoading = true;
+        try {
+            const result = await fetchNui<AuditResult>("getPublicRecordRequestAudit", { id }, {success:false});
+            if (selected?.id === id) {
+                history = result?.success && Array.isArray(result.entries) ? result.entries : [];
+            }
+        } catch {
+            if (selected?.id === id) history = [];
+        } finally {
+            if (selected?.id === id) historyLoading = false;
+        }
+    }
+
 
     async function reload() {
         loading = true;
@@ -54,6 +79,7 @@
         info = "";
         error = "";
         action = item.status === "submitted" ? "under_review" : "denied";
+        void loadHistory(item.id);
     }
 
     async function submit() {
@@ -149,6 +175,17 @@
                 <p><strong>{selected.subject}</strong></p>
                 <p class="description">{selected.description}</p>
                 <p>Agency: {selected.agency} · Status: {selected.status}</p>
+                <section class="history">
+                    <h3>Decision history</h3>
+                    {#if historyLoading}<p>Loading history…</p>
+                    {:else if history.length === 0}<p>No recorded decisions.</p>
+                    {:else}
+                        {#each history as entry}
+                            <p><strong>{entry.action}</strong> · {entry.actor_citizenid} · {entry.created_at}</p>
+                            <p class="description">{entry.reason}</p>
+                        {/each}
+                    {/if}
+                </section>
                 {#if selected.status === "submitted" || selected.status === "under_review"}
                     <label for="records-decision">Decision</label>
                     <select id="records-decision" bind:value={action} disabled={saving}>
@@ -203,6 +240,7 @@
     select, textarea { box-sizing: border-box; margin-top: 5px; width: 100%; }
     option { color: #111; }
     .description { line-height: 1.5; overflow-wrap: anywhere; }
+    .history { margin: 18px 0; padding: 12px; border: 1px solid rgba(255,255,255,.12); border-radius: 6px; }
     .error { color: #fca5a5; }
     .info { color: #86efac; }
     .warning { border-left: 2px solid #d9b76e; padding-left: 10px; }
