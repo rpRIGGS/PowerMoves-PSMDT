@@ -571,6 +571,11 @@ ps.registerCallback(resourceName .. ':server:createHearingFromWarrant', function
 
     local category = normalizeCategory(payload.category)
     local domain = callerCalendarDomain(src)
+    -- Warrant-generated events are judicial. In ownership mode, reject
+    -- attempts to create an unowned departmental training/meeting event.
+    if departmentCalendarOwnership() and category ~= 'court' then
+        return { success = false, error = 'Warrant scheduling requires a court event' }
+    end
     if not categoryAllowedForDomain(category, domain) then
         return { success = false, error = 'Category not allowed for this department' }
     end
@@ -643,6 +648,9 @@ function CreateWarrantHearingForReport(src, reportId, opts)
 
     local category = normalizeCategory(opts.category or 'court')
     local domain = callerCalendarDomain(src)
+    if departmentCalendarOwnership() and category ~= 'court' then
+        return nil, 'Warrant scheduling requires a court event'
+    end
     if not categoryAllowedForDomain(category, domain) then return nil, 'Category not allowed for this department' end
     if not CheckPermission(src, permForCategory(category, 'create')) then return nil, 'No permission to schedule hearings' end
 
