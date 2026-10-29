@@ -89,6 +89,8 @@ local env = setmetatable({
                 return selectedAudits
             end
             assert(sql:find('WHERE agency = ?',1,true), 'Queue must be employer scoped')
+            assert(sql:find('LIMIT ? OFFSET ?',1,true), 'Queue must paginate')
+            assert(params[2] == 51 and params[3] % 50 == 0, 'Page size and offset must be bounded')
             local result = {}
             for _,row in pairs(requests) do
                 if row.agency == params[1] then result[#result+1] = row end
@@ -112,6 +114,11 @@ local function call(name, data)
 end
 
 assert(call('getPublicRecordsOfficeQueue').success)
+assert(call('getPublicRecordsOfficeQueue', {page=0}).page == 0)
+assert(call('getPublicRecordsOfficeQueue', {page=2}).page == 2)
+assert(not call('getPublicRecordsOfficeQueue', {page=-1}).success)
+assert(not call('getPublicRecordsOfficeQueue', {page=201}).success)
+assert(not call('getPublicRecordsOfficeQueue', {page=1.5}).success)
 assert(call('reviewPublicRecordsRequest',{id=1,action='under_review',reason='Review started'}).success)
 assert(requests[1].status=='under_review' and #audits==1)
 assert(#call('getPublicRecordRequestAudit',1).entries==1, 'Own agency may view its audit')
