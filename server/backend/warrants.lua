@@ -9,6 +9,10 @@ local function canReadWarrantData(src)
         and (access.jobType == 'leo' or access.jobType == 'doj')
 end
 
+local function warrantReportExists(reportId)
+    return MySQL.scalar.await('SELECT id FROM mdt_reports WHERE id = ? LIMIT 1', { reportId }) ~= nil
+end
+
 local function validateExpiry(expiry)
     if not expiry then
         return nil
@@ -142,6 +146,9 @@ ps.registerCallback(resourceName .. ':server:issueWarrant', function(source, dat
         return { success = false, error = 'Missing required fields' }
     end
 
+    if not warrantReportExists(reportId) then
+        return { success = false, error = 'Report not found' }
+    end
     local owner = MySQL.scalar.await(
         "SELECT identifier FROM mdt_reports_restrictions WHERE reportid = ? AND type = 'owner' LIMIT 1",
         { reportId }
@@ -194,6 +201,9 @@ ps.registerCallback(resourceName .. ':server:closeWarrant', function(source, dat
         return { success = false, error = 'Missing required fields' }
     end
 
+    if not warrantReportExists(reportId) then
+        return { success = false, error = 'Report not found' }
+    end
     local owner = MySQL.scalar.await(
         "SELECT identifier FROM mdt_reports_restrictions WHERE reportid = ? AND type = 'owner' LIMIT 1",
         { reportId }
