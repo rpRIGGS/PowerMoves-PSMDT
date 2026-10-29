@@ -325,6 +325,10 @@ ps.registerCallback(resourceName .. ':server:saveReportTemplate', function(sourc
 
     local templateId = payload.id and tonumber(payload.id) or nil
 
+    if templateId and (templateId < 1 or templateId % 1 ~= 0) then
+        return { success = false, message = 'Invalid template ID' }
+    end
+
     if templateId then
         -- Update existing
         local changed = MySQL.update.await('UPDATE mdt_report_templates SET `name` = ?, `type` = ?, `content` = ? WHERE `id` = ? AND `job_type` = ?', {
