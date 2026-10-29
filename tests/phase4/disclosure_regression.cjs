@@ -2,6 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const cases = fs.readFileSync('server/backend/cases.lua','utf8');
 const reports = fs.readFileSync('server/backend/reports.lua','utf8');
+const doj = fs.readFileSync('server/backend/doj.lua','utf8');
 const start = cases.indexOf("':server:getCase'");
 const end = cases.indexOf("':server:linkReportToCase'");
 const read = cases.slice(start,end);
@@ -23,4 +24,10 @@ assert.ok(reportList.includes('getEffectiveJobType(src) ~= jobType'), 'Report li
 assert.ok(read.includes('ps.getIdentifier(src) ~= actorCid'), 'Case detail must reject character switch');
 const caseList = cases.slice(cases.indexOf("':server:getCases'"), cases.indexOf("':server:getCase'"));
 assert.ok(caseList.includes('ps.getIdentifier(src) ~= actorCid'), 'Case list must reject character switch');
+const courtList = doj.slice(doj.indexOf("':server:getCourtCases'"),doj.indexOf("':server:getCourtCase'"));
+const courtDetail = doj.slice(doj.indexOf("':server:getCourtCase'"),doj.indexOf("':server:createCourtCase'"));
+for(const section of [courtList,courtDetail]) {
+  assert.ok(section.includes("ps.getIdentifier(src) ~= originalActor"),"DOJ read must revalidate citizen after SQL");
+  assert.ok(section.includes("ps.getJobName(src) ~= originalEmployer"),"DOJ read must revalidate employer after SQL");
+}
 console.log('PASS case and report grant, revocation and redacted case detail invariants');
