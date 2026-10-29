@@ -46,6 +46,8 @@ jobs:
         run: lua5.4 tests/ems_dashboard/server_regression.lua
       - name: Evidence record-scope regression
         run: lua5.4 tests/phase1/evidence_scope_regression.lua
+      - name: FTO employer isolation regression
+        run: lua5.4 tests/phase2/fto_employer_regression.lua
       - name: Government SOP regression
         run: lua5.4 tests/phase1/government_sop_regression.lua
       - name: Government roster regression
