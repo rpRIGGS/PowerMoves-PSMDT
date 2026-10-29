@@ -36,7 +36,8 @@ local env = setmetatable({
 assert(loadfile('server/backend/accreditation.lua','t',env))()
 local issue=assert(callbacks['ps-mdt:server:issueAccreditation'])
 local payload={citizenid='PATIENT-1',code='SAMS_BLS',name='Basic Life Support'}
-assert(issue(1,payload).success)
+local first = issue(1,payload)
+assert(first.success, first.message or 'SAMS issuer failed')
 assert(writes==1)
 actor.permission=false
 assert(not issue(1,payload).success)
