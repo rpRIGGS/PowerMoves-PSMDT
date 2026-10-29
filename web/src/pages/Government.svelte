@@ -3,9 +3,11 @@
 	import type { AuthService } from "../services/authService.svelte";
 	import { createGovernmentPersonnelService } from "../services/governmentPersonnelService.svelte";
 	import type { GovernmentEmployee } from "../interfaces/IGovernment";
+	import SOP from "./SOP.svelte";
 	let { authService }: { authService: AuthService } = $props();
 	const personnel = createGovernmentPersonnelService();
 	let search = $state("");
+	let activeSection = $state<"personnel" | "sop">("personnel");
 	let showPositions = $state(false);
 	let editor = $state<"hire" | "grade" | "terminate" | null>(null);
 	let selectedEmployee = $state<GovernmentEmployee | null>(null);
@@ -79,6 +81,13 @@
 		<span class="material-icons">account_balance</span>
 		<div><h1>SAGOV.net</h1><p>Government Personnel</p></div>
 	</div>
+	<nav class="government-module-nav" aria-label="Government modules">
+		<button class:active={activeSection === "personnel"} onclick={() => activeSection = "personnel"}>Personnel</button>
+		<button class:active={activeSection === "sop"} onclick={() => activeSection = "sop"}>Department SOP</button>
+	</nav>
+	{#if activeSection === "sop"}
+		<SOP {authService} />
+	{:else}
 	<div class="office-card">
 		<h2>{authService.playerInfo().department || authService.agency}</h2>
 		<dl>
@@ -123,9 +132,10 @@
 		</table></div>
 	{/if}
 	<p class="availability">{personnel.canManagePersonnel ? "Personnel changes apply to your government department. Employees must be online." : "Personnel administration is available to department bosses within their own government job."}</p>
+	{/if}
 </section>
 
-{#if editor && personnel.canManagePersonnel && department}
+{#if activeSection === "personnel" && editor && personnel.canManagePersonnel && department}
 	<div class="editor-backdrop">
 		<section class="personnel-editor" role="dialog" aria-modal="true" aria-labelledby="personnel-editor-title" tabindex="-1">
 			<h2 id="personnel-editor-title">{editor === "hire" ? "Hire government employee" : editor === "grade" ? "Change employee position" : "Terminate employment"}</h2>
@@ -148,6 +158,8 @@
 
 <style>
 	.government-home { padding: 32px; color: var(--primary-text); }
+	.government-module-nav { display: flex; gap: 8px; margin: 20px 0; }
+	.government-module-nav button.active { font-weight: 700; border-color: var(--primary-text); }
 	.heading { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; }
 	.heading > .material-icons { font-size: 36px; }
 	h1 { font-size: 26px; margin: 0 0 5px; }
