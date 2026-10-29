@@ -52,6 +52,8 @@ config.MdtAccess.GovernmentJurisdictions.state.parent='los_santos_city'
 assert(not contains('state','los_santos_city'))
 assert(not contains('los_santos_city','los_santos_city'))
 assert(not view('sagov','los_santos_city',false,true))
+assert(not view('lsgov','los_santos_city',false,false),'Bad hierarchy cannot authorize even local unpublished records')
+assert(not view('bcgov','los_santos_city',true,false),'Published flag cannot bypass broken hierarchy')
 config.MdtAccess.GovernmentJurisdictions.state.parent=nil
 config.MdtAccess.GovernmentJurisdictions.grapeseed_city.parent='unknown'
 assert(not contains('state','grapeseed_city'))
