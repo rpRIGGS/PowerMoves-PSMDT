@@ -180,7 +180,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:linkReportToCase', function(source, reportId, caseId)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_edit') then return { success = false, error = 'Unauthorized' } end
 
     reportId = tonumber(reportId)
     caseId = tonumber(caseId)
@@ -204,7 +204,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:unlinkReportFromCase', function(source, reportId, caseId)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_edit') then return { success = false, error = 'Unauthorized' } end
 
     reportId = tonumber(reportId)
     caseId = tonumber(caseId)
@@ -218,7 +218,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:getCaseEvidencePage', function(source, caseId, page, limit)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'evidence_view') then return { success = false, error = 'Unauthorized' } end
 
     caseId = tonumber(caseId)
     if not caseId then
@@ -369,7 +369,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:assignCaseOfficer', function(source, caseId, officerCitizenId, role)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_edit') then return { success = false, error = 'Unauthorized' } end
 
     caseId = tonumber(caseId)
     if not caseId or not officerCitizenId then
@@ -399,7 +399,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:removeCaseOfficer', function(source, caseId, officerCitizenId)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_edit') then return { success = false, error = 'Unauthorized' } end
 
     caseId = tonumber(caseId)
     if not caseId or not officerCitizenId then
@@ -425,7 +425,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:addCaseAttachment', function(source, caseId, attachment)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_edit') then return { success = false, error = 'Unauthorized' } end
 
     caseId = tonumber(caseId)
     if not caseId or not attachment or not attachment.url then
@@ -456,7 +456,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:addCaseAttachmentUpload', function(source, caseId, attachment)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_edit') then return { success = false, error = 'Unauthorized' } end
 
     caseId = tonumber(caseId)
     if not caseId or not attachment or not attachment.data or not attachment.filename then
@@ -519,7 +519,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:removeCaseAttachment', function(source, attachmentId)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_edit') then return { success = false, error = 'Unauthorized' } end
 
     attachmentId = tonumber(attachmentId)
     if not attachmentId then
@@ -551,7 +551,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:addEvidenceItem', function(source, payload)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'evidence_create') then return { success = false, error = 'Unauthorized' } end
 
     payload = payload or {}
     local caseId = tonumber(payload.caseId)
@@ -612,7 +612,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:removeEvidenceImage', function(source, imageId)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'evidence_transfer') then return { success = false, error = 'Unauthorized' } end
 
     imageId = tonumber(imageId)
     if not imageId then
@@ -643,7 +643,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:updateEvidenceItem', function(source, evidenceId, evidence)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'evidence_transfer') then return { success = false, error = 'Unauthorized' } end
 
     evidenceId = tonumber(evidenceId)
     if not evidenceId or not evidence then
@@ -710,7 +710,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:transferEvidenceItem', function(source, evidenceId, toCitizenId, notes)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'evidence_transfer') then return { success = false, error = 'Unauthorized' } end
 
     evidenceId = tonumber(evidenceId)
     if not evidenceId or not toCitizenId then
@@ -737,7 +737,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:deleteEvidenceItem', function(source, evidenceId)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'evidence_transfer') then return { success = false, error = 'Unauthorized' } end
 
     evidenceId = tonumber(evidenceId)
     if not evidenceId then
@@ -758,7 +758,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:getEvidenceCustody', function(source, evidenceId)
     local src = source
-    if not CheckAuth(src) then return {} end
+    if not CheckAuth(src) or not CheckPermission(src, 'evidence_view') then return {} end
 
     evidenceId = tonumber(evidenceId)
     if not evidenceId then
@@ -778,7 +778,7 @@ end)
 -- Add a note to a case
 ps.registerCallback(resourceName .. ':server:addCaseNote', function(source, caseId, content)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_edit') then return { success = false, error = 'Unauthorized' } end
 
     caseId = tonumber(caseId)
     if not caseId or not content or content == '' then
@@ -800,7 +800,7 @@ end)
 -- Delete a note from a case
 ps.registerCallback(resourceName .. ':server:deleteCaseNote', function(source, noteId, caseId)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_edit') then return { success = false, error = 'Unauthorized' } end
 
     noteId = tonumber(noteId)
     caseId = tonumber(caseId)
