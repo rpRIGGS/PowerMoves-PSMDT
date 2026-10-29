@@ -2,6 +2,14 @@
 -- All records-office reads/writes are server-authorized. No slash commands or
 -- separate ox_lib staff menus are used.
 local resourceName = tostring(GetCurrentResourceName())
+local officeOpenRequest = 0
+local officeNuiAcknowledged = false
+
+RegisterNUICallback('recordsOfficeReady', function(_, cb)
+    if not MDTOpen then cb({success = false}) return end
+    officeNuiAcknowledged = true
+    cb({success = true})
+end)
 
 RegisterNUICallback('canUsePublicRecordsOffice', function(_, cb)
     if not MDTOpen then cb({success = false}) return end
@@ -42,18 +50,23 @@ RegisterNetEvent('ps-mdt:client:openRecordsOffice', function()
         ps.notify((result and result.error) or 'Records office access denied', 'error')
         return
     end
-    if not MDTOpen then
-        OpenMDT()
-    end
+    if not MDTOpen then OpenMDT() end
+    if not MDTOpen then return end
+
+    -- MDTOpen is not proof that the NUI listener has mounted. Retry until
+    -- the Svelte MDT acknowledges this opening; never fall back to a command.
+    officeOpenRequest = officeOpenRequest + 1
+    local requestId = officeOpenRequest
+    officeNuiAcknowledged = false
     CreateThread(function()
-        -- OpenMDT may wait for its opening animation; do not send the page
-        -- selection while the NUI is still hidden.
-        for _ = 1, 40 do
-            if MDTOpen then
-                SendNUI('openRecordsOffice', {})
-                return
-            end
-            Wait(100)
+        for _ = 1, 25 do
+            if requestId ~= officeOpenRequest or not MDTOpen then return end
+            if officeNuiAcknowledged then return end
+            SendNUI('openRecordsOffice', {})
+            Wait(200)
+        end
+        if requestId == officeOpenRequest and MDTOpen and not officeNuiAcknowledged then
+            ps.notify('Records Office interface did not acknowledge opening', 'error')
         end
     end)
 end)
