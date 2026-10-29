@@ -34,3 +34,17 @@ CREATE TABLE IF NOT EXISTS `mdt_government_license_audit` (
   PRIMARY KEY (`id`),
   KEY `idx_gov_license_audit` (`application_id`, `agency`, `created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Unique live issuance slot per jurisdiction/type/registered business name.
+-- An expired or revoked slot may be reassigned through a new approved
+-- application; competing approval transactions cannot issue duplicate slots.
+CREATE TABLE IF NOT EXISTS `mdt_government_license_registry` (
+  `jurisdiction` VARCHAR(64) NOT NULL,
+  `license_type` VARCHAR(24) NOT NULL,
+  `business_key` VARCHAR(160) NOT NULL,
+  `application_id` BIGINT UNSIGNED NOT NULL,
+  `expires_at` DATETIME NOT NULL,
+  `revoked_at` DATETIME DEFAULT NULL,
+  PRIMARY KEY (`jurisdiction`, `license_type`, `business_key`),
+  KEY `idx_gov_registry_application` (`application_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
