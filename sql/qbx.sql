@@ -1452,6 +1452,7 @@ CREATE TABLE IF NOT EXISTS `mdt_court_hearings` (
   `created_by` varchar(50) NOT NULL,
   `created_by_name` varchar(100) DEFAULT NULL,
   `job_type` varchar(10) NOT NULL DEFAULT 'police',
+  `owner_job` varchar(64) DEFAULT NULL COMMENT 'Originating employer; NULL for unreconciled legacy events',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `idx_mdt_court_hearings_schedule` (`job_type`,`scheduled_at`),
