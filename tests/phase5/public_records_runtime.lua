@@ -135,7 +135,9 @@ assert(not call('publishPublicRecordsResponse',{id=3,response='Public response'}
 assert(requests[3].status=='under_review' and responses[3]==nil)
 forceResponseFailure=false
 assert(call('reviewPublicRecordsRequest',{id=3,action='denied',reason='Not eligible'}).success)
-assert(requests[3].status=='denied' and responses[3]==nil and #audits==3)
+assert(requests[3].status=='denied' and responses[3] ~= nil and #audits==3)
+assert(responses[3].recipient=='CIV-A' and responses[3].body=='Not eligible',
+    'Denial explanation must be recipient-bound')
 
 -- An oxmysql installation without the checked transaction API must not
 -- mutate any records or silently fall back to an unchecked batch.
