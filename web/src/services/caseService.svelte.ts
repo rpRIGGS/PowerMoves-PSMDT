@@ -396,7 +396,7 @@ export function createCaseService() {
 			}>(
 				NUI_EVENTS.AUDIT.GET_AUDIT_LOGS_BY_CASE,
 				{ caseId, page, limit },
-				{ items: [], total: 0, page, limit },
+				{ items: [], total: 0 },
 			);
 			return response || { items: [], total: 0 };
 		} catch (error) {
