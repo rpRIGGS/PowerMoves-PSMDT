@@ -6,6 +6,9 @@ if not ok then QBCore = nil end
 ps.registerCallback(resourceName .. ':server:GetPlayerSourceId', function(source, targetCitizenId)
     if not CheckAuth(source) then return nil end
     if not targetCitizenId then return nil end
+    if targetCitizenId ~= ps.getIdentifier(source)
+        and (not CheckPermission(source, 'roster_manage_officers')
+            or not CanManageMdtPersonnel(source, targetCitizenId)) then return nil end
     local targetPlayer = ps.getPlayerByIdentifier(targetCitizenId)
     if not targetPlayer then
         ps.notify(source, 'Citizen seems asleep / missing', 'error')
