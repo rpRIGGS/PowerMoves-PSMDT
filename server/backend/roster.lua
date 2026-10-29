@@ -856,6 +856,11 @@ ps.registerCallback('ps-mdt:server:promoteOfficer', function(source, payload)
         return { success = false, message = 'You cannot change your own rank' }
     end
 
+    if not CheckAuth(src) or not CheckPermission(src, 'roster_manage_officers')
+        or not CanManageMdtPersonnel(src, citizenid, jobName) then
+        return { success = false, message = 'Personnel authorization changed' }
+    end
+
     if not setOfficerJob(targetSrc, jobName, newGrade) then
         return { success = false, message = 'Failed to update rank (framework error)' }
     end
