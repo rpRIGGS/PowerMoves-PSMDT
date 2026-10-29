@@ -28,7 +28,7 @@ ps.registerCallback(resourceName .. ':server:submitPublicRecordRequest', functio
     if type(payload) ~= 'table' then return {success = false, error = 'Invalid request'} end
     local agency = payload.agency
     if not isConfiguredReceivingAgency(agency)
-        or not PublicServiceDeskAllows(src, agency, 'public_records_request') then
+        or not PublicServiceDeskAllows(source, agency, 'public_records_request') then
         return {success = false, error = 'Receiving records office is unavailable'}
     end
     local subject = cleanText(payload.subject, 160)
