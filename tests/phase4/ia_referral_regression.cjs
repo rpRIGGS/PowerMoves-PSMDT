@@ -28,4 +28,9 @@ assert.match(accept,/ps\.getJobName\(src\) ~= 'sadle'/);
 assert.match(accept,/canManageIA\(src\)/);
 assert.match(accept,/r\.status = 'pending'/);
 assert.match(accept,/c\.job_type = 'police'/);
+for (const schemaPath of ['sql/qbcore.sql', 'sql/qbx.sql']) {
+  const schema = fs.readFileSync(schemaPath,'utf8');
+  assert.match(schema,/CREATE TABLE IF NOT EXISTS \`mdt_ia_referrals\`/);
+  assert.match(schema,/idx_ia_referral_complaint/);
+}
 console.log('PASS Stage 4 referral bridge, employer isolation and SADLE triage rules');
