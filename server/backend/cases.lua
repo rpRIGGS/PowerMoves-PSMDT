@@ -1,5 +1,14 @@
 local resourceName = tostring(GetCurrentResourceName())
 
+local function getCaseScope(source)
+    local access = GetMdtAccess(source)
+    if not access or not access.authorized or not access.agency then return nil end
+    -- Court staff may read statewide case files; ordinary departmental MDT
+    -- access does not imply visibility into another employer's cases.
+    if access.interfaceId == 'sadoj' then return { statewide = true, agency = access.agency } end
+    return { statewide = false, agency = access.agency }
+end
+
 local function buildCaseNumber(id)
     local year = os.date('%Y')
     return ('CASE-%s-%05d'):format(year, id)
@@ -78,9 +87,15 @@ ps.registerCallback(resourceName .. ':server:getCases', function(source, page, f
     local limit = Config.Pagination and Config.Pagination.Cases or 20
     local offset = (page - 1) * limit
 
+    local scope = getCaseScope(src)
+    if not scope then return { cases = {}, hasMore = false } end
     filters = filters or {}
     local clauses = {}
     local values = {}
+    if not scope.statewide then
+        clauses[#clauses + 1] = 'mc.assigned_department = ?'
+        values[#values + 1] = scope.agency
+    end
 
     if filters.status then
         clauses[#clauses + 1] = 'status = ?'
@@ -129,9 +144,11 @@ ps.registerCallback(resourceName .. ':server:getCase', function(source, caseId)
         return { success = false, error = 'Invalid case id' }
     end
 
+    local scope = getCaseScope(src)
+    if not scope then return { success = false, error = 'Unauthorized' } end
     local caseRow = MySQL.single.await('SELECT * FROM mdt_cases WHERE id = ?', { caseId })
-    if not caseRow then
-        return { success = false, error = 'Case not found' }
+    if not caseRow or (not scope.statewide and caseRow.assigned_department ~= scope.agency) then
+        return { success = false, error = 'Case not found or inaccessible' }
     end
 
     local officers = MySQL.query.await([[
