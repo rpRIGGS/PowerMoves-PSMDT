@@ -103,3 +103,33 @@ jobs:
           node tests/phase1/check-frontend.cjs web/node_modules/svelte/compiler web/node_modules/typescript
           node tests/phase2/government_frontend_regression.cjs
           node tests/phase3/government_frontend_regression.cjs
+
+  stage4-mariadb:
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_ROOT_PASSWORD: root_test_only
+          MARIADB_DATABASE: psmdt_test
+          MARIADB_USER: psmdt
+          MARIADB_PASSWORD: dev_test_only
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install MariaDB client
+        run: sudo apt-get update && sudo apt-get install -y mariadb-client
+      - name: Exercise Stage 4 migrations and access predicates
+        env:
+          MARIADB_HOST: 127.0.0.1
+          MARIADB_PORT: 3306
+          MARIADB_USER: psmdt
+          MARIADB_DATABASE: psmdt_test
+          MYSQL_PWD: dev_test_only
+        run: bash tests/phase4/mysql_disclosures.sh
