@@ -108,8 +108,8 @@
 </script>
 <section class="licenses">
     <header><div>
-        <h2>Government Licensing</h2>
-        <p>Business registrations and vending permits · actual employing agency only</p>
+        <h2>Vending Permit Review</h2>
+        <p>Vending permits · actual employing agency only</p>
         {#if agency}<p>Reviewing authority: {agency}</p>{/if}
     </div><button onclick={()=>void refresh()} disabled={saving||loading}>Refresh queue</button></header>
     {#if error}<p class="error" role="alert">{error}</p>{/if}
@@ -119,7 +119,7 @@
             <h3>Applications</h3>
             {#if loading}<p>Loading…</p>
             {:else if items.length===0}<p>No accessible applications.</p>{/if}
-            {#each items as item(item.id)}
+            {#each items as item (item.id)}
                 <button class:selected={selected?.id===item.id} onclick={()=>select(item)}>
                     <strong>#{item.id} · {item.business_name}</strong>
                     <span>{item.license_type} · {item.status} · {item.jurisdiction}</span>
