@@ -15,6 +15,13 @@ RegisterNUICallback('getPublicRecordsOfficeQueue', function(_, cb)
     cb(result or {success = false, error = 'Records office unavailable'})
 end)
 
+RegisterNUICallback('getPublicRecordRequestAudit', function(data, cb)
+    if not MDTOpen then cb({success = false, error = 'MDT is closed'}) return end
+    local result = ps.callback(resourceName .. ':server:getPublicRecordRequestAudit',
+        data and data.id)
+    cb(result or {success = false, error = 'Decision history unavailable'})
+end)
+
 RegisterNUICallback('reviewPublicRecordsRequest', function(data, cb)
     if not MDTOpen then cb({success = false, error = 'MDT is closed'}) return end
     local result = ps.callback(resourceName .. ':server:reviewPublicRecordsRequest', data or {})
