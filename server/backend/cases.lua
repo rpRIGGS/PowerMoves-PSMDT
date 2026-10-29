@@ -43,7 +43,12 @@ ps.registerCallback(resourceName .. ':server:createCase', function(source, paylo
     local summary = payload.summary or ''
     local status = normalizeStatus(payload.status)
     local priority = payload.priority or 'medium'
-    local department = payload.department or ps.getJobName(src) or 'police'
+    local scope = getCaseScope(src)
+    if not scope then return { success = false, error = 'Unauthorized' } end
+    local department = scope.statewide and (payload.department or scope.agency) or scope.agency
+    if type(department) ~= 'string' or department == '' then
+        return { success = false, error = 'Invalid department' }
+    end
 
     local citizenid = ps.getIdentifier(src)
     if not citizenid then
@@ -309,7 +314,16 @@ ps.registerCallback(resourceName .. ':server:updateCase', function(source, caseI
         return { success = false, error = 'Invalid case id' }
     end
 
+    local scope = getCaseScope(src)
+    if not scope then return { success = false, error = 'Unauthorized' } end
+    local existing = MySQL.single.await('SELECT assigned_department FROM mdt_cases WHERE id = ?', { caseId })
+    if not existing or (not scope.statewide and existing.assigned_department ~= scope.agency) then
+        return { success = false, error = 'Case not found or inaccessible' }
+    end
     payload = payload or {}
+    if payload.department and not scope.statewide and payload.department ~= scope.agency then
+        return { success = false, error = 'Cross-department reassignment denied' }
+    end
     local status = payload.status and normalizeStatus(payload.status) or nil
     local priority = payload.priority
 
@@ -368,7 +382,12 @@ ps.registerCallback(resourceName .. ':server:deleteCase', function(source, caseI
         return { success = false, error = 'Invalid case id' }
     end
 
-    local caseRow = MySQL.single.await('SELECT title FROM mdt_cases WHERE id = ?', { caseId })
+    local scope = getCaseScope(src)
+    if not scope then return { success = false, error = 'Unauthorized' } end
+    local caseRow = MySQL.single.await('SELECT title, assigned_department FROM mdt_cases WHERE id = ?', { caseId })
+    if not caseRow or (not scope.statewide and caseRow.assigned_department ~= scope.agency) then
+        return { success = false, error = 'Case not found or inaccessible' }
+    end
     local success = MySQL.query.await('DELETE FROM mdt_cases WHERE id = ?', { caseId })
 
     if not success then
