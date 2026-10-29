@@ -36,3 +36,6 @@ Do not deploy to production or move the Stage 5 *runtime* status to complete unt
 - Added regression coverage for staff employer transfer during a locked transaction.
 
 **Verification:** These files and test definitions were committed and inspected in GitHub. No passing result from the latest GitHub Actions workflow, real oxmysql transaction runtime, NUI build, or FiveM DEV server was available to verify here. The 13 source-wiring assertions reviewed in chat are static checks, not 13 runtime tests.
+
+## Database driver compatibility
+The checked Stage 5 transaction API `MySQL.startTransaction` was added to the oxmysql Lua library in **v2.12.0**. This source path deliberately fails closed on older installations; do not silently replace it with boolean-only batch transactions. Verify the server's actual installed oxmysql version before DEV acceptance.
