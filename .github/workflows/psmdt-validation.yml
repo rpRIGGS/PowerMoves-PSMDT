@@ -70,6 +70,7 @@ jobs:
       - name: Frontend regressions
         working-directory: .
         run: |
+          node tests/phase1/unique_callback_regression.cjs
           node tests/basics/navigation_regression.cjs
           node tests/basics/dashboard_routes_regression.cjs
           node tests/ems_dashboard/frontend_regression.cjs
