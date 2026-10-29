@@ -200,8 +200,12 @@ ps.registerCallback('ps-mdt:server:getRosterList', function(source)
             and CanViewStatewideLeoRoster(source) == true
         if statewide then
             jobList = (Config and Config.PoliceJobs) or {}
-            matchFn = IsPoliceJob
-            scopeJobType = Config and Config.PoliceJobType and tostring(Config.PoliceJobType) or nil
+            -- Statewide visibility is limited to explicitly configured MDT
+            -- employers; unrelated jobs sharing the leo type are excluded.
+            local permitted = {}
+            for _, jobName in ipairs(jobList) do permitted[jobName] = true end
+            matchFn = function(name, _) return permitted[name] == true end
+            scopeJobType = nil
         else
             jobList = { employer }
             matchFn = function(name, _) return name == employer end
