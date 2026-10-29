@@ -741,7 +741,8 @@ ps.registerCallback('ps-mdt:server:updateOfficerCertifications', function(source
     local citizenid = payload.citizenid
     local certifications = payload.certifications
 
-    if not citizenid or type(certifications) ~= 'table' then
+    if type(citizenid) ~= 'string' or citizenid == ''
+        or type(certifications) ~= 'table' then
         return { success = false, message = 'Invalid payload' }
     end
 
