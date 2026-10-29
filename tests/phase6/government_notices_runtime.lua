@@ -13,6 +13,7 @@ local notices = {
 }
 local audits = {}
 local nextId=4
+local publicAtDesk=true
 local failAudit=false
 local transferAtAudit=false
 local function snapshot()
@@ -84,9 +85,23 @@ local env=setmetatable({
             canManage=actor.manage,canPublish=actor.publish,
             hasStateOversight=actor.oversight}
     end,
+    PublicServiceDeskAllows=function(_,agency,service)
+        return publicAtDesk and agency==nil and service=='government_notices'
+    end,
     ps={registerCallback=function(name,fn) callbacks[name]=fn end},
     MySQL={
         query={await=function(sql,args)
+            if sql:find("WHERE status = 'published'",1,true) then
+                assert(args[1]==21 and args[2]%20==0, 'Public notices must paginate')
+                local result={}
+                for _,n in pairs(notices) do
+                    if n.status=='published' then
+                        result[#result+1]={id=n.id,agency=n.agency,jurisdiction=n.jurisdiction,
+                            title=n.title,body=n.body}
+                    end
+                end
+                return result
+            end
             assert(sql:find('status =',1,true))
             assert(sql:find('agency = ?',1,true))
             assert(args[3]==51 and args[4]%50==0)
@@ -111,6 +126,13 @@ assert(loadfile('server/backend/government_notices.lua','t',env))()
 local function call(name,payload)
     return assert(callbacks['ps-mdt:server:'..name],name)(1,payload)
 end
+local public=call('getPublicGovernmentNotices',{page=0})
+assert(public.success and #public.notices==1 and public.notices[1].id==3,
+    'Public counter must see only published notices')
+publicAtDesk=false
+assert(not call('getPublicGovernmentNotices',{page=0}).success,
+    'Remote access to public notices must be denied')
+publicAtDesk=true
 local list=call('getGovernmentNotices',{page=0})
 assert(list.success and #list.notices==2)
 for _,n in ipairs(list.notices) do assert(n.id~=2,'Sibling draft leakage') end
