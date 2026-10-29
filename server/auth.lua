@@ -293,6 +293,48 @@ function GetGovernmentRosterAccess(source)
     }
 end
 
+-- SAGOV notices use separate explicitly granted capabilities. The personnel
+-- roster's state oversight permission does not grant publication authority.
+function GetGovernmentNoticeAccess(source)
+    local initial = GetGovernmentRosterAccess(source)
+    if not initial then return nil end
+    local config = (Config.MdtAccess or {}).GovernmentNotices or {}
+    local ok, row = pcall(MySQL.single.await,
+        'SELECT permissions FROM mdt_permission_roles WHERE job = ? AND grade = ?',
+        {initial.agency, initial.grade})
+    if not ok then return nil end
+    local permissions = {}
+    if row then
+        if type(row.permissions) == 'table' then
+            permissions = row.permissions
+        elseif type(row.permissions) == 'string' then
+            local parsed, result = pcall(json.decode, row.permissions)
+            if parsed and type(result) == 'table' then permissions = result end
+        end
+    else
+        local defaults = (Config.PermissionDefaults or {})[initial.agency] or {}
+        local configured = defaults[tostring(initial.grade)]
+        if type(configured) == 'table' then permissions = configured end
+    end
+    local current = GetGovernmentRosterAccess(source)
+    if not current or initial.citizenid ~= current.citizenid
+        or initial.agency ~= current.agency
+        or initial.grade ~= current.grade
+        or initial.jurisdiction ~= current.jurisdiction then return nil end
+    return {
+        citizenid = current.citizenid,
+        agency = current.agency,
+        jurisdiction = current.jurisdiction,
+        canManage = type(config.ManagePermission) == 'string'
+            and contains(permissions, config.ManagePermission),
+        canPublish = type(config.PublishPermission) == 'string'
+            and contains(permissions, config.PublishPermission),
+        hasStateOversight = current.agency == 'sagov'
+            and type(config.StateOversightPermission) == 'string'
+            and contains(permissions, config.StateOversightPermission),
+    }
+end
+
 function CheckPermission(source, permName)
     if not permName or not CheckAuth(source) then return false end
     local access = GetMdtAccess(source)
