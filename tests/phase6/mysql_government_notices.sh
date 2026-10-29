@@ -2,6 +2,8 @@
 set -euo pipefail
 db=(mariadb --protocol=tcp --host="${MARIADB_HOST:-127.0.0.1}" --port="${MARIADB_PORT:-3306}" --user="${MARIADB_USER:-psmdt}" "${MARIADB_DATABASE:-psmdt_test}")
 "${db[@]}" < sql/migrations/2026-10-29-government-public-notices.sql
+"${db[@]}" < sql/migrations/2026-10-29-government-notice-withdrawal.sql
+"${db[@]}" < sql/migrations/2026-10-29-government-notice-withdrawal.sql
 "${db[@]}" <<'SQL'
 INSERT INTO mdt_government_notices
 (agency,jurisdiction,title,body,status,created_by_citizenid)
@@ -47,4 +49,22 @@ SELECT CONCAT(status,':',version) FROM mdt_government_notices
 WHERE agency='lscgov';")" = 'draft:1'
 test "$("${db[@]}" --batch --skip-column-names -e "
 SELECT COUNT(*) FROM mdt_government_notice_audit WHERE agency='lscgov';")" = 0
+# Withdraw from the public listing without destroying government history.
+"${db[@]}" <<'SQL'
+START TRANSACTION;
+UPDATE mdt_government_notices SET status='withdrawn',version=version+1,
+withdrawn_at=UTC_TIMESTAMP(),withdrawn_by_citizenid='county-publisher'
+WHERE agency='bcgov' AND status='published' AND version=2;
+INSERT INTO mdt_government_notice_audit
+(notice_id,agency,actor_citizenid,action,reason)
+SELECT id,agency,'county-publisher','withdrawn','Superseded notice'
+FROM mdt_government_notices WHERE agency='bcgov' AND status='withdrawn';
+COMMIT;
+SQL
+test "$("${db[@]}" --batch --skip-column-names -e "
+SELECT COUNT(*) FROM mdt_government_notices
+WHERE agency='bcgov' AND status='published';")" = 0
+test "$("${db[@]}" --batch --skip-column-names -e "
+SELECT COUNT(*) FROM mdt_government_notice_audit
+WHERE agency='bcgov' AND action='withdrawn';")" = 1
 echo 'Stage 6 MariaDB public notices: jurisdiction, optimistic version and rollback passed'
