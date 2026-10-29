@@ -1717,3 +1717,10 @@ CREATE TABLE IF NOT EXISTS `mdt_government_notice_audit` (
   PRIMARY KEY (`id`),
   KEY `idx_gov_notice_audit` (`notice_id`, `agency`, `created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Stage 6 published notice withdrawal metadata
+-- Stage 6: published administrative notice withdrawal (never delete history).
+-- Idempotent additive migration; back up the development database first.
+ALTER TABLE `mdt_government_notices`
+  ADD COLUMN IF NOT EXISTS `withdrawn_by_citizenid` VARCHAR(64) DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS `withdrawn_at` DATETIME DEFAULT NULL;
