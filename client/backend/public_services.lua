@@ -208,7 +208,57 @@ local function myBusinessLicenseApplications()
     lib.alertDialog({header='My Business Licenses',content=table.concat(details,'\\n\\n')})
 end
 
+
+-- Vending permits use their own scoped registry; ordinary business licenses
+-- continue through the existing local business-license workflow.
+local function applyForVendingPermit(agency)
+    if not lib or not lib.inputDialog then return end
+    local fields=lib.inputDialog('Vending Permit — ' .. tostring(agency), {
+        {type='input',label='Vending business name',required=true,max=160},
+        {type='textarea',label='Where and what will be sold',required=true,max=4000},
+    })
+    if not fields then return end
+    local result=ps.callback(resourceName .. ':server:applyGovernmentLicense', {
+        agency=agency,licenseType='vending',businessName=fields[1],description=fields[2]
+    })
+    if lib.notify then lib.notify({
+        title='Vending Permits',
+        description=result and (result.success and ('Application #'..tostring(result.id)) or result.error)
+            or 'Service unavailable',
+        type=result and result.success and 'success' or 'error'
+    }) end
+end
+
+local function myVendingPermits()
+    if not lib or not lib.alertDialog then return end
+    local response=ps.callback(resourceName .. ':server:getMyGovernmentLicenses')
+    if not response or response.success~=true then
+        if lib.notify then lib.notify({title='Vending Permits',
+            description=response and response.error or 'Service unavailable',type='error'}) end
+        return
+    end
+    local lines={}
+    for _,entry in ipairs(response.applications or {}) do
+        lines[#lines+1]=('#%s — %s (%s)\n%s\n%s\nExpires: %s'):format(
+            tostring(entry.id),tostring(entry.business_name),tostring(entry.license_type),
+            tostring(entry.agency),tostring(entry.status),
+            tostring(entry.expires_at or 'Not issued'))
+    end
+    lib.alertDialog({header='My Vending Permit Applications',
+        content=#lines>0 and table.concat(lines,'\n\n') or 'No applications found.'})
+end
+
 local serviceHandlers = {
+    government_license_apply = {
+        label='Apply for Vending Permit',
+        icon='fas fa-basket-shopping',
+        open=function(location) applyForVendingPermit(location.agency) end,
+    },
+    government_license_status = {
+        label='My Vending Permit Applications',
+        icon='fas fa-id-card',
+        open=function() myVendingPermits() end,
+    },
     business_license_apply = {
         label='Apply for Local Business License',
         icon='fas fa-store',
@@ -275,7 +325,8 @@ local function getOptions(location)
     for _, serviceId in ipairs(services) do
         local service = serviceHandlers[serviceId]
         if service and (serviceId == 'public_records_request'
-            or serviceId == 'business_license_apply')
+            or serviceId == 'business_license_apply'
+            or serviceId == 'government_license_apply')
             and (type(location.agency) ~= 'string' or location.agency == '') then
             log('Skipping records request at a location with no receiving agency: ' .. tostring(location.id))
         elseif service then
