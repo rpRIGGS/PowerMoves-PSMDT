@@ -824,8 +824,9 @@ ps.registerCallback('ps-mdt:server:promoteOfficer', function(source, payload)
     local jobName = payload.job
     local newGrade = tonumber(payload.grade)
 
-    if not citizenid or not jobName or not newGrade then
-        return { success = false, message = 'Missing required fields' }
+    if not citizenid or not jobName or not newGrade
+        or newGrade < 0 or newGrade % 1 ~= 0 then
+        return { success = false, message = 'Missing or invalid required fields' }
     end
 
     if not CanManageMdtPersonnel(src, citizenid, jobName) then
