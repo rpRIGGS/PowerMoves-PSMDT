@@ -17,7 +17,7 @@ Status: **Source implementation candidate — NOT runtime accepted** (October 29
 
 ## Before testing
 1. Back up DEV database and PSMDT.
-2. Apply migrations in order:
+2. On an **existing** PSMDT database, apply the additive Stage 5 migrations in order. On a fresh database install, `sql/qbcore.sql` and `sql/qbx.sql` already include these Stage 5 tables (choose the appropriate base schema):
    - `sql/migrations/2026-10-29-public-records-intake.sql`
    - `sql/migrations/2026-10-29-public-records-review.sql`
    - `sql/migrations/2026-10-29-public-records-response.sql`
@@ -36,7 +36,7 @@ Status: **Source implementation candidate — NOT runtime accepted** (October 29
 - Denied requests show their status and an applicant-scoped denial explanation; restricted source documents and internal audit rows are never attached automatically.
 - qb-target service zones recover after restart; civilian ox_lib forms and the integrated staff MDT panel render.
 - Existing LEO, EMS, fire, DOJ, IA and evidence workflows remain unaffected.
-- Run Lua syntax, CI source checks and MariaDB migration/integration tests; inspect FiveM F8 and server logs.
+- Run Lua syntax, CI source checks and MariaDB migration/integration tests; confirm both clean-install schema files and additive migrations. Inspect FiveM F8 and server logs.
 
 ## Limitations / unresolved
 - Source writes are committed, but the latest GitHub Actions results and DEV FiveM results have **not** been independently verified. Do not describe unexecuted regressions as passing.
