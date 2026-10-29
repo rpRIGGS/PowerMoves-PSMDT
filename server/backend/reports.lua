@@ -474,6 +474,14 @@ ps.registerCallback(resourceName..':server:getReport', function(source, reportid
         ps.warn(('[getReport] Failed to enrich involved data: %s'):format(tostring(enrichErr)))
     end
 
+    -- Report enrichment may yield across permission revocation or job changes.
+    if not CheckAuth(src) or ps.getIdentifier(src) ~= identifier
+        or ps.getJobName(src) ~= job
+        or not checkReportAccess(src, tonumber(reportid)) then return nil end
+    if ps.auditLog and hasReportDisclosure(src, tonumber(reportid)) then
+        ps.auditLog(src,'report_disclosure_accessed','report',tonumber(reportid),
+            {recipient=identifier})
+    end
     return report
 end)
 
