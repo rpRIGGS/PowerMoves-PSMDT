@@ -1514,3 +1514,22 @@ CREATE TABLE IF NOT EXISTS `mdt_bulletin_posts` (
   KEY `idx_mdt_bulletin_posts_job` (`job`,`pinned`),
   KEY `idx_mdt_bulletin_posts_job_category` (`job`,`category`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Permanent, person-owned state certifications (separate from employer-private FTO DORs).
+CREATE TABLE IF NOT EXISTS `mdt_personal_accreditations` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `citizenid` varchar(64) NOT NULL,
+  `credential_code` varchar(64) NOT NULL,
+  `credential_name` varchar(160) NOT NULL,
+  `credential_family` varchar(16) NOT NULL,
+  `specialization` varchar(160) DEFAULT NULL,
+  `issued_by_job` varchar(64) NOT NULL,
+  `issued_by_citizenid` varchar(64) NOT NULL,
+  `issued_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `expires_at` date DEFAULT NULL,
+  `source_reference` varchar(128) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_accreditation_citizen` (`citizenid`, `credential_family`),
+  KEY `idx_accreditation_issuer` (`issued_by_job`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
