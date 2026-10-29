@@ -250,11 +250,10 @@
 			...r,
 			evidence: r.evidence.map((e) => ({
 				...e,
-				images: e.images.filter((img) =>
-					typeof img === "string"
-						? !img.startsWith("data:")
-						: !img.url?.startsWith("data:")
-				),
+				images: e.images.filter((img) => {
+					const url = typeof img === "string" ? img : (img as { url?: string }).url;
+					return !url?.startsWith("data:");
+				}),
 			})),
 		};
 	}
@@ -597,7 +596,7 @@
 		try {
 			const suspectCharges = report.charges
 				.filter((c) => c.citizenid === suspect.citizenid)
-				.map((c) => c.charge || c.title || 'Unknown Charge');
+				.map((c) => c.charge || 'Unknown Charge');
 
 			const payload = {
 				citizenid: suspect.citizenid,
