@@ -565,6 +565,13 @@ Config.MdtAccess = {
         PublishPermission = 'government_notice_publish',
         StateOversightPermission = 'government_notice_oversight',
     },
+    -- Local applications route by the configured counter's government job,
+    -- never an arbitrary job or tax authority supplied by a citizen.
+    GovernmentBusinessLicenses = {
+        ReviewPermission = 'government_business_license_review',
+        IssuePermission = 'government_business_license_issue',
+        StateOversightPermission = 'government_business_license_oversight',
+    },
     GovernmentLicensing = {
         ReviewPermission = 'government_license_review',
         ApprovePermission = 'government_license_approve',
