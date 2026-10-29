@@ -30,8 +30,8 @@ ps.registerCallback(resourceName .. ':server:getPublicRecordsOfficeQueue', funct
     end
     local pageSize = 50
     local ok, rows = pcall(MySQL.query.await, [[
-        SELECT id, request_number, applicant_citizenid, agency, subject,
-               description, status, created_at
+        SELECT id, request_number, applicant_citizenid, assigned_to_citizenid,
+               agency, subject, description, status, created_at
         FROM mdt_public_record_requests WHERE agency = ?
         ORDER BY CASE WHEN status IN ('submitted', 'under_review') THEN 0 ELSE 1 END,
                  created_at ASC, id ASC
@@ -160,6 +160,14 @@ ps.registerCallback(resourceName .. ':server:reviewPublicRecordsRequest', functi
             WHERE id = ? AND agency = ? AND status = ?
         ]], {action, id, job, previous})
         if not updatedExactlyOne(changed) then return false end
+        if action == 'under_review' then
+            local assigned = query([[
+                UPDATE mdt_public_record_requests
+                SET assigned_to_citizenid = ?, assigned_at = UTC_TIMESTAMP()
+                WHERE id = ? AND agency = ? AND status = 'under_review'
+            ]], {cid, id, job})
+            if not updatedExactlyOne(assigned) then return false end
+        end
 
         local audit = query([[
             INSERT INTO mdt_public_record_request_audit
