@@ -998,6 +998,10 @@ Config.Weapons = {
 --  lifecycle and the attendee quick-add groups.
 -- ============================================================================
 Config.Court = {
+    -- Stage 2: only enable on DEV after applying
+    -- sql/migrations/2026-10-28-calendar-owner-job.sql.
+    -- NULL legacy event owners remain quarantined, not silently reassigned.
+    DepartmentCalendarOwnership = false,
     -- How many minutes before a hearing the reminder SMS goes out.
     ReminderLeadMinutes = 15,
 
