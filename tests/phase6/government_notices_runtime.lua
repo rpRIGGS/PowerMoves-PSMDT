@@ -44,15 +44,17 @@ local function transact(sql,params)
     end
     if sql:find('UPDATE mdt_government_notices',1,true) then
         local publishing=sql:find("status = 'published'",1,true)~=nil
-        local id=publishing and params[2] or params[3]
-        local agency=publishing and params[3] or params[4]
-        local version=publishing and params[5] or params[5]
+        local withdrawing=sql:find("status = 'withdrawn'",1,true)~=nil
+        local id=(publishing or withdrawing) and params[2] or params[3]
+        local agency=(publishing or withdrawing) and params[3] or params[4]
+        local version=params[5]
         local n=notices[id]
-        if not n or n.agency~=agency or n.status~='draft'
+        if not n or n.agency~=agency
+            or n.status~=(withdrawing and 'published' or 'draft')
             or n.version~=version then return {affectedRows=0} end
-        if publishing then
+        if publishing or withdrawing then
             if n.jurisdiction~=params[4] then return {affectedRows=0} end
-            n.status='published'
+            n.status=withdrawing and 'withdrawn' or 'published'
         else
             n.title=params[1];n.body=params[2]
         end
@@ -153,6 +155,14 @@ actor.publish=true
 assert(call('publishGovernmentNotice',{id=1,version=2}).success)
 assert(notices[1].status=='published' and #audits==3)
 assert(not call('publishGovernmentNotice',{id=1,version=2}).success)
+assert(not call('withdrawGovernmentNotice',{id=1,version=3,reason=''}).success)
+assert(call('withdrawGovernmentNotice',{id=1,version=3,reason='Superseded'}).success)
+assert(notices[1].status=='withdrawn' and #audits==4)
+assert(not call('withdrawGovernmentNotice',{id=1,version=3,reason='Repeated'}).success)
+local afterWithdrawal=call('getPublicGovernmentNotices',{page=0})
+assert(afterWithdrawal.success and #afterWithdrawal.notices==1
+    and afterWithdrawal.notices[1].id==3,
+    'Withdrawn government notices must disappear from public counter')
 actor.manage=false
 assert(not call('createGovernmentNotice',{title='No role',body='Not authorized'}).success)
 actor.manage=true
