@@ -319,7 +319,7 @@
 	let vehicleList: Vehicle[] = $state([]);
 	let searchQuery = $state("");
 	let loading = $state(false);
-	let selectedVehicle: VehicleDetails | null = $state(null);
+	let selectedVehicle = $state<VehicleDetails | null>(null);
 	let vehicleDetailLoading = $state(false);
 	let vehicleDetailError = $state<string | null>(null);
 	let editingNotes = $state(false);
