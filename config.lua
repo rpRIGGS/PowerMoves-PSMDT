@@ -578,6 +578,15 @@ Config.MdtAccess = {
     },
     -- State Tax Assessor's Office roles belong to the Governor's Office,
     -- not a separate QBCore job or a server-admin power.
+    -- Legislative authority is independent of notices, government budgets,
+    -- tax assessment, and government employment permissions.
+    GovernmentLegislation = {
+        DraftPermission = 'government_legislation_draft',
+        VotePermission = 'government_legislation_vote',
+        CertifyPermission = 'government_legislation_certify',
+        PublishPermission = 'government_legislation_publish',
+        StateOversightPermission = 'government_legislation_oversight',
+    },
     GovernmentPropertyAssessments = {
         AssessPermission = 'government_property_assess',
         ViewPermission = 'government_property_assessment_view',
