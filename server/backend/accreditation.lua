@@ -140,6 +140,13 @@ ps.registerCallback(resourceName .. ':server:issueAccreditation', function(sourc
     if not issuer or not actor or not ensureSchema() then
         return {success = false, message = 'Accreditation unavailable'}
     end
+    -- Schema setup can also yield. Do not attribute issuance to a new
+    -- character or department if the employee changed during initialization.
+    if not CheckAuth(source) or ps.getJobName(source) ~= issuer
+        or ps.getIdentifier(source) ~= actor or issuerFamily(source) ~= family
+        or not CheckPermission(source, 'roster_manage_certifications') then
+        return {success = false, message = 'Authorization changed'}
+    end
     local ok, id = pcall(function()
         return MySQL.insert.await([[
             INSERT INTO mdt_personal_accreditations
