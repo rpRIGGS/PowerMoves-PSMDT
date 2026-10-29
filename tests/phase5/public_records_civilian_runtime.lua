@@ -4,6 +4,7 @@ local callbacks, rows, responses = {}, {}, {}
 local actor = {cid='CIV-A', nearDesk=true}
 local now, nextId = 100000, 1
 local changeCidDuringQuery, changeLocationDuringQuery = false, false
+local changeCidDuringUpdate = false
 local env = setmetatable({
     GetCurrentResourceName=function() return 'ps-mdt' end,
     GetGameTimer=function() return now end,
@@ -30,6 +31,10 @@ local env = setmetatable({
             local row=rows[args[2]]
             if not row or row.cid~=args[3] then return 0 end
             row.number=args[1]
+            if changeCidDuringUpdate then
+                actor.cid='CIV-B'
+                changeCidDuringUpdate=false
+            end
             return 1
         end},
         query={await=function(sql,args)
@@ -86,4 +91,18 @@ changeLocationDuringQuery=true
 assert(#call('getMyPublicRecordRequests')==0,'Leaving public counter during query must deny response')
 actor.nearDesk=false
 assert(not call('getMyPublicRecordsResponse',a.requestNumber).success,'Remote direct read must be denied')
-print('PASS Stage 5 civilian intake, cooldown, counter, owner and mid-read isolation')
+-- An asynchronous insert can finish after the player changes character.
+-- The request stays with CIV-A, but its tracking number must not go to CIV-B.
+actor.nearDesk=true
+actor.cid='CIV-A'
+now=now+61000
+changeCidDuringUpdate=true
+local switched=call('submitPublicRecordRequest',{
+    agency='lspd',subject='Switched account',description='Save to original citizen only'
+})
+assert(not switched.success,'Do not reveal tracking number after a character switch')
+assert(actor.cid=='CIV-B' and #call('getMyPublicRecordRequests')==0)
+actor.cid='CIV-A'
+assert(#call('getMyPublicRecordRequests')==2,'Original citizen retains saved request')
+
+print('PASS Stage 5 civilian intake, cooldown, counter, owner and async identity isolation')
