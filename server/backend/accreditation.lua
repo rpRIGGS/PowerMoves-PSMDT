@@ -127,11 +127,16 @@ ps.registerCallback(resourceName .. ':server:issueAccreditation', function(sourc
             return {success = false, message = 'Expiry must be YYYY-MM-DD'}
         end
     end
+    local originalActor, originalIssuer = ps.getIdentifier(source), ps.getJobName(source)
+    if not originalActor or not originalIssuer then
+        return {success = false, message = 'Unauthorized'}
+    end
     local found = MySQL.scalar.await('SELECT citizenid FROM players WHERE citizenid = ? LIMIT 1', {citizenid})
     if not found then return {success = false, message = 'Character not found'} end
     -- The target-citizen lookup may yield. Revalidate the exact issuer and
     -- actor before adding a permanent credential to the shared ledger.
     if not CheckAuth(source) or issuerFamily(source) ~= family
+        or ps.getIdentifier(source) ~= originalActor or ps.getJobName(source) ~= originalIssuer
         or not CheckPermission(source, 'roster_manage_certifications') then
         return {success = false, message = 'Authorization changed'}
     end
