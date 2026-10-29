@@ -2,6 +2,7 @@
 local resourceName=tostring(GetCurrentResourceName())
 local actions={
     getGovernmentBusinessLicenses='getGovernmentBusinessLicenses',
+    getGovernmentBusinessLicenseAuthorities='getGovernmentBusinessLicenseAuthorities',
     decideGovernmentBusinessLicense='decideGovernmentBusinessLicense',
 }
 for nui,callback in pairs(actions) do
