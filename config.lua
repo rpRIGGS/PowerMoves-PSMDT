@@ -40,29 +40,24 @@ Config.Sharingleo = {
     },
 
     OneWay = {
+        -- SADLE statewide oversight of other LEO agencies, including FIB.
         {
-            viewers = {
-                'sadle',
-                'fib'
-            },
+            viewers = { 'sadle' },
             targets = {
-                'post',
-                'lspd',
-                'lspe',
-                'lscso',
-                'bcso',
-                'sahp',
-                'sasp',
-                'saspa',
-                'fib'
+                'post', 'lspd', 'lspe', 'lscso', 'bcso',
+                'sahp', 'sasp', 'saspa', 'fib'
             },
-            types = {
-                'reports',
-                'bodycams',
-                'evidence',
-                'bolos',
-                'warrants'
-            }
+            types = { 'reports', 'bodycams', 'evidence', 'bolos', 'warrants' }
+        },
+        -- FIB statewide/federal investigative oversight. SADLE is a separate
+        -- agency and remains visible to authorized FIB investigators.
+        {
+            viewers = { 'fib' },
+            targets = {
+                'post', 'lspd', 'lspe', 'lscso', 'bcso',
+                'sahp', 'sasp', 'saspa', 'sadle'
+            },
+            types = { 'reports', 'bodycams', 'evidence', 'bolos', 'warrants' }
         }
     }
 }
