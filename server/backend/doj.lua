@@ -48,6 +48,8 @@ ps.registerCallback(resourceName .. ':server:getCourtCases', function(source, pa
     local src = source
     if not CheckAuth(src) or not CheckPermission(src, 'court_view') then return { cases = {}, total = 0 } end
 
+    local originalActor, originalEmployer = ps.getIdentifier(src), ps.getJobName(src)
+    if not originalActor or not originalEmployer then return {cases={},total=0} end
     page = tonumber(page) or 1
     limit = tonumber(limit) or 20
     if limit > 100 then limit = 100 end
@@ -103,6 +105,11 @@ ps.registerCallback(resourceName .. ':server:getCourtCases', function(source, pa
         LIMIT ? OFFSET ?
     ]]):format(whereClause), values)
 
+    if not CheckAuth(src) or not CheckPermission(src, 'court_view')
+        or ps.getIdentifier(src) ~= originalActor
+        or ps.getJobName(src) ~= originalEmployer then
+        return {cases={},total=0}
+    end
     return { cases = rows or {}, total = total }
 end)
 
@@ -113,7 +120,12 @@ ps.registerCallback(resourceName .. ':server:getCourtCase', function(source, cas
     caseId = tonumber(caseId)
     if not caseId then return nil end
 
+    local originalActor, originalEmployer = ps.getIdentifier(src), ps.getJobName(src)
+    if not originalActor or not originalEmployer then return nil end
     local row = MySQL.single.await('SELECT * FROM mdt_court_cases WHERE id = ?', { caseId })
+    if not CheckAuth(src) or not CheckPermission(src, 'court_view')
+        or ps.getIdentifier(src) ~= originalActor
+        or ps.getJobName(src) ~= originalEmployer then return nil end
     return row
 end)
 
