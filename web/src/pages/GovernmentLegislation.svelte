@@ -19,6 +19,10 @@ interface Listing {
   canCertify?: boolean; canPublish?: boolean;
 }
 interface Result { success: boolean; error?: string; votes?: Vote[]; }
+type LegislativeAction =
+  | "createGovernmentMeasure" | "editGovernmentMeasure"
+  | "openGovernmentMeasureVote" | "castGovernmentOfficialVote"
+  | "certifyGovernmentMeasure" | "publishGovernmentMeasure";
 
 let page = $state(0), hasMore = $state(false);
 let measures = $state<Measure[]>([]), selected = $state<Measure | null>(null);
@@ -93,7 +97,7 @@ function changePage(next: number) {
   if (loading || saving || next < 0 || next > 200 || (next > page && !hasMore)) return;
   page = next; selected = null; creating = false; votes = []; void load();
 }
-async function post(action: string, payload: Record<string, unknown>, successMessage: string) {
+async function post(action: LegislativeAction, payload: Record<string, unknown>, successMessage: string) {
   if (saving) return;
   saving = true; error = "";
   try {
@@ -114,7 +118,7 @@ function saveDraft() {
     : {measureType,title:title.trim(),body:body.trim()};
   void post(action,payload,item ? "Draft updated." : "Legislative draft created.");
 }
-function act(action: string, additional: Record<string, unknown> = {}) {
+function act(action: LegislativeAction, additional: Record<string, unknown> = {}) {
   const item = selected;
   if (!item || item.agency !== agency || !item.version) return;
   void post(action, {id:item.id,version:item.version,...additional}, "Official action recorded.");
