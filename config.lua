@@ -1122,21 +1122,21 @@ Config.Court = {
     -- onlyOnDuty: only include players currently on duty
     Groups = {
         -- Police / DOJ domain
-        { id = 'all_officers', label = 'All Officers',  role = 'officer',  domain = 'police', jobType = Config.PoliceJobType },
-        { id = 'rookies',      label = 'Rookies',       role = 'officer',  domain = 'police', jobType = Config.PoliceJobType, maxGrade = 1 },
-        { id = 'on_duty',      label = 'On-Duty Units', role = 'officer',  domain = 'police', jobType = Config.PoliceJobType, onlyOnDuty = true },
-        { id = 'all_doj',      label = 'All DOJ',       role = 'attendee', domain = 'police', jobType = Config.DojJobType },
+        { id = 'all_officers', label = 'All Officers',  role = 'officer',  domain = 'police', jobs = Config.PoliceJobs },
+        { id = 'rookies',      label = 'Rookies',       role = 'officer',  domain = 'police', jobs = Config.PoliceJobs, maxGrade = 1 },
+        { id = 'on_duty',      label = 'On-Duty Units', role = 'officer',  domain = 'police', jobs = Config.PoliceJobs, onlyOnDuty = true },
+        { id = 'all_doj',      label = 'All DOJ',       role = 'attendee', domain = 'police', jobs = Config.DojJobs },
         { id = 'judges',       label = 'Judges',        role = 'judge',    domain = 'police', jobs = { 'sadoj' }, minGrade = 8, maxGrade = 10 },
         { id = 'lawyers',      label = 'Lawyers',       role = 'attendee', domain = 'police', jobs = { 'lawyer' } },
 
         -- Fire Rescue uses the shared legacy EMS calendar domain, but is a
         -- distinct QBCore job type. Keep fire-specific quick-add audiences.
-        { id = 'all_fire',       label = 'All Fire Rescue', role = 'attendee', domain = 'ems', jobType = Config.FireJobType },
-        { id = 'fire_on_duty',   label = 'On-Duty Fire',     role = 'attendee', domain = 'ems', jobType = Config.FireJobType, onlyOnDuty = true },
+        { id = 'all_fire',       label = 'All Fire Rescue', role = 'attendee', domain = 'ems', jobs = Config.FireJobs },
+        { id = 'fire_on_duty',   label = 'On-Duty Fire',     role = 'attendee', domain = 'ems', jobs = Config.FireJobs, onlyOnDuty = true },
         -- Hospital EMS domain
-        { id = 'all_ems',       label = 'All EMS',        role = 'attendee', domain = 'ems', jobType = Config.MedicalJobType },
-        { id = 'ems_rookies',   label = 'EMS Rookies',    role = 'trainee',  domain = 'ems', jobType = Config.MedicalJobType, maxGrade = 1 },
-        { id = 'ems_on_duty',   label = 'On-Duty EMS',    role = 'attendee', domain = 'ems', jobType = Config.MedicalJobType, onlyOnDuty = true },
+        { id = 'all_ems',       label = 'All EMS',        role = 'attendee', domain = 'ems', jobs = Config.MedicalJobs },
+        { id = 'ems_rookies',   label = 'EMS Rookies',    role = 'trainee',  domain = 'ems', jobs = Config.MedicalJobs, maxGrade = 1 },
+        { id = 'ems_on_duty',   label = 'On-Duty EMS',    role = 'attendee', domain = 'ems', jobs = Config.MedicalJobs, onlyOnDuty = true },
     },
 }
 -- ═══════════════════════════════════════════════════════════════════════════
