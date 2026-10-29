@@ -646,3 +646,40 @@ ps.registerCallback(resourceName .. ':server:getSADLEIAReferrals', function(sour
     end
     return ok and rows or {}
 end)
+
+
+-- SADLE may accept a pending referral for investigation. The complaint remains
+-- owned by the original agency; this merely records the formal state handoff.
+ps.registerCallback(resourceName .. ':server:acceptSADLEIAReferral', function(source, referralId)
+    local src = source
+    local id = tonumber(referralId)
+    if not id then return {success = false, error = 'Invalid referral'} end
+    if ps.getJobName(src) ~= 'sadle' or not canManageIA(src) then
+        return {success = false, error = 'SADLE IA authorization required'}
+    end
+    local actor = ps.getIdentifier(src)
+    if not actor then return {success = false, error = 'Invalid investigator'} end
+    if not iaReferralSchemaReady() then
+        return {success = false, error = 'Referral storage unavailable'}
+    end
+    if ps.getJobName(src) ~= 'sadle' or ps.getIdentifier(src) ~= actor
+        or not canManageIA(src) then
+        return {success = false, error = 'Authorization changed'}
+    end
+    -- The status predicate prevents overwriting an already accepted referral.
+    local ok, changed = pcall(MySQL.update.await, [[
+        UPDATE mdt_ia_referrals r
+        INNER JOIN mdt_ia_complaints c ON c.id = r.complaint_id
+        SET r.status = 'accepted', r.received_by_citizenid = ?,
+            r.received_at = NOW()
+        WHERE r.id = ? AND r.status = 'pending' AND c.job_type = 'police'
+    ]], {actor, id})
+    if not ok or tonumber(changed) ~= 1 then
+        return {success = false, error = 'Pending police referral not found'}
+    end
+    if ps.auditLog then
+        ps.auditLog(src, 'ia_referral_accepted', 'ia_referral', tostring(id),
+            {accepted_by = actor})
+    end
+    return {success = true}
+end)
