@@ -226,6 +226,10 @@ ps.registerCallback(resourceName .. ':server:getCase', function(source, caseId)
         and not hasCaseDisclosure(src, caseId) then
         return {success=false,error='Disclosure expired or revoked'}
     end
+    if caseRow.assigned_department ~= current.agency and ps.auditLog then
+        ps.auditLog(src,'case_disclosure_accessed','case',caseId,
+            {recipient=ps.getIdentifier(src),originating_department=caseRow.assigned_department})
+    end
     return {
         success = true,
         data = {
