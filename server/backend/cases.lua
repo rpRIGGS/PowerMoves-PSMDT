@@ -215,6 +215,17 @@ ps.registerCallback(resourceName .. ':server:getCase', function(source, caseId)
         ORDER BY created_at DESC
     ]], { caseId })
 
+    -- Each detail section is queried separately; reject stale grants, duty
+    -- loss or employer changes before returning the combined case payload.
+    local current = getCaseScope(src)
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_view') or not current
+        or current.agency ~= scope.agency or current.statewide ~= scope.statewide then
+        return {success=false,error='Authorization changed'}
+    end
+    if not current.statewide and caseRow.assigned_department ~= current.agency
+        and not hasCaseDisclosure(src, caseId) then
+        return {success=false,error='Disclosure expired or revoked'}
+    end
     return {
         success = true,
         data = {
