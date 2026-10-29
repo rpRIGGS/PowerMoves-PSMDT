@@ -54,7 +54,8 @@ local function sql(query,args)
     end
     error('Unexpected assessor SQL: '..query)
 end
-local env=setmetatable({
+local env
+env=setmetatable({
     Config={MdtAccess={GovernmentJurisdictions={
         state={label='San Andreas'},blaine_county={label='Blaine',parent='state'},
         los_santos_county={label='LS County',parent='state'},
