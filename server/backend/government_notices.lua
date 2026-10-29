@@ -200,3 +200,35 @@ ps.registerCallback(resourceName .. ':server:publishGovernmentNotice', function(
     end
     return {success=true}
 end)
+
+-- Civilian public kiosk: never sends draft data or unpublished audit entries.
+-- No standalone slash command or unrestricted remote public callback.
+ps.registerCallback(resourceName .. ':server:getPublicGovernmentNotices', function(source, payload)
+    if type(PublicServiceDeskAllows) ~= 'function'
+        or not PublicServiceDeskAllows(source, nil, 'government_notices') then
+        return {success=false, error='Public notices counter unavailable'}
+    end
+    local page = integer(type(payload)=='table' and payload.page or 0, 0, 200)
+    if not page then return {success=false, error='Invalid public notice page'} end
+    local ok, rows = pcall(MySQL.query.await, [[
+        SELECT id, agency, jurisdiction, title, body, published_at
+        FROM mdt_government_notices
+        WHERE status = 'published'
+        ORDER BY published_at DESC, id DESC
+        LIMIT ? OFFSET ?
+    ]], {21, page*20})
+    if not ok or not PublicServiceDeskAllows(source, nil, 'government_notices') then
+        return {success=false, error='Public counter access changed'}
+    end
+    rows = type(rows) == 'table' and rows or {}
+    local more = #rows > 20
+    if more then rows[#rows] = nil end
+    local visible = {}
+    for _, row in ipairs(rows) do
+        if type(CanViewGovernmentJurisdictionRecord) == 'function'
+            and CanViewGovernmentJurisdictionRecord(nil, row.jurisdiction, true, false) then
+            visible[#visible+1] = row
+        end
+    end
+    return {success=true, notices=visible, hasMore=more, page=page}
+end)
