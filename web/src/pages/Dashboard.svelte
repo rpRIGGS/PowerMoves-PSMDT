@@ -229,8 +229,8 @@
 		if (activeInstance) tabService.setInstanceTab(activeInstance.id, "BOLOs");
 	}
 
-	function viewReport(reportId: string) {
-		openReportInEditor(reportId);
+	function viewReport(reportId: number) {
+		openReportInEditor(String(reportId));
 		tabService.setActiveTab("Reports");
 		const activeInstance = tabService.getActiveInstance();
 		if (activeInstance) tabService.setInstanceTab(activeInstance.id, "Reports");
@@ -258,7 +258,7 @@
 
 	function openWarrant(reportId: number) {
 		if (!reportId) return;
-		openReportInEditor(reportId);
+		openReportInEditor(String(reportId));
 		tabService.setActiveTab("Reports");
 		const activeInstance = tabService.getActiveInstance();
 		if (activeInstance) tabService.setInstanceTab(activeInstance.id, "Reports");
