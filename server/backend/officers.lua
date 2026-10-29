@@ -14,7 +14,7 @@ ps.registerCallback(resourceName .. ':server:GetPlayerSourceId', function(source
         ps.notify(source, 'Citizen seems asleep / missing', 'error')
         return nil
     end
-    return targetPlayer.source or targetPlayer.PlayerData.source
+    return targetPlayer.source or (targetPlayer.PlayerData and targetPlayer.PlayerData.source)
 end)
  
 -- Set Callsign
