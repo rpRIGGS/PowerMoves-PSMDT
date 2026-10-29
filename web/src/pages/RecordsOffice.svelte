@@ -8,13 +8,14 @@
     interface RequestItem {
         id: number;
         request_number: string | null;
+        applicant_citizenid: string;
         agency: string;
         subject: string;
         description: string;
         status: string;
         created_at: string;
     }
-    interface QueueResult { success: boolean; error?: string; requests?: RequestItem[]; }
+    interface QueueResult { success: boolean; error?: string; requests?: RequestItem[]; page?: number; hasMore?: boolean; }
     interface DecisionResult { success: boolean; error?: string; }
     interface AuditEntry {
         action: string;
@@ -32,6 +33,8 @@
     let info = $state("");
     let loading = $state(false);
     let saving = $state(false);
+    let page = $state(0);
+    let hasMore = $state(false);
     let history = $state<AuditEntry[]>([]);
     let historyLoading = $state(false);
 
@@ -55,14 +58,16 @@
         loading = true;
         error = "";
         try {
-            const result = await fetchNui<QueueResult>("getPublicRecordsOfficeQueue", {}, { success: false });
+            const result = await fetchNui<QueueResult>("getPublicRecordsOfficeQueue", { page }, { success: false });
             if (!result?.success) {
                 items = [];
                 selected = null;
+                hasMore = false;
                 error = result?.error || "Records-office access denied.";
                 return;
             }
             items = Array.isArray(result.requests) ? result.requests : [];
+            hasMore = result.hasMore === true;
             if (selected) selected = items.find(item => item.id === selected?.id) ?? null;
         } catch {
             error = "Unable to load the records-office queue.";
@@ -71,6 +76,14 @@
         } finally {
             loading = false;
         }
+    }
+
+    function changePage(nextPage: number) {
+        if (loading || saving || nextPage < 0 || nextPage > 200 || (nextPage > page && !hasMore)) return;
+        page = nextPage;
+        selected = null;
+        history = [];
+        void reload();
     }
 
     function choose(item: RequestItem) {
@@ -167,6 +180,11 @@
                     <small>{item.agency} · {item.status}</small>
                 </button>
             {/each}
+            <div class="pagination">
+                <button onclick={() => changePage(page - 1)} disabled={loading || saving || page === 0}>Previous</button>
+                <span>Page {page + 1}</span>
+                <button onclick={() => changePage(page + 1)} disabled={loading || saving || !hasMore || page >= 200}>Next</button>
+            </div>
         </div>
 
         <div class="detail">
@@ -174,7 +192,7 @@
                 <h3>{selected.request_number || `Request #${selected.id}`}</h3>
                 <p><strong>{selected.subject}</strong></p>
                 <p class="description">{selected.description}</p>
-                <p>Agency: {selected.agency} · Status: {selected.status}</p>
+                <p>Agency: {selected.agency} · Requester: {selected.applicant_citizenid} · Status: {selected.status}</p>
                 <section class="history">
                     <h3>Decision history</h3>
                     {#if historyLoading}<p>Loading history…</p>
@@ -231,6 +249,8 @@
     .queue, .detail { border: 1px solid rgba(255,255,255,.14); border-radius: 8px; padding: 16px; min-width: 0; }
     .queue button { text-align: left; width: 100%; display: flex; flex-direction: column; gap: 5px; margin: 6px 0; }
     .queue button.selected { border-color: var(--primary-text); }
+    .pagination { display: flex; gap: 8px; align-items: center; margin-top: 16px; }
+    .pagination button { width: auto; }
     small { opacity: .65; }
     button, select, textarea { background: rgba(255,255,255,.06); color: inherit; border: 1px solid rgba(255,255,255,.2); padding: 8px 12px; border-radius: 5px; font: inherit; }
     button { cursor: pointer; }
