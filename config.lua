@@ -175,8 +175,9 @@ Config.PublicServices = {
     DefaultDistance = 2.0,
     RecordsOfficers = {}, -- explicit reviewer allowlist; empty until configured
     Locations = {
-        -- Stage 5: add 'public_records_request' and 'public_records_status' to a real
-        -- service desk's services list to activate citizen requests. The location's
+        -- Stage 5: add 'public_records_request' and 'public_records_status' at public counters,
+        -- and 'records_office' at authorized staff counters to open the same MDT NUI.
+        -- No /recordsdesk command; actual vector3/poly locations are configured here. The location's
         -- agency is the receiving records office, verified server-side; do not
         -- publish fictitious MLO coordinates. Record releases are NOT enabled.
         -- Configure actual MLO coordinates before use. Examples:
