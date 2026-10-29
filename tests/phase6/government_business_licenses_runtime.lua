@@ -62,7 +62,8 @@ local function query(sql,args)
     end
     error('Unexpected transaction SQL '..sql)
 end
-local env=setmetatable({
+local env
+env=setmetatable({
     GetCurrentResourceName=function() return 'ps-mdt' end,
     GetGameTimer=function() return now end,
     Config={MdtAccess={
