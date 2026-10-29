@@ -32,3 +32,17 @@ No user server or production SQL was modified by these commits.
 - Lua behavior tests in `tests/phase4/ia_referral_runtime.lua` exercise local submission, denial across departments, SADLE queue/acceptance and denial for unauthorized actors. Source contract tests verify the bridges and migrations.
 
 **Next gates:** controlled complainant notification, department-command case-specific disclosures, SADLE referral assignment, record-level grants for DOJ prosecution/defense discovery, revoke and audit trail, plus real FiveM/SQL integration tests. Referral acceptance alone does not confer unrestricted permission to view private evidence or medical charts.
+
+## Controlled case/report discovery implementation (source complete candidate)
+
+New modules and NUI controls provide individually named, read-only disclosure for `mdt_cases` and `mdt_reports`:
+
+- Case grant, revocation, management history and recipient inbox; the normal case detail callback validates the active grant after all database reads. Each cross-employer disclosed read creates an audit log.
+- Report grant, revocation, management history and recipient inbox; the existing report access checker recognizes active grants without relaxing the owner restriction for writes. Disclosed report reads are reauthorized and audited.
+- Both grant types bind the recipient's citizen ID **and original employing job**. Reemployment into a different agency does not silently transfer the discovery grant.
+- Ordinary law-enforcement supervisors cannot manufacture a grant for another agency's case or report. Case grants require `cases_edit` and current case ownership; report grants use the existing privileged `reports_delete` capability and an explicit report `owner` marker. Legacy ownerless reports are not auto-shared.
+- Grant records carry purpose, issuer, timestamps, and revocation information. Existing independent evidence, hospital charts and IA confidential notes are not automatically disclosed. Separate linked reports require their own grants.
+- Migrations are additive: `sql/migrations/2026-10-28-case-disclosures.sql` and `2026-10-28-report-disclosures.sql`; clean QBCore/QBX install schemas contain both tables. Nothing has been installed on the user's server.
+- Automated source/mocked-SQL tests live in `tests/phase4/` and GitHub Actions. The required real acceptance is documented at `planning/PSMDT_STAGE4_ACCEPTANCE.md`.
+
+**Not approved for live Stage 4 sign-off yet:** court/DOJ role matrix decisions, cross-office prosecutorial/defense consent policies, full evidence discovery attachments, true database migration/runtime acceptance, audit retention and attorney assignment edge cases. Existing judicial permissions are intentionally preserved rather than silently narrowed by these changes.
