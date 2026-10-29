@@ -229,3 +229,124 @@ ps.registerCallback(resourceName .. ':server:publishPublicRecordsResponse', func
     end
     return {success = true, status = 'approved'}
 end)
+
+-- Explicit public-release copies are separate, manually reviewed documents.
+-- These callbacks never load raw MDT case/report/evidence/medical material.
+ps.registerCallback(resourceName .. ':server:getPublicReleaseCopiesForOfficer', function(source, requestId)
+    local cid, job = authorized(source)
+    local id = validId(requestId)
+    if not cid or not id then return {success = false, error = 'Access denied'} end
+    local ok, rows = pcall(MySQL.query.await, [[
+        SELECT c.id, c.title, c.public_text, c.issued_at, c.expires_at,
+               c.revoked_at, c.revocation_reason
+        FROM mdt_public_record_release_copies c
+        INNER JOIN mdt_public_record_requests r
+            ON r.id = c.request_id AND r.agency = c.agency
+        WHERE c.request_id = ? AND r.agency = ? AND r.status = 'approved'
+        ORDER BY c.id DESC LIMIT 20
+    ]], {id, job})
+    if not ok or authorized(source) ~= cid or ps.getJobName(source) ~= job then
+        return {success = false, error = 'Access changed'}
+    end
+    return {success = true, copies = rows or {}}
+end)
+
+ps.registerCallback(resourceName .. ':server:issuePublicReleaseCopy', function(source, data)
+    local cid, job = authorized(source)
+    if not cid or type(data) ~= 'table' then return {success = false, error = 'Access denied'} end
+    local id = validId(data.id)
+    local title = validText(data.title, 160)
+    local publicText = validText(data.publicText, 12000)
+    local days = tonumber(data.expiresInDays)
+    if not id or not title or not publicText
+        or not days or days % 1 ~= 0 or days < 1 or days > 365 then
+        return {success = false, error = 'Invalid release copy or expiry'}
+    end
+    if not hasCheckedTransactions() then
+        return {success = false, error = 'Records office transaction support unavailable'}
+    end
+
+    local ok, committed = pcall(MySQL.startTransaction, function(query)
+        local rows = query([[
+            SELECT applicant_citizenid, status FROM mdt_public_record_requests
+            WHERE id = ? AND agency = ? FOR UPDATE
+        ]], {id, job})
+        local request = type(rows) == 'table' and rows[1] or nil
+        if not request or request.status ~= 'approved'
+            or type(request.applicant_citizenid) ~= 'string'
+            or request.applicant_citizenid == '' then return false end
+        if authorized(source) ~= cid or ps.getJobName(source) ~= job then return false end
+
+        local totalRows = query([[
+            SELECT COUNT(*) AS total FROM mdt_public_record_release_copies
+            WHERE request_id = ? AND agency = ?
+        ]], {id, job})
+        if type(totalRows) ~= 'table' or not totalRows[1]
+            or not tonumber(totalRows[1].total)
+            or tonumber(totalRows[1].total) >= 20 then return false end
+
+        local copy = query([[
+            INSERT INTO mdt_public_record_release_copies
+                (request_id, agency, recipient_citizenid, title, public_text,
+                 issued_by_citizenid, expires_at)
+            VALUES (?, ?, ?, ?, ?, ?, DATE_ADD(UTC_TIMESTAMP(), INTERVAL ? DAY))
+        ]], {id, job, request.applicant_citizenid, title, publicText, cid, days})
+        if not insertedExactlyOne(copy) then return false end
+
+        local audit = query([[
+            INSERT INTO mdt_public_record_request_audit
+                (request_id, agency, actor_citizenid, action, reason)
+            VALUES (?, ?, ?, 'release_issued', ?)
+        ]], {id, job, cid, title})
+        if not insertedExactlyOne(audit) then return false end
+        if authorized(source) ~= cid or ps.getJobName(source) ~= job then return false end
+        return true
+    end)
+    if not ok or committed ~= true then
+        return {success = false, error = 'Copy not issued; refresh the request'}
+    end
+    return {success = true}
+end)
+
+ps.registerCallback(resourceName .. ':server:revokePublicReleaseCopy', function(source, data)
+    local cid, job = authorized(source)
+    if not cid or type(data) ~= 'table' then return {success = false, error = 'Access denied'} end
+    local copyId = validId(data.copyId)
+    local reason = validText(data.reason, 1000)
+    if not copyId or not reason then return {success = false, error = 'Revocation reason required'} end
+    if not hasCheckedTransactions() then
+        return {success = false, error = 'Records office transaction support unavailable'}
+    end
+    local ok, committed = pcall(MySQL.startTransaction, function(query)
+        local rows = query([[
+            SELECT c.request_id, c.revoked_at
+            FROM mdt_public_record_release_copies c
+            INNER JOIN mdt_public_record_requests r
+                ON r.id = c.request_id AND r.agency = c.agency
+            WHERE c.id = ? AND r.agency = ? FOR UPDATE
+        ]], {copyId, job})
+        local copy = type(rows) == 'table' and rows[1] or nil
+        if not copy or copy.revoked_at ~= nil then return false end
+        if authorized(source) ~= cid or ps.getJobName(source) ~= job then return false end
+
+        local updated = query([[
+            UPDATE mdt_public_record_release_copies
+            SET revoked_at = UTC_TIMESTAMP(), revoked_by_citizenid = ?,
+                revocation_reason = ?
+            WHERE id = ? AND agency = ? AND revoked_at IS NULL
+        ]], {cid, reason, copyId, job})
+        if not updatedExactlyOne(updated) then return false end
+        local audit = query([[
+            INSERT INTO mdt_public_record_request_audit
+                (request_id, agency, actor_citizenid, action, reason)
+            VALUES (?, ?, ?, 'release_revoked', ?)
+        ]], {copy.request_id, job, cid, reason})
+        if not insertedExactlyOne(audit) then return false end
+        if authorized(source) ~= cid or ps.getJobName(source) ~= job then return false end
+        return true
+    end)
+    if not ok or committed ~= true then
+        return {success = false, error = 'Release copy could not be revoked'}
+    end
+    return {success = true}
+end)
