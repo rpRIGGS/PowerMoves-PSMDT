@@ -427,3 +427,24 @@ RegisterNUICallback('getDisclosedCases', function(data, cb)
     if not MDTOpen then cb({}) return end
     cb(ps.callback(resourceName .. ':server:getDisclosedCases') or {})
 end)
+
+-- Stage 4 evidence discovery, intentionally separate from stash/inventory controls.
+RegisterNUICallback('grantEvidenceDisclosure', function(data,cb)
+    if not MDTOpen or type(data)~='table' then cb({success=false}) return end
+    cb(ps.callback(resourceName .. ':server:grantEvidenceDisclosure',
+        data.evidenceId,data.recipientCitizenid,data.purpose) or {success=false})
+end)
+RegisterNUICallback('revokeEvidenceDisclosure', function(data,cb)
+    if not MDTOpen or type(data)~='table' then cb({success=false}) return end
+    cb(ps.callback(resourceName .. ':server:revokeEvidenceDisclosure',data.grantId)
+        or {success=false})
+end)
+RegisterNUICallback('getDisclosedEvidence', function(data,cb)
+    if not MDTOpen then cb({}) return end
+    cb(ps.callback(resourceName .. ':server:getDisclosedEvidence') or {})
+end)
+RegisterNUICallback('getDisclosedEvidenceDetail', function(data,cb)
+    if not MDTOpen or type(data)~='table' then cb({success=false}) return end
+    cb(ps.callback(resourceName .. ':server:getDisclosedEvidenceDetail',data.evidenceId)
+        or {success=false})
+end)
