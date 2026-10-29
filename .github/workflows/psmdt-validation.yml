@@ -52,6 +52,8 @@ jobs:
         run: lua5.4 tests/phase2/fto_employer_regression.lua
       - name: State accreditation issuer regression
         run: lua5.4 tests/phase3/accreditation_issuer_regression.lua
+      - name: Evidence disclosure runtime regression
+        run: lua5.4 tests/phase4/evidence_disclosure_runtime.lua
       - name: Report disclosure runtime regression
         run: lua5.4 tests/phase4/report_disclosure_runtime.lua
       - name: Case disclosure runtime regression
