@@ -24,6 +24,16 @@
         created_at: string;
     }
     interface AuditResult { success: boolean; entries?: AuditEntry[]; error?: string; }
+    interface PublicCopy {
+        id: number;
+        title: string;
+        public_text: string;
+        issued_at: string;
+        expires_at: string;
+        revoked_at: string | null;
+        revocation_reason: string | null;
+    }
+    interface CopyListResult { success: boolean; copies?: PublicCopy[]; error?: string; }
 
     let items = $state<RequestItem[]>([]);
     let selected = $state<RequestItem | null>(null);
@@ -37,6 +47,68 @@
     let hasMore = $state(false);
     let history = $state<AuditEntry[]>([]);
     let historyLoading = $state(false);
+    let releaseCopies = $state<PublicCopy[]>([]);
+    let copyTitle = $state("");
+    let copyText = $state("");
+    let copyDays = $state(30);
+    let revokeReason = $state("");
+    let copiesLoading = $state(false);
+    async function loadReleaseCopies(id: number) {
+        releaseCopies = [];
+        copiesLoading = true;
+        try {
+            const result = await fetchNui<CopyListResult>("getPublicReleaseCopiesForOfficer",
+                { id }, { success: false });
+            if (selected?.id === id) {
+                releaseCopies = result?.success && Array.isArray(result.copies) ? result.copies : [];
+            }
+        } catch {
+            if (selected?.id === id) releaseCopies = [];
+        } finally {
+            if (selected?.id === id) copiesLoading = false;
+        }
+    }
+    async function issueCopy() {
+        if (!selected || selected.status !== "approved" || saving
+            || !copyTitle.trim() || !copyText.trim()
+            || !Number.isInteger(copyDays) || copyDays < 1 || copyDays > 365) return;
+        const id = selected.id;
+        saving = true;
+        error = "";
+        try {
+            const result = await fetchNui<DecisionResult>("issuePublicReleaseCopy", {
+                id, title: copyTitle.trim(), publicText: copyText.trim(),
+                expiresInDays: copyDays
+            }, { success: false });
+            if (!result?.success) { error = result?.error || "Release copy not issued."; return; }
+            copyTitle = "";
+            copyText = "";
+            info = "Applicant-specific public copy issued.";
+            await loadReleaseCopies(id);
+            await loadHistory(id);
+        } catch {
+            error = "Release copy not issued.";
+        } finally { saving = false; }
+    }
+    async function revokeCopy(copyId: number) {
+        if (!selected || selected.status !== "approved" || saving || !revokeReason.trim()) return;
+        const id = selected.id;
+        saving = true;
+        error = "";
+        try {
+            const result = await fetchNui<DecisionResult>("revokePublicReleaseCopy", {
+                copyId, reason: revokeReason.trim()
+            }, { success: false });
+            if (!result?.success) { error = result?.error || "Release not revoked."; return; }
+            revokeReason = "";
+            info = "Public copy revoked.";
+            await loadReleaseCopies(id);
+            await loadHistory(id);
+        } catch {
+            error = "Release not revoked.";
+        } finally { saving = false; }
+    }
+
 
     async function loadHistory(id: number) {
         history = [];
@@ -93,6 +165,11 @@
         error = "";
         action = item.status === "submitted" ? "under_review" : "denied";
         void loadHistory(item.id);
+        releaseCopies = [];
+        copyTitle = "";
+        copyText = "";
+        revokeReason = "";
+        if (item.status === "approved") void loadReleaseCopies(item.id);
     }
 
     async function submit() {
@@ -204,6 +281,37 @@
                         {/each}
                     {/if}
                 </section>
+                {#if selected.status === "approved"}
+                    <section class="history">
+                        <h3>Explicit public release copies</h3>
+                        <p>Only manually reviewed text entered below is released to the original applicant. Every copy expires and can be revoked.</p>
+                        {#if copiesLoading}<p>Loading copies…</p>{/if}
+                        {#each releaseCopies as copy (copy.id)}
+                            <div class="release-item">
+                                <p><strong>{copy.title}</strong> · Expires: {copy.expires_at}</p>
+                                <p class="description">{copy.public_text}</p>
+                                {#if copy.revoked_at}
+                                    <p>Revoked: {copy.revoked_at} — {copy.revocation_reason || "No reason provided"}</p>
+                                {:else}
+                                    <label for="revoke-reason">Revocation reason</label>
+                                    <textarea id="revoke-reason" rows="2" maxlength="1000" bind:value={revokeReason} disabled={saving}></textarea>
+                                    <button onclick={() => void revokeCopy(copy.id)} disabled={saving || !revokeReason.trim()}>Revoke this copy</button>
+                                {/if}
+                            </div>
+                        {/each}
+                        <h3>Issue a public-safe copy</h3>
+                        <label for="copy-title">Public copy title</label>
+                        <input id="copy-title" type="text" maxlength="160" bind:value={copyTitle} disabled={saving} />
+                        <label for="copy-content">Approved public text</label>
+                        <textarea id="copy-content" rows="7" maxlength="12000" bind:value={copyText} disabled={saving}></textarea>
+                        <label for="copy-days">Valid for days (1–365)</label>
+                        <input id="copy-days" type="number" min="1" max="365" step="1" bind:value={copyDays} disabled={saving} />
+                        <button class="primary" onclick={() => void issueCopy()}
+                            disabled={saving || !copyTitle.trim() || !copyText.trim() || !Number.isInteger(copyDays) || copyDays < 1 || copyDays > 365}>
+                            {saving ? "Saving…" : "Issue public copy"}
+                        </button>
+                    </section>
+                {/if}
                 {#if selected.status === "submitted" || selected.status === "under_review"}
                     <label for="records-decision">Decision</label>
                     <select id="records-decision" bind:value={action} disabled={saving}>
@@ -261,6 +369,9 @@
     option { color: #111; }
     .description { line-height: 1.5; overflow-wrap: anywhere; }
     .history { margin: 18px 0; padding: 12px; border: 1px solid rgba(255,255,255,.12); border-radius: 6px; }
+    .release-item { border-top: 1px solid rgba(255,255,255,.14); margin-top: 12px; padding-top: 12px; }
+    .release-item button { width: auto; margin-top: 6px; }
+    .detail input { box-sizing: border-box; width: 100%; padding: 8px 12px; background: rgba(255,255,255,.06); color: inherit; border: 1px solid rgba(255,255,255,.2); border-radius: 5px; }
     .error { color: #fca5a5; }
     .info { color: #86efac; }
     .warning { border-left: 2px solid #d9b76e; padding-left: 10px; }
