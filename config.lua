@@ -623,38 +623,53 @@ Config.MechanicJobs = {
 -- MDT interface registry. One resource, six independently identified domains.
 -- The first three domains adapt the original LEO/DOJ/EMS PS-MDT workflows.
 -- FIRE, GOV and DOT are registered domains; operational authority remains scoped.
+-- Each domain has an independent agency inventory, role families and scope.
+-- All Jobs entries correspond to planning-reference/jobs.lua; agency membership
+-- alone does not grant cross-agency records or elevated privileges.
 Config.Interfaces = {
     sadle = {
-        JobType = 'leo',
-        Jobs = Config.PoliceJobs,
-        Sharing = Config.Sharingleo,
         Enabled = true,
+        JobType = Config.PoliceJobType,
+        Jobs = Config.PoliceJobs,
+        OversightJobs = { 'sadle', 'fib' },
+        Departments = { 'police', 'post', 'lspd', 'lspe', 'lscso', 'bcso', 'sahp', 'sasp', 'saspa' },
+        Sharing = Config.Sharingleo,
+        Permissions = 'leo',
     },
     sadoj = {
-        JobType = 'doj',
+        Enabled = true,
+        JobType = Config.DojJobType,
         Jobs = Config.DojJobs,
+        Courts = { 'sadoj' },
+        OtherLegalJobs = { 'lawyer', 'atcss' },
         Sharing = Config.Sharingdoj,
-        Enabled = true,
-    },
-    sams = {
-        JobType = 'ems',
-        Jobs = Config.MedicalJobs,
-        Sharing = Config.Sharingems,
-        Enabled = true,
+        Permissions = 'doj',
     },
     safr = {
-        JobType = 'fire',
-        Jobs = Config.FireJobs,
-        Sharing = Config.Sharingfire,
         Enabled = true,
+        JobType = Config.FireJobType,
+        Jobs = Config.FireJobs,
+        OversightJobs = { 'safr' },
+        Departments = { 'lsfd', 'lscfd', 'bcfd' },
+        Sharing = Config.Sharingfire,
+        Permissions = 'fire',
+    },
+    sams = {
+        Enabled = true,
+        JobType = Config.MedicalJobType,
+        Jobs = Config.MedicalJobs,
+        OversightJobs = { 'sams' },
+        Departments = { 'pillboxmed', 'sandymed', 'paletomed', 'parsonsmed' },
+        Sharing = Config.Sharingems,
+        Permissions = 'ems',
     },
     sagov = {
+        Enabled = true,
         JobType = 'gov',
         Jobs = { 'sagov', 'bcgov', 'lscgov', 'lsgov' },
+        OversightJobs = { 'sagov' },
         Sharing = Config.Sharinggov,
-        Enabled = true,
-        -- Government oversight is scoped by jurisdiction and explicit role
-        -- permissions; it never inherits LEO or DOJ record sharing.
+        Permissions = 'gov',
         Jurisdictions = {
             sagov = 'state',
             bcgov = 'blaine_county',
@@ -663,10 +678,20 @@ Config.Interfaces = {
         },
     },
     sadot = {
-        JobType = 'mechanic',
+        Enabled = true,
+        JobType = Config.MechanicJobType,
         Jobs = Config.MechanicJobs,
         Sharing = Config.Sharingdot,
-        Enabled = true,
+        Permissions = 'mechanic',
+        -- Fleet shops and commercial mechanics are separately identifiable.
+        FleetJobs = {
+            'sahpfleet', 'safleet', 'bcfleet', 'lscofleet', 'lscityfleet',
+            'samsfleet', 'safrfleet',
+        },
+        ServiceJobs = {
+            'paradise', 'larrys', 'benefactor', 'mechanic', 'mechanic2',
+            'mechanic3', 'beeker', 'bennys', 'jetsam',
+        },
     },
 }
 
@@ -689,7 +714,7 @@ Config.MdtAccess = {
         AllowedOperatorJobs = Config.MechanicJobs,
         RequireQualifiedVehicle = true,
     },
-    FireJobs = Config.FireJobs,
+    FireJobs = Config.Interfaces.safr.Jobs,
     GovernmentJobs = Config.Interfaces.sagov.Jurisdictions,
     -- Organizational metadata only. Parent jurisdictions do not inherit access
     -- to another government's personnel or unpublished records.
@@ -750,20 +775,20 @@ Config.MdtAccess = {
     -- Both SADLE and FIB are statewide oversight agencies. Actual roster
     -- access is restricted to the AG or explicitly authorized job/grade roles.
     -- Boss status at either employer alone grants no cross-agency access.
-    LeoRosterOversightJobs = { 'sadle', 'fib' },
+    LeoRosterOversightJobs = Config.Interfaces.sadle.OversightJobs,
     -- Statewide service oversight is distinct from ordinary employer access.
     -- These are candidate oversight employers, NOT blanket record-sharing
     -- grants. Server callbacks must require explicit permissions and preserve
     -- employer-owned records. Medical charts are never shared by this setting.
     ServiceOversight = {
         safr = {
-            OversightJobs = { 'safr' },
-            DepartmentJobs = { 'lsfd', 'lscfd', 'bcfd' },
+            OversightJobs = Config.Interfaces.safr.OversightJobs,
+            DepartmentJobs = Config.Interfaces.safr.Departments,
             RosterPermission = 'fire_roster_oversight',
         },
         sams = {
-            OversightJobs = { 'sams' },
-            DepartmentJobs = { 'pillboxmed', 'sandymed', 'paletomed', 'parsonsmed' },
+            OversightJobs = Config.Interfaces.sams.OversightJobs,
+            DepartmentJobs = Config.Interfaces.sams.Departments,
             RosterPermission = 'medical_roster_oversight',
         },
     },
