@@ -71,3 +71,22 @@ ps.registerCallback(resourceName .. ':server:getMyPublicRecordRequests', functio
     if not ok or ps.getIdentifier(source) ~= cid then return {} end
     return rows or {}
 end)
+
+-- Citizen may read only the response specifically addressed to their character.
+ps.registerCallback(resourceName .. ':server:getMyPublicRecordsResponse', function(source, requestNumber)
+    local cid = ps.getIdentifier(source)
+    if type(cid) ~= 'string' or type(requestNumber) ~= 'string'
+       or #requestNumber > 36 then return {success = false} end
+    local ok, row = pcall(MySQL.single.await, [[
+        SELECT r.request_number, r.agency, r.status, p.response_text, p.issued_at
+        FROM mdt_public_record_requests r
+        INNER JOIN mdt_public_record_responses p ON p.request_id = r.id
+          AND p.recipient_citizenid = r.applicant_citizenid AND p.agency = r.agency
+        WHERE r.request_number = ? AND r.applicant_citizenid = ?
+          AND r.status = 'approved' LIMIT 1
+    ]], {requestNumber, cid})
+    if not ok or ps.getIdentifier(source) ~= cid or not row then
+        return {success = false, error = 'Response unavailable'}
+    end
+    return {success = true, response = row}
+end)
