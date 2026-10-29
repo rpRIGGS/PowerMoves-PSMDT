@@ -99,6 +99,30 @@ ps.registerCallback(resourceName .. ':server:getPersonnelAccreditations', functi
     return ok and rows or {}
 end)
 
+-- The state's accreditation office can audit the credentials it issued.
+-- This is NOT a statewide search over unrelated issuing agencies or clinical
+-- records. Cross-issuer oversight needs an explicit future authorization model.
+ps.registerCallback(resourceName .. ':server:getIssuedAccreditations', function(source, page)
+    if not CheckAuth(source) or not issuerFamily(source)
+        or not CheckPermission(source, 'roster_manage_certifications') then return {} end
+    local employer, actor = ps.getJobName(source), ps.getIdentifier(source)
+    if not employer or not actor or not ensureSchema() then return {} end
+    local index = math.floor(tonumber(page) or 1)
+    index = math.max(1, math.min(100, index))
+    local ok, rows = pcall(MySQL.query.await, [[
+        SELECT id, citizenid, credential_code, credential_name, credential_family,
+               specialization, issued_by_job, issued_at, expires_at, source_reference
+        FROM mdt_personal_accreditations
+        WHERE issued_by_job = ?
+        ORDER BY issued_at DESC, id DESC
+        LIMIT 50 OFFSET ?
+    ]], { employer, (index - 1) * 50 })
+    if not CheckAuth(source) or ps.getIdentifier(source) ~= actor
+        or ps.getJobName(source) ~= employer or not issuerFamily(source)
+        or not CheckPermission(source, 'roster_manage_certifications') then return {} end
+    return ok and rows or {}
+end)
+
 -- POST/SAFR/SADLE qualified certification officials can issue permanent
 -- credentials. A credential is a history entry; a later duplicate/renewal
 -- is an additional issuance and never erases the earlier one.
