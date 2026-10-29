@@ -1,6 +1,6 @@
 -- Stage 3 issuer policy: actual SAMS employment AND explicit certification grant.
 -- Mocks SQL only; never touches persistent FiveM records.
-local callbacks, writes, insertion = {}, {}, nil
+local callbacks, writes, insertion = {}, 0, nil
 local actor = {job='sams', citizenid='STATE-1', duty=true, permission=true}
 local env = setmetatable({
     GetCurrentResourceName=function() return 'ps-mdt' end,
