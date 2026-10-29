@@ -6,7 +6,7 @@ Status: **Source implementation candidate — NOT runtime accepted** (October 29
 - Configurable public-service desks using qb-target and the existing IA complaint entry point.
 - Civilian public-records request intake and request history, restricted to the initiating citizenid.
 - Records-office queue accessible only to explicitly listed `Config.PublicServices.RecordsOfficers[job][citizenid]` members, subject to MDT auth.
-- Review transitions from submitted to under_review, then denied or approved. Authorized records officers can inspect agency-scoped decision history inside the existing MDT panel.
+- Review transitions from submitted to under_review, then denied or approved. The initial review transaction records the responsible records officer and assignment timestamp; subsequent decision actors remain separately auditable. Authorized records officers can inspect agency-scoped decision history inside the existing MDT panel.
 - Approved requests receive only records-office-authored public response text. Denied requests receive a written public explanation addressed to the original applicant. No direct disclosure of cases, reports, evidence stashes, medical charts or IA records.
 - Approved responses are scoped to the original requesting citizenid. Review and publication are written to the Stage 5 audit table.
 - Approved requests can receive manually authored public release copies, each bound to the original applicant citizen ID, a fixed expiration (1–365 days), agency ownership, staff actor, and audited revocation. No raw confidential MDT document table or evidence stash is exposed.
@@ -23,6 +23,7 @@ Status: **Source implementation candidate — NOT runtime accepted** (October 29
    - `sql/migrations/2026-10-29-public-records-review.sql`
    - `sql/migrations/2026-10-29-public-records-response.sql`
    - `sql/migrations/2026-10-29-public-record-release-copies.sql`
+   - `sql/migrations/2026-10-29-public-records-assignment.sql`
 3. Configure actual public desk coordinates, agency names and services (`public_records_request`, `public_records_status`, `records_office` for staff counters).
 4. Explicitly allowlist real records officers. Default `RecordsOfficers = {}` means no reviewer has access.
 5. Confirm oxmysql **v2.12.0 or newer**. `MySQL.startTransaction` was added to the Lua library in v2.12.0; earlier installations must not process Stage 5 records-office decisions. The server fails closed if the API is unavailable.
@@ -33,6 +34,7 @@ Status: **Source implementation candidate — NOT runtime accepted** (October 29
 - Agency A cannot view, audit, review or decide agency B's requests, including direct history callback attempts.
 - Unlisted staff, civilians and unauthorized job switches cannot open records-office queues.
 - Two records officers racing the same decision cause only one state transition, response and audit entry.
+- Taking a request under review assigns it to the reviewing records officer; failure of any transaction statement rolls back both assignment and status.
 - Responses cannot be published before review and cannot be duplicated. Denial notice, status and audit commit together, or all roll back.
 - Approved response text contains only the reviewed publicly releasable information.
 - Denied requests show their status and an applicant-scoped denial explanation; restricted source documents and internal audit rows are never attached automatically.
