@@ -101,7 +101,7 @@ ps.registerCallback(resourceName .. ':server:getFTOList', function(source, pageN
     local values = {}
 
     -- Domain scope: each side only sees its own FTO assignments.
-    clauses[#clauses + 1] = 'a.job_type = ? AND (a.agency_job = ? OR a.agency_job IS NULL)'
+    clauses[#clauses + 1] = 'a.job_type = ? AND a.agency_job = ?'
     values[#values + 1] = getFTODomain(src)
     values[#values + 1] = ps.getJobName(src)
 
@@ -157,7 +157,8 @@ local function canAccessFTORecord(src, assignmentId)
         {assignmentId}
     )
     return row ~= nil and row.job_type == getFTODomain(src)
-        and (row.agency_job == nil or row.agency_job == ps.getJobName(src))
+        and row.agency_job ~= nil and row.agency_job == ps.getJobName(src)
+        and CheckAuth(src)
 end
 
 -- Get single FTO assignment with DORs
@@ -176,7 +177,7 @@ ps.registerCallback(resourceName .. ':server:getFTO', function(source, data)
     ]], { assignmentId })
     if not entry then return { success = false, error = 'Not found' } end
     if entry.job_type ~= getFTODomain(src)
-        or (entry.agency_job ~= nil and entry.agency_job ~= ps.getJobName(src)) then
+        or entry.agency_job == nil or entry.agency_job ~= ps.getJobName(src) then
         return { success = false, error = 'Unauthorized' }
     end
 
