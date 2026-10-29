@@ -61,6 +61,13 @@ local function myPublicRecordRequests()
 end
 
 local serviceHandlers = {
+    records_office = {
+        label = 'Records Office',
+        icon = 'fas fa-folder-open',
+        open = function()
+            TriggerEvent('ps-mdt:client:openRecordsOffice')
+        end,
+    },
     public_records_request = {
         label = 'Request Public Records',
         icon = 'fas fa-file-lines',
