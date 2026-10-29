@@ -63,6 +63,8 @@ function GetActiveWarrantsData(src)
     end
     local citizenid = src ~= nil and ps.getIdentifier(src) or nil
     local jobName = src ~= nil and ps.getJobName(src) or nil
+    local access = src ~= nil and GetMdtAccess(src) or nil
+    local interfaceId = access and access.interfaceId or nil
     local rows = MySQL.query.await([[
         SELECT
             w.reportid,
@@ -99,7 +101,8 @@ function GetActiveWarrantsData(src)
     -- SQL and name resolution can yield while the source changes character or job.
     if src ~= nil and (not canReadWarrantData(src)
         or not CheckPermission(src, 'warrants_view')
-        or ps.getIdentifier(src) ~= citizenid or ps.getJobName(src) ~= jobName) then return {} end
+        or ps.getIdentifier(src) ~= citizenid or ps.getJobName(src) ~= jobName
+        or (GetMdtAccess(src) or {}).interfaceId ~= interfaceId) then return {} end
     return results
 end
 
