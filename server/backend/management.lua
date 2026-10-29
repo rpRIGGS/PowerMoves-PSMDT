@@ -779,7 +779,7 @@ ps.registerCallback(resourceName .. ':server:deleteCustomLicense', function(sour
 
     payload = payload or {}
     local id = tonumber(payload.id)
-    if not id then
+    if not id or id <= 0 or id % 1 ~= 0 then
         return { success = false, message = 'Invalid license ID' }
     end
 
