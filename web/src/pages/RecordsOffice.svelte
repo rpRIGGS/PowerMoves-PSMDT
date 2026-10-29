@@ -160,12 +160,12 @@
                         {/if}
                     </select>
                     <label for="records-reason">
-                        {action === "approved" ? "Public response to the citizen" : "Decision reason"}
+                        {action === "approved" ? "Public response to the citizen" : action === "denied" ? "Public denial explanation to the citizen" : "Reason for review (agency audit)"}
                     </label>
                     <textarea id="records-reason" bind:value={reason}
                         maxlength={action === "approved" ? 12000 : 1000}
                         rows="7" disabled={saving}
-                        placeholder={action === "approved" ? "Write only information approved for public release." : "Explain the decision."}
+                        placeholder={action === "approved" ? "Write only information approved for public release." : action === "denied" ? "Explain the denial in language suitable for the citizen." : "Explain why this request is under review."}
                     ></textarea>
                     {#if action === "approved"}
                         <p class="warning">Only the text written here is released. Restricted case, IA, medical, report, and evidence data are never attached automatically.</p>
