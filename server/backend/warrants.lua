@@ -133,7 +133,8 @@ ps.registerCallback(resourceName .. ':server:issueWarrant', function(source, dat
         expiryDate = os.date('%Y-%m-%d %H:%M:%S', os.time() + (defaultDays * 24 * 60 * 60))
     end
 
-    if not reportId or not citizenid then
+    if not reportId or reportId <= 0 or reportId % 1 ~= 0
+        or type(citizenid) ~= 'string' or citizenid == '' then
         return { success = false, error = 'Missing required fields' }
     end
 
@@ -175,7 +176,8 @@ ps.registerCallback(resourceName .. ':server:closeWarrant', function(source, dat
     data = data or {}
     local reportId = tonumber(data.reportId)
     local citizenid = data.citizenid
-    if not reportId or not citizenid then
+    if not reportId or reportId <= 0 or reportId % 1 ~= 0
+        or type(citizenid) ~= 'string' or citizenid == '' then
         return { success = false, error = 'Missing required fields' }
     end
 
