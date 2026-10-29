@@ -752,6 +752,11 @@ ps.registerCallback('ps-mdt:server:updateOfficerCertifications', function(source
 
     EnsureProfileExists(citizenid)
 
+    if not CheckAuth(src) or not CheckPermission(src, 'roster_manage_certifications')
+        or not CanManageMdtPersonnel(src, citizenid) then
+        return { success = false, message = 'Personnel authorization changed' }
+    end
+
     local encoded = json.encode(certifications)
     MySQL.update.await('UPDATE mdt_profiles SET certifications = ? WHERE citizenid = ?', { encoded, citizenid })
 
