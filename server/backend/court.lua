@@ -377,10 +377,11 @@ ps.registerCallback(resourceName .. ':server:getMissedHearings', function(source
     if not cid then return {} end
 
     local domain = callerCalendarDomain(src)
+    local originalOwner = departmentCalendarOwnership() and calendarOwnerJob(src) or nil
     local args = { cid, domain }
     local scopeSql = ''
     if departmentCalendarOwnership() then
-        local owner = calendarOwnerJob(src)
+        local owner = originalOwner
         if not owner then return {} end
         scopeSql = " AND ((h.category = 'court' AND ? = 1) OR (h.category <> 'court' AND h.owner_job = ?))"
         args[#args + 1] = CheckPermission(src, 'court_view') and 1 or 0
@@ -401,7 +402,7 @@ ps.registerCallback(resourceName .. ':server:getMissedHearings', function(source
         or ps.getIdentifier(src) ~= cid or callerCalendarDomain(src) ~= domain then
         return {}
     end
-    if departmentCalendarOwnership() and not calendarOwnerJob(src) then return {} end
+    if departmentCalendarOwnership() and calendarOwnerJob(src) ~= originalOwner then return {} end
 
     -- Only acknowledge events actually returned to the currently authorized
     -- employee. Do not consume another employer's pending invitations.
