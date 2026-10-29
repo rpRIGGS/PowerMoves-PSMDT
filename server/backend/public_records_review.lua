@@ -14,6 +14,12 @@ local function authorized(src)
     return cid, job
 end
 
+-- Lightweight entitlement check while a staff member has the counter panel open.
+-- Prevents a previously loaded request list lingering after leaving the desk.
+ps.registerCallback(resourceName .. ':server:canUsePublicRecordsOffice', function(source)
+    return {success = authorized(source) ~= nil}
+end)
+
 ps.registerCallback(resourceName .. ':server:getPublicRecordsOfficeQueue', function(source)
     local cid, agency = authorized(source)
     if not cid then return {success = false, error = 'Access denied'} end
