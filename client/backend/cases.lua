@@ -422,3 +422,8 @@ RegisterNUICallback('getCaseDisclosures', function(data, cb)
     if not MDTOpen or type(data) ~= 'table' then cb({}) return end
     cb(ps.callback(resourceName .. ':server:getCaseDisclosures', data.caseId) or {})
 end)
+
+RegisterNUICallback('getDisclosedCases', function(data, cb)
+    if not MDTOpen then cb({}) return end
+    cb(ps.callback(resourceName .. ':server:getDisclosedCases') or {})
+end)
