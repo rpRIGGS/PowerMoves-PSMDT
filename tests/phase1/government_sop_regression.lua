@@ -2,10 +2,10 @@
 -- Database and framework calls are mocked; no live data is changed.
 local callbacks, queries, writes = {}, {}, 0
 local actors = {
-    [1] = { job = 'bcgov', interfaceId = 'sagov', jobType = 'gov', authorized = true },
-    [2] = { job = 'lscgov', interfaceId = 'sagov', jobType = 'gov', authorized = false },
-    [3] = { job = 'sagov', interfaceId = 'sadle', jobType = 'gov', authorized = true },
-    [4] = { job = 'lspd', interfaceId = 'sadle', jobType = 'leo', authorized = true },
+    [1] = { job = 'bcgov', agency = 'bcgov', interfaceId = 'sagov', jobType = 'gov', authorized = true },
+    [2] = { job = 'lscgov', agency = 'lscgov', interfaceId = 'sagov', jobType = 'gov', authorized = false },
+    [3] = { job = 'sagov', agency = 'sagov', interfaceId = 'sadle', jobType = 'gov', authorized = true },
+    [4] = { job = 'lspd', agency = 'lspd', interfaceId = 'sadle', jobType = 'leo', authorized = true },
 }
 local env = setmetatable({
     GetCurrentResourceName = function() return 'ps-mdt' end,
