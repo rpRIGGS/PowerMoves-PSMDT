@@ -375,6 +375,49 @@ function GetGovernmentLicenseAccess(source)
     }
 end
 
+-- Local business-license permissions are distinct from personnel management,
+-- public notices, property assessment, and transportation endorsements.
+function GetGovernmentBusinessLicenseAccess(source)
+    local initial = GetGovernmentRosterAccess(source)
+    if not initial then return nil end
+    local policy = (Config.MdtAccess or {}).GovernmentBusinessLicenses or {}
+    local jobs = (Config.MdtAccess or {}).GovernmentJobs or {}
+    if jobs[initial.agency] ~= initial.jurisdiction then return nil end
+    local ok, row = pcall(MySQL.single.await,
+        'SELECT permissions FROM mdt_permission_roles WHERE job = ? AND grade = ?',
+        {initial.agency, initial.grade})
+    if not ok then return nil end
+    local permissions = {}
+    if row then
+        if type(row.permissions) == 'table' then
+            permissions = row.permissions
+        elseif type(row.permissions) == 'string' then
+            local decodeOk, parsed = pcall(json.decode, row.permissions)
+            if decodeOk and type(parsed) == 'table' then permissions = parsed end
+        end
+    else
+        local default = (Config.PermissionDefaults or {})[initial.agency] or {}
+        if type(default[tostring(initial.grade)]) == 'table' then
+            permissions = default[tostring(initial.grade)]
+        end
+    end
+    local current = GetGovernmentRosterAccess(source)
+    if not current or current.citizenid ~= initial.citizenid
+        or current.agency ~= initial.agency or current.grade ~= initial.grade
+        or current.jurisdiction ~= initial.jurisdiction then return nil end
+    return {
+        citizenid=current.citizenid, agency=current.agency,
+        jurisdiction=current.jurisdiction, grade=current.grade,
+        canReview=type(policy.ReviewPermission) == 'string'
+            and contains(permissions, policy.ReviewPermission),
+        canIssue=type(policy.IssuePermission) == 'string'
+            and contains(permissions, policy.IssuePermission),
+        hasStateOversight=current.agency == 'sagov'
+            and type(policy.StateOversightPermission) == 'string'
+            and contains(permissions, policy.StateOversightPermission),
+    }
+end
+
 function CheckPermission(source, permName)
     if not permName or not CheckAuth(source) then return false end
     local access = GetMdtAccess(source)
