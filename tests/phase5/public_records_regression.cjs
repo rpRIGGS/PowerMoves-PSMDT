@@ -14,6 +14,7 @@ const nuiEvents = read('web/src/constants/nuiEvents.ts');
 const schema = read('sql/migrations/2026-10-29-public-records-intake.sql');
 const responseSchema = read('sql/migrations/2026-10-29-public-records-response.sql');
 const auditSchema = read('sql/migrations/2026-10-29-public-records-review.sql');
+const copiesSchema = read('sql/migrations/2026-10-29-public-record-release-copies.sql');
 
 function getTableDDL(content, tableName) {
   const start = 'CREATE TABLE IF NOT EXISTS `' + tableName + '` (';
@@ -30,7 +31,8 @@ for (const base of [qbcoreSchema, qbxSchema]) {
   for (const [table, migration] of [
     ['mdt_public_record_requests', schema],
     ['mdt_public_record_request_audit', auditSchema],
-    ['mdt_public_record_responses', responseSchema]
+    ['mdt_public_record_responses', responseSchema],
+    ['mdt_public_record_release_copies', copiesSchema]
   ]) {
     assert.strictEqual(getTableDDL(base, table), getTableDDL(migration, table),
       'Clean install and additive migration must use identical DDL for ' + table);
@@ -60,6 +62,21 @@ assert.match(review, /FOR UPDATE/);
 assert.match(review, /affectedRows/);
 assert.doesNotMatch(review, /MySQL\.transaction\.await/);
 assert.match(review, /publishPublicRecordsResponse/);
+assert.match(review, /getPublicReleaseCopiesForOfficer/);
+assert.match(review, /issuePublicReleaseCopy/);
+assert.match(review, /revokePublicReleaseCopy/);
+assert.match(review, /release_issued/);
+assert.match(review, /release_revoked/);
+assert.match(intake, /getMyPublicReleaseCopies/);
+assert.match(intake, /c\.revoked_at IS NULL AND c\.expires_at > UTC_TIMESTAMP\(\)/);
+assert.match(client, /myPublicReleaseCopies\(result\)/);
+assert.match(desk, /getPublicReleaseCopiesForOfficer/);
+assert.match(desk, /issuePublicReleaseCopy/);
+assert.match(desk, /revokePublicReleaseCopy/);
+assert.match(officePage, /issuePublicReleaseCopy/);
+assert.match(officePage, /revokePublicReleaseCopy/);
+assert.match(nuiEvents, /ISSUE_RELEASE_COPY: "issuePublicReleaseCopy"/);
+assert.match(nuiEvents, /REVOKE_RELEASE_COPY: "revokePublicReleaseCopy"/);
 assert.match(review, /if action == 'denied'/);
 assert.match(intake, /r\.status IN \('approved', 'denied'\)/);
 assert.match(client, /item\.status == 'denied'/);
