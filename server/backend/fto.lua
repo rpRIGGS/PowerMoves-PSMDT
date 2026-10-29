@@ -273,6 +273,8 @@ ps.registerCallback(resourceName .. ':server:getMyTrainingTranscript', function(
         ORDER BY a.created_at DESC, a.id DESC
         LIMIT 150
     ]], { citizenid })
+    -- Milestone transcripts follow the character, never the recycled source ID.
+    if not CheckAuth(src) or ps.getIdentifier(src) ~= citizenid then return {} end
     return ok and history or {}
 end)
 
