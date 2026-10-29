@@ -1,63 +1,46 @@
--- Stage 5 records desk: server-authorized review via existing ox_lib UI.
+-- Stage 5: the physical qb-target counter opens the existing PSMDT NUI.
+-- All records-office reads/writes are server-authorized. No slash commands or
+-- separate ox_lib staff menus are used.
 local resourceName = tostring(GetCurrentResourceName())
 
-local function notice(message, kind)
-    lib.notify({title = 'Records Office', description = message, type = kind or 'inform'})
-end
+RegisterNUICallback('getPublicRecordsOfficeQueue', function(_, cb)
+    if not MDTOpen then cb({success = false, error = 'MDT is closed'}) return end
+    local result = ps.callback(resourceName .. ':server:getPublicRecordsOfficeQueue')
+    cb(result or {success = false, error = 'Records office unavailable'})
+end)
 
-local function chooseDecision(item)
-    local options
-    if item.status == 'submitted' then
-        options = {{label = 'Mark Under Review', value = 'under_review'}}
-    elseif item.status == 'under_review' then
-        options = {
-            {label = 'Deny Request', value = 'denied'},
-            {label = 'Approve and publish public response', value = 'approved'}
-        }
-    else
-        return
-    end
-    local choice = lib.inputDialog('Request ' .. tostring(item.request_number or item.id), {
-        {type = 'select', label = 'Decision', options = options, required = true},
-        {type = 'textarea', label = 'Reason or public response', required = true},
-    })
-    if not choice then return end
-    local response
-    if choice[1] == 'approved' then
-        response = ps.callback(resourceName .. ':server:publishPublicRecordsResponse', {
-            id = item.id, response = choice[2]
-        })
-    else
-        response = ps.callback(resourceName .. ':server:reviewPublicRecordsRequest', {
-            id = item.id, action = choice[1], reason = choice[2]
-        })
-    end
-    notice(response and response.success and 'Decision recorded' or
-        (response and response.error or 'Decision failed'),
-        response and response.success and 'success' or 'error')
-end
+RegisterNUICallback('reviewPublicRecordsRequest', function(data, cb)
+    if not MDTOpen then cb({success = false, error = 'MDT is closed'}) return end
+    local result = ps.callback(resourceName .. ':server:reviewPublicRecordsRequest', data or {})
+    cb(result or {success = false, error = 'Review unavailable'})
+end)
 
--- Records-office panel is opened from an authorized in-world service counter.
--- Never register a slash command for this workflow.
+RegisterNUICallback('publishPublicRecordsResponse', function(data, cb)
+    if not MDTOpen then cb({success = false, error = 'MDT is closed'}) return end
+    local result = ps.callback(resourceName .. ':server:publishPublicRecordsResponse', data or {})
+    cb(result or {success = false, error = 'Publication unavailable'})
+end)
+
 RegisterNetEvent('ps-mdt:client:openRecordsOffice', function()
+    -- Refuse before opening the tablet; the same entitlement is rechecked for
+    -- every NUI callback and every server-side request.
     local result = ps.callback(resourceName .. ':server:getPublicRecordsOfficeQueue')
     if not result or not result.success then
-        notice(result and result.error or 'Access denied', 'error')
+        ps.notify((result and result.error) or 'Records office access denied', 'error')
         return
     end
-    local options = {}
-    for _, item in ipairs(result.requests or {}) do
-        options[#options + 1] = {
-            title = tostring(item.request_number or item.id) .. ' — ' .. tostring(item.subject or ''),
-            description = 'Status: ' .. tostring(item.status or ''),
-            disabled = item.status ~= 'submitted' and item.status ~= 'under_review',
-            onSelect = function() chooseDecision(item) end,
-        }
+    if not MDTOpen then
+        OpenMDT()
     end
-    if #options == 0 then
-        notice('No requests currently in this agency queue')
-        return
-    end
-    lib.registerContext({id = 'psmdt_records_office', title = 'Agency Records Office', options = options})
-    lib.showContext('psmdt_records_office')
+    CreateThread(function()
+        -- OpenMDT may wait for its opening animation; do not send the page
+        -- selection while the NUI is still hidden.
+        for _ = 1, 40 do
+            if MDTOpen then
+                SendNUI('openRecordsOffice', {})
+                return
+            end
+            Wait(100)
+        end
+    end)
 end)
