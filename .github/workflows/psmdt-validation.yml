@@ -168,3 +168,4 @@ jobs:
           bash tests/phase6/mysql_government_notices.sh
           bash tests/phase6/mysql_government_business_licenses.sh
           bash tests/phase6/mysql_sadot_eligibility.sh
+          bash tests/phase6/mysql_government_assessments.sh
