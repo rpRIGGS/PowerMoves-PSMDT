@@ -211,33 +211,6 @@ ps.registerCallback(resourceName .. ':server:getPermissionRoles', function(sourc
         }
     end
 
-    if #roles == 0 and ps and ps.getJobData then
-        local jobData = ps.getJobData(src)
-        if jobData then
-            local gradeValue = jobData.grade
-            local gradeLabel = nil
-            local isBoss = false
-            if type(gradeValue) == 'table' then
-                gradeLabel = gradeValue.name or gradeValue.label
-                isBoss = gradeValue.isboss == true or gradeValue.isBoss == true or gradeValue.boss == true
-                gradeValue = gradeValue.level or gradeValue.grade or gradeValue.rank or gradeValue.value or gradeValue.id
-            end
-            gradeValue = gradeValue or 0
-            local gradeKeyString = tostring(gradeValue)
-            local permissions = storedByGrade[gradeKeyString]
-            if permissions == nil or isBoss then
-                permissions = getDefaultRolePermissions(jobName, gradeKeyString, isBoss, job)
-            end
-            permissions = filterRolePermissions(jobName, job, gradeKeyString, permissions)
-            roles[#roles + 1] = {
-                key = gradeKeyString,
-                label = gradeLabel or ('Grade ' .. gradeKeyString),
-                isBoss = isBoss,
-                permissions = permissions,
-            }
-        end
-    end
-
     table.sort(roles, function(a, b)
         local numA = tonumber(a.key)
         local numB = tonumber(b.key)
