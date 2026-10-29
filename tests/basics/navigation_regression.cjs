@@ -126,7 +126,9 @@ async function main() {
     assert.notEqual(navigation.INTERFACE_INFO.safr.icon, navigation.INTERFACE_INFO.sams.icon);
     const tabs = navigation.getTabsForJob('ems').map(item => item.name);
     for (const tab of ['Dashboard', 'Reports', 'Roster', 'Calendar', 'Preferences']) assert.ok(tabs.includes(tab));
-    for (const tab of ['Court Orders', 'Warrant Review', 'FTO', 'PPR']) assert.ok(!tabs.includes(tab));
+    // Hospital training inherits the shared FTO workflow; judicial and LEO-only tabs remain excluded.
+    assert.ok(tabs.includes('FTO'));
+    for (const tab of ['Court Orders', 'Warrant Review', 'PPR']) assert.ok(!tabs.includes(tab));
   });
   await test('management opens the first actually permitted section rather than Bulletins', () => {
     for (const [permission, expected] of [['management_activity', 'activity'], ['management_permissions', 'permissions'], ['management_tags', 'tags'], ['sop_manage', 'sop'], ['fto_manage', 'fto']]) {
