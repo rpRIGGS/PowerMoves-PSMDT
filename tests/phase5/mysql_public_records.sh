@@ -5,6 +5,9 @@ db=(mariadb --protocol=tcp --host="${MARIADB_HOST:-127.0.0.1}" --port="${MARIADB
 "${db[@]}" < sql/migrations/2026-10-29-public-records-review.sql
 "${db[@]}" < sql/migrations/2026-10-29-public-records-response.sql
 "${db[@]}" < sql/migrations/2026-10-29-public-record-release-copies.sql
+"${db[@]}" < sql/migrations/2026-10-29-public-records-assignment.sql
+# Migration is deliberately idempotent for existing DEV installations.
+"${db[@]}" < sql/migrations/2026-10-29-public-records-assignment.sql
 "${db[@]}" <<'SQL'
 INSERT INTO mdt_public_record_requests
 (request_number, applicant_citizenid, agency, subject, description)
@@ -27,6 +30,15 @@ INSERT INTO mdt_public_record_request_audit
 SELECT id,agency,'officer-test','approved','Public response issued'
 FROM mdt_public_record_requests WHERE request_number = 'PR-TEST-001';
 SQL
+# First reviewer is stored in the request, not just its audit log.
+"${db[@]}" -e "
+UPDATE mdt_public_record_requests
+SET assigned_to_citizenid='officer-test', assigned_at=UTC_TIMESTAMP()
+WHERE request_number='PR-TEST-001' AND agency='lspd' AND status='approved';"
+test "$("${db[@]}" --batch --skip-column-names -e "
+SELECT assigned_to_citizenid FROM mdt_public_record_requests
+WHERE request_number='PR-TEST-001';")" = 'officer-test'
+
 read -r own foreign otherAgency auditCount < <("${db[@]}" --batch --skip-column-names -e "
 SELECT
  (SELECT COUNT(*) FROM mdt_public_record_responses WHERE recipient_citizenid = 'cid-test-a'),
