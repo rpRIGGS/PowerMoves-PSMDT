@@ -22,6 +22,7 @@ Config.DateTime = {
 -- Department data sharing (original PS-MDT Mutual / OneWay format)
 -- Each interface has its own policy; server-side access checks remain required.
 
+-- Agency sharing policies. Explicit visibility only; no implicit cross-agency access.
 -- SADLE.net
 Config.Sharingleo = {
     Mutual = {
@@ -30,117 +31,129 @@ Config.Sharingleo = {
             'bodycams',
             'evidence',
             'bolos',
-            'warrants'
+            'warrants',
         },
         departments = {
             'lspd',
             'bcso',
-            'sahp'
-        }
+            'sahp',
+        },
     },
-
     OneWay = {
-        -- SADLE statewide oversight of other LEO agencies, including FIB.
         {
-            viewers ={
+            viewers = {
                 'sadle',
             },
             targets = {
-                'post', 'lspd', 'lspe', 'lscso', 'bcso',
-                'sahp', 'sasp', 'saspa', 'fib'
+                'police',
+                'post',
+                'lspd',
+                'lspe',
+                'lscso',
+                'bcso',
+                'sahp',
+                'sasp',
+                'saspa',
+                'fib',
             },
-            types ={
+            types = {
                 'reports',
                 'bodycams',
                 'evidence',
                 'bolos',
                 'warrants',
-            }
+            },
         },
-        -- FIB statewide/federal investigative oversight. SADLE is a separate
-        -- agency and remains visible to authorized FIB investigators.
         {
-            viewers ={
+            viewers = {
                 'fib',
             },
             targets = {
-                'post', 'lspd', 'lspe', 'lscso', 'bcso',
-                'sahp', 'sasp', 'saspa', 'sadle'
+                'police',
+                'post',
+                'lspd',
+                'lspe',
+                'lscso',
+                'bcso',
+                'sahp',
+                'sasp',
+                'saspa',
+                'sadle',
             },
-            types ={
+            types = {
                 'reports',
                 'bodycams',
                 'evidence',
                 'bolos',
                 'warrants',
-            }
-        }
-    }
+            },
+        },
+    },
 }
 
 -- SADOJ.net
 Config.Sharingdoj = {
     Mutual = {
         types = {},
-        departments = {}
+        departments = {},
     },
-    OneWay = {}
+    OneWay = {},
 }
 
 -- SAFR.net
 Config.Sharingfire = {
     Mutual = {
         types = {},
-        departments = {}
+        departments = {},
     },
     OneWay = {
         {
             viewers = {
-                'safr'
+                'safr',
             },
             targets = {
                 'lsfd',
                 'lscfd',
-                'bcfd'
+                'bcfd',
             },
             types = {
-                'reports'
-            }
-        }
-    }
+                'reports',
+            },
+        },
+    },
 }
 
 -- SAMS.net
 Config.Sharingems = {
     Mutual = {
         types = {},
-        departments = {}
+        departments = {},
     },
     OneWay = {
         {
             viewers = {
-                'sams'
+                'sams',
             },
             targets = {
                 'pillboxmed',
                 'sandymed',
                 'paletomed',
-                'parsonsmed'
+                'parsonsmed',
             },
             types = {
-                'reports'
-            }
-        }
-    }
+                'reports',
+            },
+        },
+    },
 }
 
 -- SAGOV.net
 Config.Sharinggov = {
     Mutual = {
         types = {},
-        departments = {}
+        departments = {},
     },
-    OneWay = {}
+    OneWay = {},
 }
 
 -- SADOT.net
@@ -148,9 +161,9 @@ Config.Sharingdot = {
     Enabled = true,
     Mutual = {
         types = {},
-        departments = {}
+        departments = {},
     },
-    OneWay = {}
+    OneWay = {},
 }
 
 -- Keep original PS-MDT sharing readers functional.
