@@ -110,6 +110,8 @@
         NUI_EVENTS.AUTH.UPDATE_AUTH,
         (data: AuthUpdateData) => {
             authService.updateAuthState(data);
+            // A job, duty or character update invalidates any open records session.
+            recordsOfficeOpen = false;
         },
     );
 
