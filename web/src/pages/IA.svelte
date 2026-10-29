@@ -68,6 +68,41 @@
 	let investigatorSearchQuery = $state("");
 
 	let canManage = $derived(authService?.hasPermission('ia_manage') ?? false);
+	let isSADLE = $derived(authService?.agency === 'sadle');
+	let referralReason = $state("");
+	let referralBusy = $state(false);
+	let referralNotice = $state("");
+	interface IAReferral { id: number; complaint_id: number; complaint_number: string; referring_agency: string; status: string; reason: string; created_at: string; }
+	let referrals = $state<IAReferral[]>([]);
+	let loadingReferrals = $state(false);
+	async function loadReferrals() {
+		if (!isSADLE || !authService?.hasPermission('ia_view')) return;
+		loadingReferrals = true;
+		try {
+			const result = await fetchNui<IAReferral[]>(NUI_EVENTS.IA.GET_SADLE_REFERRALS, {page: 1}, []);
+			referrals = Array.isArray(result) ? result : [];
+		} catch { globalNotifications.error("Could not load SADLE referrals"); }
+		finally { loadingReferrals = false; }
+	}
+	async function referSelectedComplaint() {
+		if (!selectedComplaint || !canManage || isSADLE || referralBusy || referralReason.trim().length < 10) return;
+		referralBusy = true;
+		referralNotice = "";
+		try {
+			const result = await fetchNui<{success: boolean; error?: string}>(NUI_EVENTS.IA.REFER_TO_SADLE,
+				{id: selectedComplaint.complaint.id, reason: referralReason.trim()}, {success:false});
+			referralNotice = result.success ? "Referral submitted to SADLE." : (result.error || "Referral not accepted.");
+			if (result.success) referralReason = "";
+		} catch { referralNotice = "Referral could not be submitted."; }
+		finally { referralBusy = false; }
+	}
+	async function acceptReferral(id: number) {
+		if (!isSADLE || !canManage) return;
+		const result = await fetchNui<{success: boolean; error?: string}>(NUI_EVENTS.IA.ACCEPT_SADLE_REFERRAL, {id}, {success:false});
+		if (!result.success) globalNotifications.error(result.error || "Could not accept referral");
+		else await loadReferrals();
+	}
+
 	let mounted = false;
 
 	const statusOptions = ["all", "open", "under_review", "investigated", "sustained", "exonerated", "unfounded", "closed"];
@@ -84,6 +119,7 @@
 			return;
 		}
 		await loadComplaints();
+		await loadReferrals();
 		mounted = true;
 	});
 
@@ -360,6 +396,14 @@
 			<span class="pill {getStatusPillClass(selectedComplaint.complaint.status)}">{formatLabel(selectedComplaint.complaint.status)}</span>
 		</div>
 
+		{#if canManage && !isSADLE}
+			<div class="section" style="padding:12px 20px;">
+				<div class="section-title">Refer to SADLE Internal Affairs</div>
+				<textarea class="form-textarea" rows="2" maxlength="1000" placeholder="Reason for statewide investigation (minimum 10 characters)" bind:value={referralReason}></textarea>
+				<button class="action-btn" disabled={referralBusy || referralReason.trim().length < 10} onclick={referSelectedComplaint}>{referralBusy ? 'Submitting…' : 'Submit Referral'}</button>
+				{#if referralNotice}<p aria-live="polite">{referralNotice}</p>{/if}
+			</div>
+		{/if}
 		<div class="detail-scroll">
 			<div class="detail-layout">
 				<!-- Left Column: Main Content -->
@@ -537,6 +581,22 @@
 		</div>
 	{:else}
 		<!-- ==================== LIST VIEW ==================== -->
+		{#if isSADLE && authService?.hasPermission('ia_view')}
+			<section class="section" style="margin: 12px 20px;">
+				<div class="section-title">Statewide IA Referrals</div>
+				<button class="action-btn" disabled={loadingReferrals} onclick={() => void loadReferrals()}>Refresh Referrals</button>
+				{#if referrals.length === 0}<p>No referrals in queue.</p>{/if}
+				{#each referrals as referral (referral.id)}
+					<div class="inline-controls" style="margin:8px 0;">
+						<span>{referral.complaint_number} — {referral.referring_agency} — {referral.status}</span>
+						<button class="action-btn" onclick={() => selectComplaint(referral.complaint_id)}>View</button>
+						{#if canManage && referral.status === 'pending'}
+							<button class="action-btn" onclick={() => void acceptReferral(referral.id)}>Accept</button>
+						{/if}
+					</div>
+				{/each}
+			</section>
+		{/if}
 		<div class="topbar">
 			<div class="filter-pills">
 				{#each statusOptions as opt}
