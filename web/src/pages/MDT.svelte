@@ -109,9 +109,18 @@
     useNuiEvent<AuthUpdateData>(
         NUI_EVENTS.AUTH.UPDATE_AUTH,
         (data: AuthUpdateData) => {
+            const previousCitizenId = authService.playerData?.citizenid;
+            const previousAgency = authService.agency;
+            const previousDuty = authService.onDuty;
             authService.updateAuthState(data);
-            // A job, duty or character update invalidates any open records session.
-            recordsOfficeOpen = false;
+            // Close on a real character, employer, duty or eligibility change.
+            // An initial auth refresh must not discard a counter opening event.
+            if ((previousCitizenId && previousCitizenId !== authService.playerData?.citizenid)
+                || (previousAgency && previousAgency !== authService.agency)
+                || previousDuty !== authService.onDuty
+                || !authService.isAuthorized || authService.isCivilian) {
+                recordsOfficeOpen = false;
+            }
         },
     );
 
