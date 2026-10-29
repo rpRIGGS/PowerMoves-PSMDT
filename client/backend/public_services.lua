@@ -163,7 +163,62 @@ local function publicGovernmentNotices()
     end
 end
 
+-- Public licensing uses exactly the same configured qb-target counter zones
+-- as IA and records requests. It does not create a business or charge a fee.
+local function applyForBusinessLicense(agency)
+    if not lib or not lib.inputDialog then return end
+    local fields=lib.inputDialog('Local Business License — ' .. tostring(agency), {
+        {type='input',label='Business name',required=true,max=160},
+        {type='input',label='Business type',required=true,max=80},
+        {type='textarea',label='Proposed business activity',required=true,max=4000},
+        {type='input',label='Property reference (optional)',max=120},
+    })
+    if not fields then return end
+    local result=ps.callback(resourceName..':server:applyForBusinessLicense',{
+        agency=agency,name=fields[1],businessType=fields[2],
+        description=fields[3],propertyReference=fields[4] or '',
+    })
+    if lib.notify then lib.notify({
+        title=result and result.success and 'License application received' or 'License application rejected',
+        description=result and (result.success and 'Application #' .. tostring(result.applicationId)
+            or result.error) or 'Licensing office unavailable',
+        type=result and result.success and 'success' or 'error'
+    }) end
+end
+local function myBusinessLicenseApplications()
+    if not lib or not lib.alertDialog then return end
+    local result=ps.callback(resourceName..':server:getMyBusinessLicenseApplications')
+    if not result or not result.success then
+        lib.notify({title='Business Licensing',description=result and result.error or 'Unavailable',type='error'})
+        return
+    end
+    local rows=result.applications or {}
+    if #rows==0 then
+        lib.alertDialog({header='My Business Licenses',content='No applications found.'})
+        return
+    end
+    local details={}
+    for _,item in ipairs(rows) do
+        details[#details+1]=('**%s** — %s (%s)\\nAuthority: %s\\nLicense: %s\\nDecision: %s')
+            :format(tostring(item.business_name),tostring(item.status),
+                tostring(item.id),tostring(item.agency),
+                tostring(item.license_number or 'Not issued'),
+                tostring(item.decision_reason or 'Awaiting review'))
+    end
+    lib.alertDialog({header='My Business Licenses',content=table.concat(details,'\\n\\n')})
+end
+
 local serviceHandlers = {
+    business_license_apply = {
+        label='Apply for Local Business License',
+        icon='fas fa-store',
+        open=function(location) applyForBusinessLicense(location.agency) end,
+    },
+    business_license_status = {
+        label='My Business License Applications',
+        icon='fas fa-id-card',
+        open=function() myBusinessLicenseApplications() end,
+    },
     government_notices = {
         label = 'Government Public Notices',
         icon = 'fas fa-landmark',
@@ -219,7 +274,8 @@ local function getOptions(location)
     local services = type(location.services) == 'table' and location.services or {}
     for _, serviceId in ipairs(services) do
         local service = serviceHandlers[serviceId]
-        if service and serviceId == 'public_records_request'
+        if service and (serviceId == 'public_records_request'
+            or serviceId == 'business_license_apply')
             and (type(location.agency) ~= 'string' or location.agency == '') then
             log('Skipping records request at a location with no receiving agency: ' .. tostring(location.id))
         elseif service then
