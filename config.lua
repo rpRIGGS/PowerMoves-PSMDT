@@ -609,7 +609,7 @@ Config.MechanicJobs = {
     'paradise', 'larrys', 'benefactor',
     'sahpfleet', 'safleet', 'bcfleet', 'lscofleet', 'lscityfleet',
     'samsfleet', 'safrfleet',
-    'mechanic', 'mechanic2', 'mechanic3', 'beeker', 'jetsam',
+    'mechanic', 'mechanic2', 'mechanic3', 'beeker', 'bennys', 'jetsam',
 }
 
 -- Other jobs with explicit QBCore types are handled by their families above.
