@@ -34,9 +34,17 @@ Config.Sharingleo = {
             'warrants',
         },
         departments = {
+            'police',
+            'post',
             'lspd',
+            'lspe',
+            'lscso',
             'bcso',
             'sahp',
+            'sasp',
+            'saspa',
+            'sadle',
+            'fib',
         },
     },
     OneWay = {
