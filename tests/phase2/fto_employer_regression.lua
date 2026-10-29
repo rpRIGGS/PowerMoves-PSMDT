@@ -1,0 +1,58 @@
+-- Stage 2 FTO employer isolation. Production server callback, mocked framework/SQL.
+local callbacks, reads = {}, {}
+local actor = { job = 'lspd', domain = 'police', cid = 'CID-A', authorized = true }
+local rows = {}
+local env = setmetatable({
+    GetCurrentResourceName = function() return 'ps-mdt' end,
+    CreateThread = function() end,
+    Config = { DojJobs = {} },
+    ps = {
+        registerCallback = function(name, fn) callbacks[name] = fn end,
+        getJobName = function() return actor.job end,
+        getJobType = function() return 'leo' end,
+        getIdentifier = function() return actor.cid end,
+    },
+    CheckAuth = function() return actor.authorized end,
+    CheckPermission = function() return true end,
+    GetMdtDomain = function() return actor.domain end,
+    MySQL = {
+        query = { await = function(sql, args)
+            reads[#reads + 1] = {sql=sql,args=args}
+            if sql:find('FROM mdt_fto_assignments a',1,true) then
+                assert(sql:find('a.agency_job = ?',1,true), 'FTO list must bind exact employer')
+                assert(not sql:find('a.agency_job IS NULL',1,true), 'NULL employer must not enter manager view')
+                assert(args[1] == actor.domain and args[2] == 'lspd', 'Wrong employer scope')
+                return rows
+            end
+            return {}
+        end },
+        single = { await = function(sql, args)
+            if sql:find('SELECT a.*, p.name',1,true) then
+                return rows[1]
+            end
+            return nil
+        end },
+    },
+}, {__index = _G})
+assert(loadfile('server/backend/fto.lua', 't', env))()
+local function invoke(name, ...) return assert(callbacks['ps-mdt:server:' .. name])(...) end
+rows = {{id=5,job_type='police',agency_job='lspd',trainee_citizenid='CID-B',trainer_citizenid='CID-C'}}
+local list = invoke('getFTOList', 1, 1, {})
+assert(#list.entries == 1)
+local entry = invoke('getFTO', 1, 5)
+assert(entry.success, 'Own agency record should be accessible')
+rows[1].agency_job = nil
+assert(not invoke('getFTO', 1, 5).success, 'NULL legacy owner must be withheld')
+rows[1].agency_job = 'bcso'
+assert(not invoke('getFTO', 1, 5).success, 'Other agency record must be withheld')
+rows[1].agency_job = 'lspd'
+rows = {{id=5,job_type='police',agency_job='lspd'}}
+-- A player changing employer during the list query cannot see old employer results.
+local original = env.MySQL.query.await
+env.MySQL.query.await = function(sql,args)
+    local result = original(sql,args)
+    actor.job = 'bcso'
+    return result
+end
+assert(#invoke('getFTOList',1,1,{}).entries == 0, 'Employer transfer must invalidate query')
+print('PASS exact-job FTO reads, legacy quarantine and transfer recheck')
