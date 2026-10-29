@@ -1191,6 +1191,33 @@ test('Stage 2 calendar rejects other-employer detail while preserving legacy mod
     expect(not result.success, 'Cross-employer event detail leaked')
 end)
 
+test('Stage 2 calendar notifications acknowledge only returned authorized event IDs', function()
+    identity(993, 'lspd', 'leo', 10, true)
+    env.Config.Court.DepartmentCalendarOwnership = true
+    local writesBefore = #databaseWrites
+    onDojRead = function(operation, query, args)
+        equal(operation, 'query')
+        expect(query:find("h.owner_job = ?", 1, true), 'Missing employer restriction')
+        equal(args[1], 'TEST-993')
+        equal(args[2], 'police')
+        equal(args[#args], 'lspd')
+        return { { hearing_id = 17, title = 'Agency briefing' }, { hearing_id = 23, title = 'Duty refresher' } }
+    end
+    onDojWrite = function(operation, query, args)
+        equal(operation, 'update')
+        expect(query:find('hearing_id IN (?,?)', 1, true), 'Delivery update must restrict selected event IDs')
+        equal(args[1], 'TEST-993')
+        equal(args[2], 17)
+        equal(args[3], 23)
+        return 2
+    end
+    local ok, result = pcall(function() return doj('getMissedHearings', 993) end)
+    env.Config.Court.DepartmentCalendarOwnership = false
+    expect(ok, tostring(result))
+    equal(#result, 2)
+    equal(#databaseWrites, writesBefore + 1)
+end)
+
 print(('Phase 1 access regressions: %d passed, %d failed, %d assertions; all SQL mocked.')
     :format(passed, failed, assertions))
 if failed > 0 then os.exit(1) end
