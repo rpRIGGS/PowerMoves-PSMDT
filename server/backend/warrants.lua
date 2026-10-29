@@ -141,6 +141,14 @@ ps.registerCallback(resourceName .. ':server:issueWarrant', function(source, dat
         return { success = false, error = 'Missing required fields' }
     end
 
+    local owner = MySQL.scalar.await(
+        "SELECT identifier FROM mdt_reports_restrictions WHERE reportid = ? AND type = 'owner' LIMIT 1",
+        { reportId }
+    )
+    if owner and owner ~= ps.getJobName(src) then
+        return { success = false, error = 'Report belongs to another agency' }
+    end
+
     -- One warrant per report: refuse if this report already has any active
     -- (non-expired) warrant, regardless of which subject it targets.
     local activeForReport = MySQL.single.await('SELECT 1 AS x FROM mdt_reports_warrants WHERE reportid = ? AND expirydate >= NOW() LIMIT 1', { reportId })
