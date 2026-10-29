@@ -353,6 +353,9 @@ local VALID_TAG_JOBS = { leo = true, ems = true, all = true }
 ps.registerCallback(resourceName .. ':server:createTag', function(source, payload)
     local src = source
     if not CheckAuth(src) then return { success = false, message = 'Unauthorized' } end
+    if not CheckPermission(src, 'management_permissions') then
+        return { success = false, message = 'Insufficient permissions' }
+    end
 
     payload = payload or {}
     local name = payload.name
@@ -387,6 +390,9 @@ end)
 ps.registerCallback(resourceName .. ':server:updateTag', function(source, payload)
     local src = source
     if not CheckAuth(src) then return { success = false, message = 'Unauthorized' } end
+    if not CheckPermission(src, 'management_permissions') then
+        return { success = false, message = 'Insufficient permissions' }
+    end
 
     payload = payload or {}
     local id = tonumber(payload.id)
@@ -505,6 +511,9 @@ end)
 ps.registerCallback(resourceName .. ':server:deleteAward', function(source, payload)
     local src = source
     if not CheckAuth(src) then return { success = false, message = 'Unauthorized' } end
+    if not CheckPermission(src, 'management_permissions') then
+        return { success = false, message = 'Insufficient permissions' }
+    end
 
     payload = payload or {}
     local id = tonumber(payload.id)
@@ -721,6 +730,9 @@ end)
 ps.registerCallback(resourceName .. ':server:saveCustomLicense', function(source, payload)
     local src = source
     if not CheckAuth(src) then return { success = false, message = 'Unauthorized' } end
+    if not CheckPermission(src, 'management_permissions') then
+        return { success = false, message = 'Insufficient permissions' }
+    end
 
     payload = payload or {}
     local name = payload.name
@@ -758,6 +770,9 @@ end)
 ps.registerCallback(resourceName .. ':server:deleteCustomLicense', function(source, payload)
     local src = source
     if not CheckAuth(src) then return { success = false, message = 'Unauthorized' } end
+    if not CheckPermission(src, 'management_permissions') then
+        return { success = false, message = 'Insufficient permissions' }
+    end
 
     payload = payload or {}
     local id = tonumber(payload.id)
@@ -772,6 +787,9 @@ end)
 ps.registerCallback(resourceName .. ':server:deleteTag', function(source, payload)
     local src = source
     if not CheckAuth(src) then return { success = false, message = 'Unauthorized' } end
+    if not CheckPermission(src, 'management_permissions') then
+        return { success = false, message = 'Insufficient permissions' }
+    end
 
     payload = payload or {}
     local id = tonumber(payload.id)
