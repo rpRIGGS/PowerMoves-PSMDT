@@ -161,7 +161,8 @@ end
 
 ps.registerCallback(resourceName .. ':server:getPermissionRoles', function(source)
     local src = source
-    if not CheckAuth(src) then return {} end
+    -- Permission administration data is restricted to authorized managers.
+    if not CheckAuth(src) or not CheckPermission(src, 'management_permissions') then return {} end
 
     local jobName, job = getPoliceJobDefinition(src)
     ps.debug('[getPermissionRoles] jobName', jobName, 'job', job and job.label or 'nil')
