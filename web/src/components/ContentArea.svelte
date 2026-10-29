@@ -44,6 +44,8 @@
 		authService: AuthService;
 		tabService: ReturnType<typeof createTabService>;
 		instanceStateService: ReturnType<typeof createInstanceStateService>;
+		recordsOfficeOpen: boolean;
+		onCloseRecordsOffice: () => void;
 	}
 
 	let { authService, tabService, instanceStateService, recordsOfficeOpen, onCloseRecordsOffice }: Props = $props();
