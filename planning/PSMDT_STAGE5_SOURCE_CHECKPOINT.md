@@ -8,7 +8,7 @@ Date: October 29, 2026
 - Configurable qb-target public service locations with IA filing and public records intake/history.
 - Citizenid-scoped intake and response retrieval.
 - RecordsOfficer allowlist and agency-only review queue; default is no access.
-- Staff /recordsdesk ox_lib UI.
+- Staff records-office panel inside the existing PSMDT Svelte NUI, opened via a configured qb-target location (`records_office` service); no records-office slash command.
 - Submitted → under_review → denied OR public-response-approved state changes.
 - An explicitly authored public response is published to a single applicant; no raw operational data access.
 - Additive SQL migration files for request, review audit and response tables.
@@ -23,5 +23,5 @@ Date: October 29, 2026
 
 ## Must pass before runtime signoff
 Follow planning/PSMDT_STAGE5_ACCEPTANCE.md on a backed-up DEV server with actual QBCore jobs, PSMDT and qb-target/ox_lib.
-Run service desk and /recordsdesk with two staff agencies and two civilian characters.
+Test qb-target public service counters and records-office MDT panel with two staff agencies and two civilian characters.
 Do not deploy to production or move the Stage 5 *runtime* status to complete until approved.
