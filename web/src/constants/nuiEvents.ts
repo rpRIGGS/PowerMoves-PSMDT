@@ -223,6 +223,7 @@ export const NUI_EVENTS = {
 		GET_CASES: "getCases",
 		GET_CASE: "getCase",
 		GET_CASE_DISCLOSURES: "getCaseDisclosures",
+		GET_DISCLOSED_CASES: "getDisclosedCases",
 		GRANT_CASE_DISCLOSURE: "grantCaseDisclosure",
 		REVOKE_CASE_DISCLOSURE: "revokeCaseDisclosure",
 		GET_CASE_EVIDENCE_PAGE: "getCaseEvidencePage",
