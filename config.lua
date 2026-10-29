@@ -42,7 +42,8 @@ Config.Sharingleo = {
     OneWay = {
         {
             viewers = {
-                'sadle'
+                'sadle',
+                'fib'
             },
             targets = {
                 'post',
@@ -733,7 +734,7 @@ Config.MdtAccess = {
     -- Eligibility only: these jobs may be granted a separate, explicit
     -- 'leo_roster_oversight' stored job/grade permission. Being a boss in one
     -- of these jobs does NOT itself grant cross-agency roster visibility.
-    LeoRosterOversightJobs = { 'sadle' },
+    LeoRosterOversightJobs = { 'sadle', 'fib' },
     -- Statewide service oversight is distinct from ordinary employer access.
     -- These are candidate oversight employers, NOT blanket record-sharing
     -- grants. Server callbacks must require explicit permissions and preserve
