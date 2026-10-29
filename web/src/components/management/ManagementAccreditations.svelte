@@ -22,6 +22,13 @@
     let busy = $state(false);
     let error = $state("");
     let hasMore = $state(false);
+    let targetCitizen = $state("");
+    let credentialCode = $state("");
+    let credentialName = $state("");
+    let specialization = $state("");
+    let expiry = $state("");
+    let notice = $state("");
+    let submitting = $state(false);
     const issuerJobs = ["sadle", "post", "safr", "sams"];
     let authorized = $derived(
         !!authService?.hasPermission("roster_manage_certifications") &&
@@ -46,6 +53,39 @@
             busy = false;
         }
     }
+    async function issueCredential() {
+        if (!authorized || submitting || !targetCitizen.trim() || !credentialCode.trim() || !credentialName.trim()) return;
+        submitting = true;
+        notice = "";
+        try {
+            const result = await fetchNui<{success:boolean;message?:string}>(
+                NUI_EVENTS.FTO.ISSUE_ACCREDITATION,
+                {
+                    citizenid: targetCitizen.trim(),
+                    code: credentialCode.trim(),
+                    name: credentialName.trim(),
+                    specialization: specialization.trim(),
+                    expiresAt: expiry || undefined,
+                },
+                {success:false}
+            );
+            if (!result.success) {
+                notice = result.message || "Credential issuance was denied.";
+                return;
+            }
+            targetCitizen = "";
+            credentialCode = "";
+            credentialName = "";
+            specialization = "";
+            expiry = "";
+            notice = "Credential issuance recorded.";
+            await load(1);
+        } catch {
+            notice = "Credential issuance failed.";
+        } finally {
+            submitting = false;
+        }
+    }
     onMount(() => { void load(1); });
 </script>
 
@@ -55,6 +95,19 @@
     {#if !authorized}
         <p>State accreditation issuer authorization required.</p>
     {:else}
+        <form class="issue-form" onsubmit={(event) => { event.preventDefault(); void issueCredential(); }}>
+            <h4>Issue permanent credential</h4>
+            <p>The approved state issuer determines the credential family. This does not modify employment or departmental FTO reports.</p>
+            <div class="fields">
+                <label>Citizen ID<input aria-label="Recipient citizen ID" bind:value={targetCitizen} required maxlength="64" /></label>
+                <label>Credential code<input aria-label="Credential code" bind:value={credentialCode} required maxlength="64" placeholder="Example: BLS" /></label>
+                <label>Credential title<input aria-label="Credential title" bind:value={credentialName} required maxlength="160" /></label>
+                <label>Specialization (optional)<input bind:value={specialization} maxlength="160" /></label>
+                <label>Expires (optional)<input type="date" bind:value={expiry} /></label>
+            </div>
+            <button type="submit" disabled={submitting}>{submitting ? "Recording…" : "Issue credential"}</button>
+            {#if notice}<p aria-live="polite">{notice}</p>{/if}
+        </form>
         <div class="toolbar"><span>{authService?.agency?.toUpperCase()} issuing office</span><button disabled={busy} onclick={() => void load(page)}>Refresh</button></div>
         {#if error}<p role="alert">{error}</p>{/if}
         {#if records.length === 0}
@@ -75,6 +128,12 @@
 
 <style>
     .credential-audit { padding: 18px 24px; color: var(--primary-text); }
+    .issue-form { margin: 12px 0 22px; padding: 14px; border: 1px solid rgba(128,128,128,.22); border-radius: 6px; }
+    .issue-form h4 { margin: 0 0 6px; }
+    .issue-form p { opacity: .75; }
+    .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 12px; margin: 14px 0; }
+    label { display: flex; flex-direction: column; gap: 5px; font-size: 12px; }
+    input { padding: 8px; background: transparent; border: 1px solid rgba(128,128,128,.4); color: inherit; border-radius: 4px; }
     h3 { margin: 0 0 8px; }
     .description { opacity: .72; margin-bottom: 20px; max-width: 790px; }
     .toolbar, nav { display: flex; gap: 12px; align-items: center; justify-content: space-between; margin: 12px 0; }
