@@ -442,6 +442,9 @@ ps.registerCallback(resourceName .. ':server:removeEvidenceImage', function(sour
     end
 
     local image = MySQL.single.await('SELECT url, evidence_id FROM mdt_evidence_images WHERE id = ?', { imageId })
+    if not image or not canEditEvidenceRecord(src, image.evidence_id) then
+        return { success = false, error = 'Evidence image not found or inaccessible' }
+    end
     local success = MySQL.query.await('DELETE FROM mdt_evidence_images WHERE id = ?', { imageId })
     if not success then
         return { success = false, error = 'Failed to remove image' }
