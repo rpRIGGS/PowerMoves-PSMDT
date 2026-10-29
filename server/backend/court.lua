@@ -396,6 +396,12 @@ ps.registerCallback(resourceName .. ':server:getMissedHearings', function(source
         ORDER BY h.scheduled_at DESC
         LIMIT 15
     ]]):format(scopeSql), args) or {}
+    -- Reject a result if the player switched identity/employer while SQL yielded.
+    if not CheckAuth(src) or not canViewCalendar(src)
+        or ps.getIdentifier(src) ~= cid or callerCalendarDomain(src) ~= domain then
+        return {}
+    end
+    if departmentCalendarOwnership() and not calendarOwnerJob(src) then return {} end
 
     -- Only acknowledge events actually returned to the currently authorized
     -- employee. Do not consume another employer's pending invitations.
