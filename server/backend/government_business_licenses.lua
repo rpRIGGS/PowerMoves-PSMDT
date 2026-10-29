@@ -130,6 +130,25 @@ ps.registerCallback(resourceName..':server:getMyBusinessLicenseApplications',fun
     return {success=true,applications=rows or {}}
 end)
 
+-- Only explicitly authorized state licensing oversight may browse other
+-- government offices. Local staff are limited to their own jurisdiction.
+ps.registerCallback(resourceName..':server:getGovernmentBusinessLicenseAuthorities',function(source)
+    local access=staff(source)
+    if not access then return {success=false,error='Licensing office access denied'} end
+    local authorities={}
+    for job,jurisdiction in pairs(policy()) do
+        if localJurisdiction(job) and (job==access.agency
+            or (access.agency=='sagov' and access.hasStateOversight==true)) then
+            authorities[#authorities+1]={agency=job,jurisdiction=jurisdiction}
+        end
+    end
+    table.sort(authorities,function(a,b) return a.agency<b.agency end)
+    if not sameStaff(source,access) then
+        return {success=false,error='Licensing access changed'}
+    end
+    return {success=true,authorities=authorities,agency=access.agency}
+end)
+
 -- Default to own-government records. State oversight is read-only with
 -- explicit grant. Local state/county/municipal hierarchy does not itself
 -- grant an employee access to neighboring unpublished applications.
