@@ -344,6 +344,12 @@ export const NUI_EVENTS = {
 		ADD_IA_NOTE: "addIANote",
 		DELETE_IA_NOTE: "deleteIANote",
 	},
+	PUBLIC_RECORDS: {
+        OPEN_OFFICE: "openRecordsOffice",
+        OFFICE_QUEUE: "getPublicRecordsOfficeQueue",
+        REVIEW_REQUEST: "reviewPublicRecordsRequest",
+        PUBLISH_RESPONSE: "publishPublicRecordsResponse",
+    },
 	CIVILIAN: {
 		GET_MY_PROFILE: "getMyProfile",
 	},
@@ -446,6 +452,7 @@ export const ALL_NUI_EVENTS = [
 	...Object.values(NUI_EVENTS.IA),
 	...Object.values(NUI_EVENTS.PPR),
 	...Object.values(NUI_EVENTS.FTO),
+	...Object.values(NUI_EVENTS.PUBLIC_RECORDS),
 	...Object.values(NUI_EVENTS.CIVILIAN),
 	...Object.values(NUI_EVENTS.COLLAB),
 	...Object.values(NUI_EVENTS.DOJ),
