@@ -62,6 +62,8 @@ jobs:
         run: lua5.4 tests/phase4/disclosed_case_runtime.lua
       - name: IA referral runtime regression
         run: lua5.4 tests/phase4/ia_referral_runtime.lua
+      - name: Stage 5 public records transaction regression
+        run: lua5.4 tests/phase5/public_records_runtime.lua
       - name: Government SOP regression
         run: lua5.4 tests/phase1/government_sop_regression.lua
       - name: Government roster regression
