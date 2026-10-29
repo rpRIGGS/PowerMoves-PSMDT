@@ -115,9 +115,9 @@ local function roleDomain(jobName, job)
     local jobType = job and job.type
     if (policy.GovernmentJobs or {})[jobName] or jobType == 'gov' then return 'gov' end
     if hasValue(Config.DojJobs, jobName) or jobType == Config.DojJobType then return 'doj' end
-    -- SADLE uses an explicit agency allowlist, not every job that happens
-    -- to advertise the QBCore 'leo' type.
-    if hasValue(Config.PoliceJobs, jobName) then return 'leo' end
+    -- QBCore job.type selects the functional MDT family; job.name
+    -- remains the distinct department for rosters and stored permissions.
+    if jobType == Config.PoliceJobType or hasValue(Config.PoliceJobs, jobName) then return 'leo' end
     if hasValue(Config.MedicalJobs, jobName) or jobType == Config.MedicalJobType then return 'ems' end
     return nil
 end
