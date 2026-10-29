@@ -164,8 +164,27 @@ ps.registerCallback('ps-mdt:server:getRosterList', function(source)
             if candidate == employer then valid = true break end
         end
         if not valid then return { roster = {}, activeUnits = {} } end
-        jobList = { employer }
-        matchFn = function(name, _) return name == employer end
+        local statewide = type(CanViewStatewideServiceRoster) == 'function'
+            and CanViewStatewideServiceRoster(source, access.interfaceId) == true
+        if statewide then
+            local policy = (((Config.MdtAccess or {}).ServiceOversight or {})[access.interfaceId]) or {}
+            jobList = { employer }
+            for _, department in ipairs(policy.DepartmentJobs or {}) do
+                local eligible = false
+                for _, candidate in ipairs(choices or {}) do
+                    if candidate == department then eligible = true break end
+                end
+                if eligible and department ~= employer then
+                    jobList[#jobList + 1] = department
+                end
+            end
+            local permitted = {}
+            for _, jobName in ipairs(jobList) do permitted[jobName] = true end
+            matchFn = function(name, _) return permitted[name] == true end
+        else
+            jobList = { employer }
+            matchFn = function(name, _) return name == employer end
+        end
         defaultDept = employer
         scopeJobType = nil
     else
