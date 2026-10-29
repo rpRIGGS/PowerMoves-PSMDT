@@ -17,4 +17,7 @@ for(const path of ['sql/qbcore.sql','sql/qbx.sql']) {
  for(const tbl of ['mdt_case_disclosures','mdt_report_disclosures']) assert.ok(sql.includes('CREATE TABLE IF NOT EXISTS `'+tbl+'`'),path+': '+tbl);
 }
 assert.ok(cases.includes("current.agency !== scope.agency") || cases.includes("current.agency ~= scope.agency"), 'Case list requires employer recheck');
+const reportList = reports.slice(reports.indexOf("':server:getReports'"), reports.indexOf("':server:getReport'"));
+assert.ok(reportList.includes('ps.getIdentifier(src) ~= identifier'), 'Report lists must recheck character after SQL');
+assert.ok(reportList.includes('getEffectiveJobType(src) ~= jobType'), 'Report lists must recheck service role after SQL');
 console.log('PASS case and report grant, revocation and redacted case detail invariants');
