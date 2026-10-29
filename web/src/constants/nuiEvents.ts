@@ -361,6 +361,7 @@ export const NUI_EVENTS = {
         CREATE: "createGovernmentNotice",
         EDIT: "editGovernmentNotice",
         PUBLISH: "publishGovernmentNotice",
+        WITHDRAW: "withdrawGovernmentNotice",
     },
 	CIVILIAN: {
 		GET_MY_PROFILE: "getMyProfile",
