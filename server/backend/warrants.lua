@@ -155,6 +155,9 @@ ps.registerCallback(resourceName .. ':server:issueWarrant', function(source, dat
     if not warrantReportExists(reportId) then
         return { success = false, error = 'Report not found' }
     end
+    if type(CanReadMdtReport) ~= 'function' or not CanReadMdtReport(src, reportId) then
+        return { success = false, error = 'Report access denied' }
+    end
     local owner = MySQL.scalar.await(
         "SELECT identifier FROM mdt_reports_restrictions WHERE reportid = ? AND type = 'owner' LIMIT 1",
         { reportId }
@@ -220,6 +223,9 @@ ps.registerCallback(resourceName .. ':server:closeWarrant', function(source, dat
     end
     if not warrantReportExists(reportId) then
         return { success = false, error = 'Report not found' }
+    end
+    if type(CanReadMdtReport) ~= 'function' or not CanReadMdtReport(src, reportId) then
+        return { success = false, error = 'Report access denied' }
     end
     local owner = MySQL.scalar.await(
         "SELECT identifier FROM mdt_reports_restrictions WHERE reportid = ? AND type = 'owner' LIMIT 1",
