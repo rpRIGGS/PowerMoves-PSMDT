@@ -1156,6 +1156,41 @@ test('legacy login tracking rejects off-duty sessions', function()
     equal(#databaseWrites, before)
 end)
 
+test('Stage 2 opt-in calendar reads bind employer and preserve court permission', function()
+    identity(980, 'lspd', 'leo', 10, true)
+    env.Config.Court.DepartmentCalendarOwnership = true
+    onDojRead = function(operation, query, args)
+        equal(operation, 'query')
+        expect(query:find("h.owner_job = ?", 1, true), 'Employer calendar filter missing')
+        expect(query:find("h.category = 'court' AND ? = 1", 1, true), 'Court permission filter missing')
+        equal(args[1], 'police')
+        equal(args[#args], 'lspd')
+        return {}
+    end
+    local ok, result = pcall(function()
+        return doj('getHearings', 980, { from = '2026-11-01 00:00:00', to = '2026-12-01 00:00:00' })
+    end)
+    env.Config.Court.DepartmentCalendarOwnership = false
+    expect(ok, tostring(result))
+    equal(#result, 0)
+end)
+
+test('Stage 2 calendar rejects other-employer detail while preserving legacy mode', function()
+    identity(981, 'lspd', 'leo', 10, true)
+    env.Config.Court.DepartmentCalendarOwnership = true
+    onDojRead = function(operation, query)
+        equal(operation, 'single')
+        expect(query:find('FROM mdt_court_hearings', 1, true))
+        return { id = 981, job_type = 'police', category = 'training', owner_job = 'bcso' }
+    end
+    local ok, result = pcall(function()
+        return doj('getHearing', 981, { hearingId = 981 })
+    end)
+    env.Config.Court.DepartmentCalendarOwnership = false
+    expect(ok, tostring(result))
+    expect(not result.success, 'Cross-employer event detail leaked')
+end)
+
 print(('Phase 1 access regressions: %d passed, %d failed, %d assertions; all SQL mocked.')
     :format(passed, failed, assertions))
 if failed > 0 then os.exit(1) end
