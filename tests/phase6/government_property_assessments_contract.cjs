@@ -27,7 +27,7 @@ for(const base of bases){
 assert.match(schema,/before_snapshot/);
 assert.match(schema,/after_snapshot/);
 assert.match(backend,/GovernmentJurisdictionContains\('state',key\)/);
-assert.match(backend,/SELECT property_id FROM properties WHERE property_id=\?/);
+assert.match(backend,/SELECT property_id,owner_citizenid FROM properties WHERE property_id=\?/);
 assert.match(backend,/IsPropertyAssessmentApproved/);
 assert.match(backend,/government_owned/);
 assert.match(backend,/tax_exempt/);
