@@ -91,7 +91,8 @@ local env=setmetatable({
     ps={registerCallback=function(name,fn) callbacks[name]=fn end},
     MySQL={
         query={await=function(sql,args)
-            if sql:find("WHERE status = 'published'",1,true) then
+            if sql:find("WHERE status = 'published'",1,true)
+                and not sql:find('created_by_citizenid',1,true) then
                 assert(args[1]==21 and args[2]%20==0, 'Public notices must paginate')
                 local result={}
                 for _,n in pairs(notices) do
