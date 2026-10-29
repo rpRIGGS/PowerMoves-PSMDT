@@ -101,7 +101,7 @@ end
 -- getCitizens - pulls citizens from database with pagination support
 ps.registerCallback(resourceName .. ':server:getCitizens', function(source, page)
     local src = source
-    if not CheckAuth(src) then return {} end
+    if not CheckAuth(src) or not CheckPermission(src, 'citizens_search') then return {} end
     local startTime = os.clock()
     page = page or 1
     -- The Citizens UI filters AND paginates client-side over the full set
@@ -225,7 +225,7 @@ end)
 -- Returns the same data structure as getCitizens but filtered by search query
 ps.registerCallback(resourceName .. ':server:searchCitizens', function(source, query)
     local src = source
-    if not CheckAuth(src) then return {} end
+    if not CheckAuth(src) or not CheckPermission(src, 'citizens_search') then return {} end
     local startTime = os.clock()
 
     local norm, searchTerm = NormalizeSearch(query)
@@ -409,7 +409,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:getCitizenProfile', function(source, citizenid)
     local src = source
-    if not CheckAuth(src) then return end
+    if not CheckAuth(src) or not CheckPermission(src, 'citizens_search') then return end
 
     if not citizenid or citizenid == '' then
         return { success = false, message = 'Missing citizen id' }
@@ -699,7 +699,7 @@ end)
 -- history into memory just to summarize it.
 ps.registerCallback(resourceName .. ':server:getCitizenCharges', function(source, citizenid, page)
     local src = source
-    if not CheckAuth(src) then return { charges = {}, hasMore = false } end
+    if not CheckAuth(src) or not CheckPermission(src, 'charges_view') then return { charges = {}, hasMore = false } end
 
     if not citizenid or citizenid == '' then
         return { charges = {}, hasMore = false }
@@ -746,7 +746,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:updateCitizenLicense', function(source, payload)
     local src = source
-    if not CheckAuth(src) then return { success = false, message = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'citizens_edit_licenses') then return { success = false, message = 'Unauthorized' } end
 
     payload = payload or {}
     local citizenId = payload.citizenid
@@ -789,7 +789,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:updateCitizenCustomLicense', function(source, payload)
     local src = source
-    if not CheckAuth(src) then return { success = false, message = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'citizens_edit_licenses') then return { success = false, message = 'Unauthorized' } end
 
     payload = payload or {}
     local citizenId = payload.citizenid
@@ -933,7 +933,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:createBolo', function(source, payload)
     local src = source
-    if not CheckAuth(src) then return { success = false, message = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'bolos_create') then return { success = false, message = 'Unauthorized' } end
 
     payload = payload or {}
     local boloType = payload.type or 'citizen'
@@ -987,7 +987,7 @@ end)
 -- Delete a BOLO
 ps.registerCallback(resourceName .. ':server:deleteBolo', function(source, payload)
     local src = source
-    if not CheckAuth(src) then return { success = false, message = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'bolos_create') then return { success = false, message = 'Unauthorized' } end
 
     payload = payload or {}
     local id = tonumber(payload.id)
@@ -1002,7 +1002,7 @@ end)
 -- Update BOLO status (resolve, deactivate, reactivate)
 ps.registerCallback(resourceName .. ':server:updateBoloStatus', function(source, payload)
     local src = source
-    if not CheckAuth(src) then return { success = false, message = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'bolos_create') then return { success = false, message = 'Unauthorized' } end
 
     payload = payload or {}
     local id = tonumber(payload.id)
