@@ -1278,7 +1278,7 @@ ps.registerCallback(resourceName .. ':server:grantReportDisclosure', function(so
         or type(purpose)~='string' or #purpose<10 or #purpose>255 then
         return {success=false,error='Valid report, recipient and purpose required'}
     end
-    if not CheckAuth(src) or not CheckPermission(src,'reports_edit') then
+    if not CheckAuth(src) or not CheckPermission(src,'reports_delete') then
         return {success=false,error='Unauthorized'}
     end
     local actor,employer=ps.getIdentifier(src),ps.getJobName(src)
@@ -1287,7 +1287,7 @@ ps.registerCallback(resourceName .. ':server:grantReportDisclosure', function(so
         "SELECT identifier FROM mdt_reports_restrictions WHERE reportid = ? AND type = 'owner' LIMIT 1",{id})
     if not owner or owner~=employer then return {success=false,error='Originating employer required'} end
     local recipient=MySQL.scalar.await('SELECT citizenid FROM players WHERE citizenid = ? LIMIT 1',{recipientCid})
-    if not recipient or not CheckAuth(src) or not CheckPermission(src,'reports_edit')
+    if not recipient or not CheckAuth(src) or not CheckPermission(src,'reports_delete')
         or ps.getIdentifier(src)~=actor or ps.getJobName(src)~=employer then
         return {success=false,error='Authorization changed'}
     end
@@ -1307,7 +1307,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:revokeReportDisclosure', function(source, grantId)
     local src,id=source,tonumber(grantId)
-    if not id or not CheckAuth(src) or not CheckPermission(src,'reports_edit') then
+    if not id or not CheckAuth(src) or not CheckPermission(src,'reports_delete') then
         return {success=false,error='Unauthorized'}
     end
     local actor,employer=ps.getIdentifier(src),ps.getJobName(src)
@@ -1344,7 +1344,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:getReportDisclosures', function(source, reportId)
     local src,id=source,tonumber(reportId)
-    if not id or not CheckAuth(src) or not CheckPermission(src,'reports_edit') then return {} end
+    if not id or not CheckAuth(src) or not CheckPermission(src,'reports_delete') then return {} end
     local actor,employer=ps.getIdentifier(src),ps.getJobName(src)
     local owner=MySQL.scalar.await(
         "SELECT identifier FROM mdt_reports_restrictions WHERE reportid = ? AND type = 'owner' LIMIT 1",{id})
@@ -1354,7 +1354,7 @@ ps.registerCallback(resourceName .. ':server:getReportDisclosures', function(sou
         FROM mdt_report_disclosures WHERE report_id = ?
         ORDER BY granted_at DESC LIMIT 100
     ]],{id})
-    if not CheckAuth(src) or not CheckPermission(src,'reports_edit')
+    if not CheckAuth(src) or not CheckPermission(src,'reports_delete')
         or ps.getIdentifier(src)~=actor or ps.getJobName(src)~=employer then return {} end
     return ok and rows or {}
 end)
