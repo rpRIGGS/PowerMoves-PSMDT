@@ -15,6 +15,7 @@ const schema = read('sql/migrations/2026-10-29-public-records-intake.sql');
 const responseSchema = read('sql/migrations/2026-10-29-public-records-response.sql');
 const auditSchema = read('sql/migrations/2026-10-29-public-records-review.sql');
 const copiesSchema = read('sql/migrations/2026-10-29-public-record-release-copies.sql');
+const assignmentSchema = read('sql/migrations/2026-10-29-public-records-assignment.sql');
 
 function getTableDDL(content, tableName) {
   const start = 'CREATE TABLE IF NOT EXISTS `' + tableName + '` (';
@@ -28,6 +29,7 @@ function getTableDDL(content, tableName) {
 const qbcoreSchema = read('sql/qbcore.sql');
 const qbxSchema = read('sql/qbx.sql');
 for (const base of [qbcoreSchema, qbxSchema]) {
+  assert.ok(base.includes(assignmentSchema.trim()), 'Fresh installs must include reviewer assignment columns');
   for (const [table, migration] of [
     ['mdt_public_record_requests', schema],
     ['mdt_public_record_request_audit', auditSchema],
@@ -63,6 +65,8 @@ assert.match(review, /affectedRows/);
 assert.doesNotMatch(review, /MySQL\.transaction\.await/);
 assert.match(review, /publishPublicRecordsResponse/);
 assert.match(review, /getPublicReleaseCopiesForOfficer/);
+assert.match(review, /SET assigned_to_citizenid = \?/);
+assert.match(officePage, /assigned_to_citizenid/);
 assert.match(review, /issuePublicReleaseCopy/);
 assert.match(review, /revokePublicReleaseCopy/);
 assert.match(review, /release_issued/);
