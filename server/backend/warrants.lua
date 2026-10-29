@@ -223,7 +223,7 @@ ps.registerCallback(resourceName .. ':server:closeWarrant', function(source, dat
     local updated = MySQL.update.await([[
         UPDATE mdt_reports_warrants
         SET expirydate = NOW()
-        WHERE reportid = ? AND citizenid = ?
+        WHERE reportid = ? AND citizenid = ? AND expirydate > NOW()
           AND NOT EXISTS (SELECT 1 FROM mdt_reports_restrictions o
               WHERE o.reportid = ? AND o.type = 'owner' AND o.identifier <> ?)
     ]], { reportId, citizenid, reportId, ps.getJobName(src) })
