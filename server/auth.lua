@@ -418,6 +418,42 @@ function GetGovernmentBusinessLicenseAccess(source)
     }
 end
 
+-- State Tax Assessor authority is not implied by the Governor's Office job,
+-- boss status or MDT access. Named government role grants are required.
+function GetGovernmentPropertyAssessorAccess(source)
+    local initial=GetGovernmentRosterAccess(source)
+    if not initial or initial.agency~='sagov' or initial.jurisdiction~='state' then return nil end
+    local roles=(Config.MdtAccess or {}).GovernmentPropertyAssessments or {}
+    local ok,row=pcall(MySQL.single.await,
+        'SELECT permissions FROM mdt_permission_roles WHERE job = ? AND grade = ?',
+        {initial.agency,initial.grade})
+    if not ok then return nil end
+    local permissions={}
+    if row then
+        if type(row.permissions)=='table' then permissions=row.permissions
+        elseif type(row.permissions)=='string' then
+            local decoded,value=pcall(json.decode,row.permissions)
+            if decoded and type(value)=='table' then permissions=value end
+        end
+    else
+        local defaults=(Config.PermissionDefaults or {})[initial.agency] or {}
+        if type(defaults[tostring(initial.grade)])=='table' then
+            permissions=defaults[tostring(initial.grade)]
+        end
+    end
+    local now=GetGovernmentRosterAccess(source)
+    if not now or now.citizenid~=initial.citizenid
+        or now.agency~='sagov' or now.jurisdiction~='state'
+        or now.grade~=initial.grade then return nil end
+    return {
+        citizenid=now.citizenid, agency=now.agency,
+        canAssess=type(roles.AssessPermission)=='string'
+            and contains(permissions,roles.AssessPermission),
+        canView=type(roles.ViewPermission)=='string'
+            and contains(permissions,roles.ViewPermission),
+    }
+end
+
 function CheckPermission(source, permName)
     if not permName or not CheckAuth(source) then return false end
     local access = GetMdtAccess(source)
