@@ -804,8 +804,8 @@ local function setOfficerJob(targetSrc, jobName, grade)
     if ok and QBCore and QBCore.Functions then
         local Player = QBCore.Functions.GetPlayer(targetSrc)
         if Player and Player.Functions and Player.Functions.SetJob then
-            local sok = pcall(function() return Player.Functions.SetJob(jobName, grade) end)
-            if sok then return true end
+            local sok, result = pcall(function() return Player.Functions.SetJob(jobName, grade) end)
+            if sok and result ~= false then return true end
         end
     end
 
