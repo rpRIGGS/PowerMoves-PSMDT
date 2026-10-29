@@ -6,6 +6,7 @@ const auth = read('server/auth.lua');
 const policy = read('server/backend/government_jurisdiction_policy.lua');
 const backend = read('server/backend/government_notices.lua');
 const client = read('client/backend/government_notices.lua');
+const serviceCounters = read('client/backend/public_services.lua');
 const events = read('web/src/constants/nuiEvents.ts');
 const home = read('web/src/pages/Government.svelte');
 const editor = read('web/src/pages/GovernmentNotices.svelte');
@@ -47,7 +48,7 @@ assert.match(backend, /CanViewGovernmentJurisdictionRecord/);
 assert.match(backend, /getPublicGovernmentNotices/);
 assert.match(backend, /PublicServiceDeskAllows\(source, nil, 'government_notices'\)/);
 assert.match(backend, /WHERE status = 'published'/);
-assert.match(client, /government_notices/);
+assert.match(serviceCounters, /government_notices =/);
 
 assert.doesNotMatch(backend, /RegisterCommand/);
 for(const action of ['getGovernmentNotices','createGovernmentNotice','editGovernmentNotice','publishGovernmentNotice']) {
