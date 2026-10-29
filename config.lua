@@ -747,9 +747,9 @@ Config.MdtAccess = {
         -- is assigned by default; the owner must decide those grants separately.
         OversightPermission = 'government_roster_oversight',
     },
-    -- Eligibility only: these jobs may be granted a separate, explicit
-    -- 'leo_roster_oversight' stored job/grade permission. Being a boss in one
-    -- of these jobs does NOT itself grant cross-agency roster visibility.
+    -- Both SADLE and FIB are statewide oversight agencies. Actual roster
+    -- access is restricted to the AG or explicitly authorized job/grade roles.
+    -- Boss status at either employer alone grants no cross-agency access.
     LeoRosterOversightJobs = { 'sadle', 'fib' },
     -- Statewide service oversight is distinct from ordinary employer access.
     -- These are candidate oversight employers, NOT blanket record-sharing
@@ -1113,14 +1113,10 @@ Config.OfficerStatus = {
     ChangeCooldownMs = 1500,
 }
 
--- Optional defaults for role permissions by job/grade
--- Example:
--- Config.PermissionDefaults = {
---     police = {
---         ['0'] = { 'access_reports' },
---         ['1'] = { 'access_reports', 'view_bodycams' },
---     }
--- }
+-- Optional explicit role permissions by employer and QBCore grade.
+-- A missing job/grade does not create statewide oversight. Database role
+-- assignments take precedence where the authorization code supports them.
+-- All agency job names are configured above; grades come from jobs.lua.
 Config.PermissionDefaults = Config.PermissionDefaults or {}
 
 -- HIGHLY recommended not tuse this natively. Use FiveManage for this.
