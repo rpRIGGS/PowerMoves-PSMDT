@@ -589,6 +589,11 @@ Config.MdtAccess = {
         -- No blanket boss, county-to-city, or statewide grant.
         -- Licenses are issued by the receiving local/state authority.
     },
+    GovernmentBudgets = {
+        DraftPermission = 'government_budget_draft',
+        ApprovePermission = 'government_budget_approve',
+        StateOversightPermission = 'government_budget_oversight',
+    },
     GovernmentPersonnel = {
         -- Read-only oversight requires this exact permission on a sagov
         -- job/grade row in mdt_permission_roles, or Config.PermissionDefaults
