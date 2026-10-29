@@ -33,3 +33,11 @@ The foundational enabled fronts remain SADLE.net, SADOJ.net, SAFR.net, SAMS.net 
 - Historical records are preserved for owner-approved migration and never silently relabeled based on current employment.
 
 All Stage 1 runtime sign-off remains pending. Stage 2 source work may continue without representing the untested server as production ready.
+
+## Calendar owner-job transition — current source increment
+
+- Both clean-install schemas now include nullable `mdt_court_hearings.owner_job`. The migration is separately supplied at `sql/migrations/2026-10-28-calendar-owner-job.sql`; it is **not automatically applied**.
+- `Config.Court.DepartmentCalendarOwnership = false` by default. Existing live databases without this column continue using the existing calendar SQL.
+- Once a developer explicitly installs the migration and enables the flag, new ordinary calendar events created through `createHearing` stamp the current authorized employing job. Read/list operations check job ownership for training/meeting/other entries, and mutations check owner before editing/deleting/status/attendee changes. Unreconciled legacy entries with NULL owner are not exposed as new departmental events.
+- Court-category events preserve the police/DOJ calendar domain subject to separate `court_view` authorization. Do not change court authorization merely to implement employer training calendars.
+- **Still outstanding**: an end-to-end SQL/in-game run with the flag enabled, real historical owner reconciliation, department-scoped invites and cross-agency event sharing, and Fire-vs-hospital acceptance tests. Keep the flag disabled on production until those checks pass.
