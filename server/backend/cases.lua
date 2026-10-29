@@ -27,7 +27,7 @@ end
 
 ps.registerCallback(resourceName .. ':server:createCase', function(source, payload)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_create') then return { success = false, error = 'Unauthorized' } end
 
     payload = payload or {}
     local title = payload.title or 'Untitled Case'
@@ -72,7 +72,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:getCases', function(source, page, filters)
     local src = source
-    if not CheckAuth(src) then return { cases = {}, hasMore = false } end
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_view') then return { cases = {}, hasMore = false } end
 
     page = tonumber(page) or 1
     local limit = Config.Pagination and Config.Pagination.Cases or 20
@@ -122,7 +122,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:getCase', function(source, caseId)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_view') then return { success = false, error = 'Unauthorized' } end
 
     caseId = tonumber(caseId)
     if not caseId then
@@ -285,7 +285,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:updateCase', function(source, caseId, payload)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_edit') then return { success = false, error = 'Unauthorized' } end
 
     caseId = tonumber(caseId)
     if not caseId then
@@ -344,7 +344,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:deleteCase', function(source, caseId)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_delete') then return { success = false, error = 'Unauthorized' } end
 
     caseId = tonumber(caseId)
     if not caseId then
