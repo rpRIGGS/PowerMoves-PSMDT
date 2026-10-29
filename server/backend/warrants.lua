@@ -107,7 +107,8 @@ end
 
 ps.registerCallback(resourceName .. ':server:getActiveWarrants', function(source)
     local src = source
-    if not CheckAuth(src) then return {} end
+    if not canReadWarrantData(src) then return {} end
+    if not CheckPermission(src, 'warrants_view') then return {} end
     return GetActiveWarrantsData(src)
 end)
 
