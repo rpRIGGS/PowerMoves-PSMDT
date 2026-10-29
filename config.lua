@@ -129,7 +129,7 @@ Config.Sharinggov = {
 
 -- SADOT.net
 Config.Sharingdot = {
-    Enabled = false,
+    Enabled = true,
     Mutual = {
         types = {},
         departments = {}
@@ -666,7 +666,7 @@ Config.Interfaces = {
         JobType = 'mechanic',
         Jobs = Config.MechanicJobs,
         Sharing = Config.Sharingdot,
-        Enabled = false,
+        Enabled = true,
     },
 }
 
@@ -674,12 +674,12 @@ Config.MdtAccess = {
     -- 'legacy' preserves existing boss grants. Switch to 'explicit' ONLY after
     -- setting approved MDT permissions for each active job/leadership grade.
     BossPermissionMode = 'legacy',
-    -- SADOT.net is reserved as a sixth interface. Inactive by default:
-    -- no mechanic job is granted MDT access or operational permissions yet.
+    -- SADOT.net is the sixth interface. Operator eligibility is separate:
+    -- eligibility and operator permissions are separately enforced.
     -- Public /511 will be routed by PS-Dispatch to on-duty mechanic jobs,
     -- with a server-side first-accept claim once implemented.
     Transportation = {
-        Enabled = false,
+        Enabled = true,
         InterfaceId = 'sadot',
         JobType = Config.MechanicJobType,
         PublicServiceNumber = '511',
