@@ -605,10 +605,22 @@ Config.FireJobs = {
 -- law-enforcement access, or a transport operator license.
 Config.MechanicJobType = 'mechanic'
 Config.MechanicJobs = {
-    'paradise', 'larrys', 'benefactor',
-    'sahpfleet', 'safleet', 'bcfleet', 'lscofleet', 'lscityfleet',
-    'samsfleet', 'safrfleet',
-    'mechanic', 'mechanic2', 'mechanic3', 'beeker', 'bennys', 'jetsam',
+    'paradise',
+    'larrys',
+    'benefactor',
+    'sahpfleet',
+    'safleet',
+    'bcfleet',
+    'lscofleet',
+    'lscityfleet',
+    'samsfleet',
+    'safrfleet',
+    'mechanic',
+    'mechanic2',
+    'mechanic3',
+    'beeker',
+    'bennys',
+    'jetsam',
 }
 
 -- Other jobs with explicit QBCore types are handled by their families above.
@@ -622,16 +634,27 @@ Config.MechanicJobs = {
 -- MDT interface registry. One resource, six independently identified domains.
 -- The first three domains adapt the original LEO/DOJ/EMS PS-MDT workflows.
 -- FIRE, GOV and DOT are registered domains; operational authority remains scoped.
--- Each domain has an independent agency inventory, role families and scope.
--- All Jobs entries correspond to planning-reference/jobs.lua; agency membership
--- alone does not grant cross-agency records or elevated privileges.
+-- Interface agencies and oversight. One job name per line for easy editing.
 Config.Interfaces = {
     sadle = {
         Enabled = true,
         JobType = Config.PoliceJobType,
         Jobs = Config.PoliceJobs,
-        OversightJobs = { 'sadle', 'fib' },
-        Departments = { 'police', 'post', 'lspd', 'lspe', 'lscso', 'bcso', 'sahp', 'sasp', 'saspa' },
+        OversightJobs = {
+            'sadle',
+            'fib',
+        },
+        Departments = {
+            'police',
+            'post',
+            'lspd',
+            'lspe',
+            'lscso',
+            'bcso',
+            'sahp',
+            'sasp',
+            'saspa',
+        },
         Sharing = Config.Sharingleo,
         Permissions = 'leo',
     },
@@ -639,34 +662,58 @@ Config.Interfaces = {
         Enabled = true,
         JobType = Config.DojJobType,
         Jobs = Config.DojJobs,
-        Courts = { 'sadoj' },
-        OtherLegalJobs = { 'lawyer' },
+        Courts = {
+            'sadoj',
+        },
+        OtherLegalJobs = {
+            'lawyer',
+        },
         Sharing = Config.Sharingdoj,
         Permissions = 'doj',
-    },
-    safr = {
-        Enabled = true,
-        JobType = Config.FireJobType,
-        Jobs = Config.FireJobs,
-        OversightJobs = { 'safr' },
-        Departments = { 'lsfd', 'lscfd', 'bcfd' },
-        Sharing = Config.Sharingfire,
-        Permissions = 'fire',
     },
     sams = {
         Enabled = true,
         JobType = Config.MedicalJobType,
         Jobs = Config.MedicalJobs,
-        OversightJobs = { 'sams' },
-        Departments = { 'pillboxmed', 'sandymed', 'paletomed', 'parsonsmed' },
+        OversightJobs = {
+            'sams',
+        },
+        Departments = {
+            'pillboxmed',
+            'sandymed',
+            'paletomed',
+            'parsonsmed',
+        },
         Sharing = Config.Sharingems,
         Permissions = 'ems',
+    },
+    safr = {
+        Enabled = true,
+        JobType = Config.FireJobType,
+        Jobs = Config.FireJobs,
+        OversightJobs = {
+            'safr',
+        },
+        Departments = {
+            'lsfd',
+            'lscfd',
+            'bcfd',
+        },
+        Sharing = Config.Sharingfire,
+        Permissions = 'fire',
     },
     sagov = {
         Enabled = true,
         JobType = 'gov',
-        Jobs = { 'sagov', 'bcgov', 'lscgov', 'lsgov' },
-        OversightJobs = { 'sagov' },
+        Jobs = {
+            'sagov',
+            'bcgov',
+            'lscgov',
+            'lsgov',
+        },
+        OversightJobs = {
+            'sagov',
+        },
         Sharing = Config.Sharinggov,
         Permissions = 'gov',
         Jurisdictions = {
@@ -680,16 +727,28 @@ Config.Interfaces = {
         Enabled = true,
         JobType = Config.MechanicJobType,
         Jobs = Config.MechanicJobs,
+        OversightJobs = {},
         Sharing = Config.Sharingdot,
         Permissions = 'mechanic',
-        -- Fleet shops and commercial mechanics are separately identifiable.
         FleetJobs = {
-            'sahpfleet', 'safleet', 'bcfleet', 'lscofleet', 'lscityfleet',
-            'samsfleet', 'safrfleet',
+            'sahpfleet',
+            'safleet',
+            'bcfleet',
+            'lscofleet',
+            'lscityfleet',
+            'samsfleet',
+            'safrfleet',
         },
         ServiceJobs = {
-            'paradise', 'larrys', 'benefactor', 'mechanic', 'mechanic2',
-            'mechanic3', 'beeker', 'bennys', 'jetsam',
+            'paradise',
+            'larrys',
+            'benefactor',
+            'mechanic',
+            'mechanic2',
+            'mechanic3',
+            'beeker',
+            'bennys',
+            'jetsam',
         },
     },
 }
