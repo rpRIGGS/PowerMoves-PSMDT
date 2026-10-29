@@ -61,4 +61,33 @@ SQL
 test "$("${db[@]}" --batch --skip-column-names -e "
 SELECT status FROM mdt_public_record_requests
 WHERE request_number='PR-TEST-002';")" = 'submitted'
-echo 'Stage 5 MariaDB schema, recipient, duplicate and rollback smoke tests passed'
+# Denial notices must be delivered to the original citizen, not an
+# employee audit reader or another applicant.
+"${db[@]}" <<'SQL'
+UPDATE mdt_public_record_requests SET status='under_review'
+WHERE request_number='PR-TEST-002' AND agency='bcso' AND status='submitted';
+START TRANSACTION;
+INSERT INTO mdt_public_record_responses
+(request_id,agency,recipient_citizenid,response_text,issued_by_citizenid)
+SELECT id,agency,applicant_citizenid,'Public denial explanation','bcso-records-1'
+FROM mdt_public_record_requests WHERE request_number='PR-TEST-002' AND status='under_review';
+UPDATE mdt_public_record_requests SET status='denied'
+WHERE request_number='PR-TEST-002' AND agency='bcso' AND status='under_review';
+INSERT INTO mdt_public_record_request_audit
+(request_id,agency,actor_citizenid,action,reason)
+SELECT id,agency,'bcso-records-1','denied','Public denial explanation'
+FROM mdt_public_record_requests WHERE request_number='PR-TEST-002';
+COMMIT;
+SQL
+read -r denied foreignNotice < <("${db[@]}" --batch --skip-column-names -e "
+SELECT
+ (SELECT COUNT(*) FROM mdt_public_record_responses p
+  JOIN mdt_public_record_requests r ON r.id=p.request_id
+  WHERE r.request_number='PR-TEST-002' AND r.status='denied'
+    AND p.recipient_citizenid='cid-test-b' AND p.agency='bcso'),
+ (SELECT COUNT(*) FROM mdt_public_record_responses p
+  JOIN mdt_public_record_requests r ON r.id=p.request_id
+  WHERE r.request_number='PR-TEST-002' AND p.recipient_citizenid='cid-test-a');")
+test "$denied" = 1
+test "$foreignNotice" = 0
+echo 'Stage 5 MariaDB intake, release, denial, uniqueness and rollback smoke tests passed'
