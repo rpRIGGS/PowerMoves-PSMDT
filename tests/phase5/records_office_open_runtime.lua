@@ -3,7 +3,8 @@
 local nuiCallbacks, clientEvents = {}, {}
 local openAttempts, tabletOpens, notifications, commands = 0, 0, 0, 0
 local queueAllowed, acknowledge = true, true
-local env = setmetatable({
+local env
+env = setmetatable({
     MDTOpen = false,
     GetCurrentResourceName = function() return 'ps-mdt' end,
     RegisterNUICallback = function(name, fn) nuiCallbacks[name] = fn end,
