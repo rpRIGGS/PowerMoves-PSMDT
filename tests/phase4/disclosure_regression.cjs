@@ -20,4 +20,7 @@ assert.ok(cases.includes("current.agency !== scope.agency") || cases.includes("c
 const reportList = reports.slice(reports.indexOf("':server:getReports'"), reports.indexOf("':server:getReport'"));
 assert.ok(reportList.includes('ps.getIdentifier(src) ~= identifier'), 'Report lists must recheck character after SQL');
 assert.ok(reportList.includes('getEffectiveJobType(src) ~= jobType'), 'Report lists must recheck service role after SQL');
+assert.ok(read.includes('ps.getIdentifier(src) ~= actorCid'), 'Case detail must reject character switch');
+const caseList = cases.slice(cases.indexOf("':server:getCases'"), cases.indexOf("':server:getCase'"));
+assert.ok(caseList.includes('ps.getIdentifier(src) ~= actorCid'), 'Case list must reject character switch');
 console.log('PASS case and report grant, revocation and redacted case detail invariants');
