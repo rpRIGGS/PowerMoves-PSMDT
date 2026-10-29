@@ -317,7 +317,8 @@ ps.registerCallback(resourceName .. ':server:getHearings', function(source, payl
         if not owner then return {} end
         -- Court scheduling remains judicial; non-court events require employer.
         -- Historical NULL rows are intentionally not exposed by the new mode.
-        ownerClause = " AND (h.category = 'court' OR h.owner_job = ?)"
+        ownerClause = " AND ((h.category = 'court' AND ? = 1) OR (h.category <> 'court' AND h.owner_job = ?))"
+        args[#args + 1] = CheckPermission(src, 'court_view') and 1 or 0
         args[#args + 1] = owner
     end
 
