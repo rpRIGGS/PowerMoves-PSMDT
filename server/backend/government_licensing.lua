@@ -1,8 +1,9 @@
--- Stage 6 SAGOV business / vending applications, scoped to issuing authority.
+-- Stage 6 SAGOV vending permit applications only, scoped to issuing authority.
+-- Business licenses use the existing government_business_licenses.lua registry.
 -- Never uses job names, grade claims or citizen IDs supplied by NUI as authority.
 local resourceName = tostring(GetCurrentResourceName())
 local lastSubmission = {}
-local supported = {business = true, vending = true}
+local supported = {vending = true}
 local function clean(value, limit)
     if type(value) ~= 'string' then return nil end
     local result = value:match('^%s*(.-)%s*$')
@@ -246,25 +247,17 @@ ps.registerCallback(resourceName .. ':server:decideGovernmentLicense', function(
     return {success=true}
 end)
 
--- For future SADOT gate only: approved government business license is
--- necessary but NOT sufficient for a permitted tow operator or vehicle.
+-- SADOT prerequisite lookup reads the canonical local business-license
+-- register, not vending permits. It never grants towing authority itself.
 function HasGovernmentBusinessLicense(citizenid, businessName, jurisdiction)
     local name = clean(businessName, 160)
-    if type(citizenid) ~= 'string' or #citizenid < 1 or not name
-        or type(jurisdiction) ~= 'string' or not
-            (((Config or {}).MdtAccess or {}).GovernmentJurisdictions or {})[jurisdiction] then
-        return false
-    end
+    if type(citizenid) ~= 'string' or citizenid == '' or not name
+        or type(jurisdiction) ~= 'string' then return false end
     local ok, row = pcall(MySQL.single.await, [[
-        SELECT a.id FROM mdt_government_license_applications a
-        INNER JOIN mdt_government_license_registry r
-            ON r.application_id = a.id AND r.jurisdiction = a.jurisdiction
-            AND r.license_type = a.license_type
-        WHERE a.applicant_citizenid = ? AND a.jurisdiction = ?
-          AND a.license_type = 'business' AND a.status = 'approved'
-          AND r.business_key = ? AND r.revoked_at IS NULL
-          AND r.expires_at > UTC_TIMESTAMP()
+        SELECT id FROM mdt_government_business_licenses
+        WHERE owner_citizenid = ? AND jurisdiction = ?
+          AND business_name = ? AND status = 'approved'
         LIMIT 1
-    ]], {citizenid, jurisdiction, name:lower()})
+    ]], {citizenid, jurisdiction, name})
     return ok and row ~= nil
 end
