@@ -155,6 +155,8 @@ ps.registerCallback(resourceName .. ':server:reviewPublicRecordsRequest', functi
             VALUES (?, ?, ?, ?, ?)
         ]], {id, job, cid, action, reason})
         if not insertedExactlyOne(audit) then return false end
+        -- The player may have moved or changed jobs while SQL was yielding.
+        if authorized(source) ~= cid or ps.getJobName(source) ~= job then return false end
         return true
     end)
     if not ok or committed ~= true then
@@ -206,6 +208,8 @@ ps.registerCallback(resourceName .. ':server:publishPublicRecordsResponse', func
             VALUES (?, ?, ?, 'approved', 'Public response issued')
         ]], {id, job, cid})
         if not insertedExactlyOne(audit) then return false end
+        -- The player may have moved or changed jobs while SQL was yielding.
+        if authorized(source) ~= cid or ps.getJobName(source) ~= job then return false end
         return true
     end)
     if not ok or committed ~= true then
