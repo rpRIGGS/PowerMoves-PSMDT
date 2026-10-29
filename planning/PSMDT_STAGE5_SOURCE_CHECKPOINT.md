@@ -39,3 +39,6 @@ Do not deploy to production or move the Stage 5 *runtime* status to complete unt
 
 ## Database driver compatibility
 The checked Stage 5 transaction API `MySQL.startTransaction` was added to the oxmysql Lua library in **v2.12.0**. This source path deliberately fails closed on older installations; do not silently replace it with boolean-only batch transactions. Verify the server's actual installed oxmysql version before DEV acceptance.
+
+## Citizen denial notices
+Denied requests now deliver a deliberately authored notice via the same applicant-scoped response mechanism as approvals. The officer's denial explanation is public to that applicant; internal audit tables remain inaccessible. CI source contracts, Lua mocks and MariaDB smoke tests now include the denial path. No live DEV acceptance has been performed.
