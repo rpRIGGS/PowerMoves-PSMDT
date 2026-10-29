@@ -580,7 +580,6 @@ Config.DojJobType = "doj"
 Config.DojJobs = {
     'sadoj',
     'lawyer',
-    'atcss', -- QBCore DOJ-typed job; review its operational role before granting permissions
 }
 
 -- QBCore job families. Hospital staff use 'ems'; fire departments use 'fire'.
@@ -641,7 +640,7 @@ Config.Interfaces = {
         JobType = Config.DojJobType,
         Jobs = Config.DojJobs,
         Courts = { 'sadoj' },
-        OtherLegalJobs = { 'lawyer', 'atcss' },
+        OtherLegalJobs = { 'lawyer' },
         Sharing = Config.Sharingdoj,
         Permissions = 'doj',
     },
