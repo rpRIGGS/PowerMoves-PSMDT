@@ -582,6 +582,9 @@ ps.registerCallback(resourceName .. ':server:removeCaseAttachment', function(sou
     end
 
     local attachment = MySQL.single.await('SELECT url, case_id FROM mdt_case_attachments WHERE id = ?', { attachmentId })
+    if not attachment or not canAccessCaseId(src, attachment.case_id) then
+        return { success = false, error = 'Case attachment not found or inaccessible' }
+    end
     local success = MySQL.query.await('DELETE FROM mdt_case_attachments WHERE id = ?', { attachmentId })
 
     if not success then
@@ -617,6 +620,9 @@ ps.registerCallback(resourceName .. ':server:addEvidenceItem', function(source, 
         return { success = false, error = 'Invalid evidence: title is required' }
     end
 
+    if caseId and not canAccessCaseId(src, caseId) then
+        return { success = false, error = 'Case not found or inaccessible' }
+    end
     if caseId then
         local caseExists = MySQL.single.await('SELECT id FROM mdt_cases WHERE id = ?', { caseId })
         if not caseExists then
