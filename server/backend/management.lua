@@ -167,22 +167,14 @@ ps.registerCallback(resourceName .. ':server:getPermissionRoles', function(sourc
     local jobName, job = getPoliceJobDefinition(src)
     ps.debug('[getPermissionRoles] jobName', jobName, 'job', job and job.label or 'nil')
     if not job or not job.grades then
-        ps.debug('[getPermissionRoles] no job grades, using fallback')
-        local isBoss = ps and ps.isBoss and ps.isBoss(src) or false
-        local fallbackJob = ps.getJobData and ps.getJobData(src) or job
-        local fallbackPermissions = getDefaultRolePermissions(jobName, 0, isBoss, fallbackJob)
+        -- Never invent a generic Officer grade for a PowerMoves department.
+        -- A missing QBCore definition must be fixed in jobs.lua, not hidden.
+        ps.debug('[getPermissionRoles] missing QBCore grades for', jobName)
         return {
             job = jobName,
-            label = 'Law Enforcement',
-            roles = {
-                {
-                    key = '0',
-                    label = 'Officer',
-                    isBoss = isBoss,
-                    permissions = fallbackPermissions,
-                }
-            },
-            permissions = filterRolePermissions(jobName, fallbackJob, nil, getAllPermissions()),
+            label = job and job.label or jobName,
+            roles = {},
+            permissions = {},
         }
     end
 
