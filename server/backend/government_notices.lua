@@ -53,12 +53,12 @@ ps.registerCallback(resourceName .. ':server:getGovernmentNotices', function(sou
     local stateOversight = access.agency == 'sagov'
         and access.hasStateOversight == true and 1 or 0
     local ok, rows = pcall(MySQL.query.await, [[
-        SELECT id, agency, jurisdiction, title, body, status, version,
-               created_by_citizenid, published_by_citizenid, published_at, updated_at
+        SELECT id, agency, jurisdiction, title, body, status, version, created_by_citizenid, published_by_citizenid,
+               published_at, withdrawn_by_citizenid, withdrawn_at, updated_at
         FROM mdt_government_notices
         WHERE status = 'published'
-           OR (status = 'draft' AND agency = ?)
-           OR (status = 'draft' AND ? = 1)
+           OR (status IN ('draft', 'withdrawn') AND agency = ?)
+           OR (status IN ('draft', 'withdrawn') AND ? = 1)
         ORDER BY CASE WHEN status = 'draft' THEN 0 ELSE 1 END,
                  updated_at DESC, id DESC
         LIMIT ? OFFSET ?
@@ -231,4 +231,47 @@ ps.registerCallback(resourceName .. ':server:getPublicGovernmentNotices', functi
         end
     end
     return {success=true, notices=visible, hasMore=more, page=page}
+end)
+
+ps.registerCallback(resourceName .. ':server:withdrawGovernmentNotice', function(source, payload)
+    local access = noticeAccess(source)
+    if not access or access.canPublish ~= true or type(payload) ~= 'table' then
+        return {success=false, error='Notice withdrawal denied'}
+    end
+    local id = integer(payload.id, 1, 9007199254740991)
+    local version = integer(payload.version, 1, 2147483647)
+    local reason = clean(payload.reason, 500)
+    if not id or not version or not reason then
+        return {success=false, error='A valid withdrawal reason is required'}
+    end
+    if not checkedTransaction() then return {success=false, error='Checked transactions unavailable'} end
+    local ok, committed = pcall(MySQL.startTransaction, function(query)
+        local rows = query([[
+            SELECT status, version, jurisdiction FROM mdt_government_notices
+            WHERE id = ? AND agency = ? FOR UPDATE
+        ]], {id, access.agency})
+        if type(rows) ~= 'table' or not rows[1]
+            or rows[1].status ~= 'published'
+            or tonumber(rows[1].version) ~= version
+            or rows[1].jurisdiction ~= access.jurisdiction
+            or not sameAccess(source, access) then return false end
+        local changed = query([[
+            UPDATE mdt_government_notices
+            SET status = 'withdrawn', version = version + 1,
+                withdrawn_by_citizenid = ?, withdrawn_at = UTC_TIMESTAMP()
+            WHERE id = ? AND agency = ? AND jurisdiction = ?
+                AND status = 'published' AND version = ?
+        ]], {access.citizenid, id, access.agency, access.jurisdiction, version})
+        if not affected(changed) then return false end
+        local audit = query([[
+            INSERT INTO mdt_government_notice_audit
+                (notice_id, agency, actor_citizenid, action, reason)
+            VALUES (?, ?, ?, 'withdrawn', ?)
+        ]], {id, access.agency, access.citizenid, reason})
+        return affected(audit) and sameAccess(source, access) == true
+    end)
+    if not ok or committed ~= true then
+        return {success=false, error='Notice withdrawal not saved; refresh'}
+    end
+    return {success=true}
 end)
