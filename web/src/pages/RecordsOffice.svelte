@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { fetchNui } from "../utils/fetchNui";
+    import { isEnvBrowser } from "../utils/misc";
 
     let { onClose }: { onClose: () => void } = $props();
 
@@ -87,6 +88,7 @@
     onMount(() => {
         let active = true;
         void reload();
+        if (isEnvBrowser()) return;
         // Clear cached confidential queue data when a player leaves the
         // configured counter or loses their job/duty/allowlist entitlement.
         const interval = setInterval(async () => {
