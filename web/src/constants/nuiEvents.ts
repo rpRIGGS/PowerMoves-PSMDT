@@ -264,6 +264,7 @@ export const NUI_EVENTS = {
 		REVOKE_EVIDENCE_DISCLOSURE: "revokeEvidenceDisclosure",
 		GET_DISCLOSED_EVIDENCE: "getDisclosedEvidence",
 		GET_DISCLOSED_EVIDENCE_DETAIL: "getDisclosedEvidenceDetail",
+		GET_EVIDENCE_DISCLOSURES: "getEvidenceDisclosures",
 		ADD_EVIDENCE_IMAGE: "addEvidenceImage",
 		REMOVE_EVIDENCE_IMAGE: "removeEvidenceImage",
 		LINK_EVIDENCE_TO_CASE: "linkEvidenceToCase",
