@@ -51,7 +51,7 @@ local function insertedExactlyOne(result)
 end
 
 -- MySQL.startTransaction gives every statement the SAME connection and lets us
--- inspect affectedRows. Standard MySQL.transaction.await only returns a boolean
+-- inspect affectedRows. The conventional batch API only returns a boolean
 -- and can commit a transaction after a no-op UPDATE or INSERT ... SELECT.
 ps.registerCallback(resourceName .. ':server:reviewPublicRecordsRequest', function(source, data)
     local cid, job = authorized(source)
