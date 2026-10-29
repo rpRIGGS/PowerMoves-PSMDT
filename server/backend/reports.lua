@@ -1303,7 +1303,7 @@ ps.registerCallback(resourceName .. ':server:grantReportDisclosure', function(so
           AND EXISTS (SELECT 1 FROM mdt_reports_restrictions o
             WHERE o.reportid = r.id AND o.type = 'owner' AND o.identifier = ?)
     ]],{recipientCid,recipientJob,purpose,actor,employer,id,employer})
-    if not ok or not grantId then return {success=false,error='Disclosure storage unavailable'} end
+    if not ok or not tonumber(grantId) or tonumber(grantId) <= 0 then return {success=false,error='Disclosure storage unavailable'} end
     if ps.auditLog then ps.auditLog(src,'report_disclosure_granted','report',id,
         {grant_id=grantId,recipient=recipientCid,purpose=purpose}) end
     return {success=true,grantId=grantId}
