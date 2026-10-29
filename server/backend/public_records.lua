@@ -57,6 +57,12 @@ ps.registerCallback(resourceName .. ':server:submitPublicRecordRequest', functio
     if not updated or type(count) ~= 'number' or count < 1 then
         return {success = false, error = 'Request saved but tracking number unavailable; contact the records office'}
     end
+    -- Database inserts yield. Do not disclose the original applicant's
+    -- tracking number if the client switched characters or left the counter.
+    if ps.getIdentifier(source) ~= cid
+        or not PublicServiceDeskAllows(source, agency, 'public_records_request') then
+        return {success = false, error = 'Request saved; session changed before confirmation'}
+    end
     return {success = true, requestNumber = number}
 end)
 
