@@ -5,10 +5,12 @@ local function getEffectiveJobType(src)
     -- job type alone. Fire and hospital records remain separate domains.
     local access = GetMdtAccess(src)
     if not access or not access.authorized or access.isCivilian then return nil end
-    if access.interfaceId == 'sadle' then return 'leo' end
-    if access.interfaceId == 'sadoj' then return 'doj' end
-    if access.interfaceId == 'safr' then return 'fire' end
-    if access.interfaceId == 'sams' then return 'ems' end
+    local domain = (Config.Interfaces or {})[access.interfaceId]
+    if not domain or domain.Enabled ~= true then return nil end
+    if domain.JobType == 'leo' or domain.JobType == 'doj'
+        or domain.JobType == 'ems' or domain.JobType == 'fire' then
+        return domain.JobType
+    end
     return nil
 end
 
