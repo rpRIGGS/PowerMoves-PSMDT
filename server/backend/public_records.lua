@@ -100,3 +100,31 @@ ps.registerCallback(resourceName .. ':server:getMyPublicRecordsResponse', functi
     end
     return {success = true, response = row}
 end)
+
+-- Public-release copies are separately authored and explicitly granted.
+-- Revoked/expired copies are never returned; the caller must be the applicant
+-- and physically present at a configured status counter.
+ps.registerCallback(resourceName .. ':server:getMyPublicReleaseCopies', function(source, requestNumber)
+    local cid = ps.getIdentifier(source)
+    if type(cid) ~= 'string' or cid == '' or type(requestNumber) ~= 'string'
+        or #requestNumber < 1 or #requestNumber > 36
+        or not PublicServiceDeskAllows(source, nil, 'public_records_status') then
+        return {success = false, error = 'Records counter unavailable'}
+    end
+    local ok, rows = pcall(MySQL.query.await, [[
+        SELECT c.id, c.title, c.public_text, c.issued_at, c.expires_at
+        FROM mdt_public_record_release_copies c
+        INNER JOIN mdt_public_record_requests r
+            ON r.id = c.request_id AND r.agency = c.agency
+            AND r.applicant_citizenid = c.recipient_citizenid
+        WHERE r.request_number = ? AND r.applicant_citizenid = ?
+          AND r.status = 'approved'
+          AND c.revoked_at IS NULL AND c.expires_at > UTC_TIMESTAMP()
+        ORDER BY c.id DESC LIMIT 20
+    ]], {requestNumber, cid})
+    if not ok or ps.getIdentifier(source) ~= cid
+        or not PublicServiceDeskAllows(source, nil, 'public_records_status') then
+        return {success = false, error = 'Records counter access changed'}
+    end
+    return {success = true, copies = rows or {}}
+end)
