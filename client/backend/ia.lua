@@ -160,3 +160,9 @@ RegisterNUICallback('getSADLEIAReferrals', function(data, cb)
     local page = type(data) == 'table' and tonumber(data.page) or 1
     cb(ps.callback(resourceName .. ':server:getSADLEIAReferrals', page) or {})
 end)
+
+RegisterNUICallback('acceptSADLEIAReferral', function(data, cb)
+    if not MDTOpen or type(data) ~= 'table' then cb({success = false}) return end
+    cb(ps.callback(resourceName .. ':server:acceptSADLEIAReferral', data.id)
+        or {success = false})
+end)
