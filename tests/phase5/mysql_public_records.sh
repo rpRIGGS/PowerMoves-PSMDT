@@ -36,4 +36,29 @@ test "$own" = 1
 test "$foreign" = 0
 test "$otherAgency" = 0
 test "$auditCount" = 2
-echo 'Stage 5 MariaDB schema and recipient ownership smoke test passed'
+# A second response for the same request must fail at the database boundary,
+# even when two authorized staff attempts race.
+if "${db[@]}" -e "
+INSERT INTO mdt_public_record_responses
+(request_id,agency,recipient_citizenid,response_text,issued_by_citizenid)
+SELECT request_id, agency, recipient_citizenid, 'Duplicate text', 'officer-other'
+FROM mdt_public_record_responses
+WHERE recipient_citizenid='cid-test-a';" >/dev/null 2>&1; then
+  echo 'ERROR: Duplicate public-record release unexpectedly succeeded' >&2
+  exit 1
+fi
+test "$("${db[@]}" --batch --skip-column-names -e "
+SELECT COUNT(*) FROM mdt_public_record_responses
+WHERE recipient_citizenid='cid-test-a';")" = 1
+
+# Ensure an interrupted transaction does not change request state.
+"${db[@]}" <<'SQL'
+START TRANSACTION;
+UPDATE mdt_public_record_requests SET status='approved'
+WHERE request_number='PR-TEST-002' AND status='submitted';
+ROLLBACK;
+SQL
+test "$("${db[@]}" --batch --skip-column-names -e "
+SELECT status FROM mdt_public_record_requests
+WHERE request_number='PR-TEST-002';")" = 'submitted'
+echo 'Stage 5 MariaDB schema, recipient, duplicate and rollback smoke tests passed'
