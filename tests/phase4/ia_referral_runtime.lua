@@ -20,6 +20,10 @@ local env=setmetatable({
     GetMdtDomain=function() return 'police' end,
     MySQL={
         single={await=function(sql,args)
+            if sql:find('FROM mdt_ia_referrals',1,true) then
+                assert(args[1]==42 and args[2]=='lspd', 'Local status lookup must be employer-scoped')
+                return {id=7,status='pending'}
+            end
             assert(sql:find('FROM mdt_ia_complaints',1,true))
             if args[1] == case.id then return {agency=case.agency,job_type=case.job_type} end
             return nil
@@ -49,6 +53,10 @@ end
 local ok=call('referIAComplaintToSADLE',42,'Documented concerns warrant state investigation')
 assert(ok.success and ok.referralId==7 and #inserted==1)
 assert(inserted[1].args[2]=='lspd' and inserted[1].args[3]=='LEO-1')
+assert(call('getIAReferralStatus',42).status=='pending')
+current.job='bcso'
+assert(next(call('getIAReferralStatus',42))==nil, 'Unrelated employer cannot read status')
+current.job='lspd'
 current.job='bcso'
 assert(not call('referIAComplaintToSADLE',42,'Attempt to refer another department case').success)
 current.job='lspd';current.permissions.ia_manage=false
