@@ -26,6 +26,13 @@ for(const base of bases){
 }
 assert.match(schema,/before_snapshot/);
 assert.match(schema,/after_snapshot/);
+assert.match(schema,/PRIMARY KEY \(`property_id`,`jurisdiction`,`tax_year`\)/);
+assert.match(schema,/`property_owner_snapshot`/);
+assert.match(backend,/WHERE property_id = \? AND jurisdiction = \? AND tax_year = \? FOR UPDATE/);
+assert.match(backend,/property_owner_snapshot/);
+assert.match(backend,/exemptionReason/);
+assert.match(ui,/taxYear:row\.tax_year/);
+assert.match(ui,/entryTaxYear/);
 assert.match(backend,/GovernmentJurisdictionContains\('state',key\)/);
 assert.match(backend,/SELECT property_id,owner_citizenid FROM properties WHERE property_id=\?/);
 assert.match(backend,/IsPropertyAssessmentApproved/);
