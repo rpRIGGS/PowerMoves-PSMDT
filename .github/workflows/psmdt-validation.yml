@@ -23,6 +23,12 @@ on:
 permissions:
   contents: read
 
+# Validate only the newest pushed revision to avoid accumulating redundant
+# Actions jobs while Stage 1 source fixes are being committed.
+concurrency:
+  group: psmdt-validation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lua-regressions:
     runs-on: ubuntu-latest
