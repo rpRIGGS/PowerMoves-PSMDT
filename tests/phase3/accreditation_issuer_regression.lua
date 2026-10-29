@@ -95,4 +95,23 @@ assert(writes==4)
 actor.job='bcso'
 assert(not issue(1,payload).success, 'Ordinary law enforcement is not statewide issuer')
 assert(writes==4)
+actor.job, actor.permission, actor.duty = 'sams', true, true
+local issuerAudit=assert(callbacks['ps-mdt:server:getIssuedAccreditations'])
+local originalQuery=env.MySQL.query.await
+env.MySQL.query.await=function(query,args)
+    assert(query:find('WHERE issued_by_job = ?',1,true), 'Audit must filter issuer')
+    assert(args[1]=='sams' and args[2]==0, 'Audit must be scoped to SAMS')
+    return {{id=14,citizenid='EMPLOYEE-1',credential_family='ems'}}
+end
+assert(#issuerAudit(1,1)==1, 'Authorized issuer can audit its own credentials')
+env.MySQL.query.await=function(query,args)
+    actor.job='safr'
+    return {{id=14,citizenid='EMPLOYEE-1',credential_family='ems'}}
+end
+assert(#issuerAudit(1,1)==0, 'Issuer job change must invalidate audit result')
+actor.job='sams'
+actor.permission=false
+assert(#issuerAudit(1,1)==0, 'Audit requires explicit issuer grant')
+actor.permission=true
+env.MySQL.query.await=originalQuery
 print('PASS statewide issuer families and anti-transfer credential authorization')
