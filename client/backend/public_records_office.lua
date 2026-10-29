@@ -9,15 +9,23 @@ local function chooseDecision(item)
     local options = {
         {label = 'Mark Under Review', value = 'under_review'},
         {label = 'Deny Request', value = 'denied'},
+        {label = 'Approve and publish public response', value = 'approved'},
     }
     local choice = lib.inputDialog('Request ' .. tostring(item.request_number or item.id), {
         {type = 'select', label = 'Decision', options = options, required = true},
         {type = 'textarea', label = 'Reason', required = true},
     })
     if not choice then return end
-    local response = ps.callback(resourceName .. ':server:reviewPublicRecordsRequest', {
-        id = item.id, action = choice[1], reason = choice[2]
-    })
+    local response
+    if choice[1] == 'approved' then
+        response = ps.callback(resourceName .. ':server:publishPublicRecordsResponse', {
+            id = item.id, response = choice[2]
+        })
+    else
+        response = ps.callback(resourceName .. ':server:reviewPublicRecordsRequest', {
+            id = item.id, action = choice[1], reason = choice[2]
+        })
+    end
     notice(response and response.success and 'Decision recorded' or
         (response and response.error or 'Decision failed'),
         response and response.success and 'success' or 'error')
