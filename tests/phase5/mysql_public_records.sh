@@ -4,6 +4,7 @@ db=(mariadb --protocol=tcp --host="${MARIADB_HOST:-127.0.0.1}" --port="${MARIADB
 "${db[@]}" < sql/migrations/2026-10-29-public-records-intake.sql
 "${db[@]}" < sql/migrations/2026-10-29-public-records-review.sql
 "${db[@]}" < sql/migrations/2026-10-29-public-records-response.sql
+"${db[@]}" < sql/migrations/2026-10-29-public-record-release-copies.sql
 "${db[@]}" <<'SQL'
 INSERT INTO mdt_public_record_requests
 (request_number, applicant_citizenid, agency, subject, description)
@@ -90,4 +91,39 @@ SELECT
   WHERE r.request_number='PR-TEST-002' AND p.recipient_citizenid='cid-test-a');")
 test "$denied" = 1
 test "$foreignNotice" = 0
-echo 'Stage 5 MariaDB intake, release, denial, uniqueness and rollback smoke tests passed'
+# Expiring, manually authored release copies are stored separately from source records.
+"${db[@]}" <<'SQL'
+INSERT INTO mdt_public_record_release_copies
+(request_id,agency,recipient_citizenid,title,public_text,issued_by_citizenid,expires_at)
+SELECT id,agency,applicant_citizenid,'Public policy excerpt','Reviewed public-only content',
+'office-test',DATE_ADD(UTC_TIMESTAMP(),INTERVAL 30 DAY)
+FROM mdt_public_record_requests WHERE request_number='PR-TEST-001';
+INSERT INTO mdt_public_record_release_copies
+(request_id,agency,recipient_citizenid,title,public_text,issued_by_citizenid,expires_at)
+SELECT id,agency,applicant_citizenid,'Expired copy','No longer available',
+'office-test',DATE_SUB(UTC_TIMESTAMP(),INTERVAL 1 DAY)
+FROM mdt_public_record_requests WHERE request_number='PR-TEST-001';
+SQL
+test "$("${db[@]}" --batch --skip-column-names -e "
+SELECT COUNT(*) FROM mdt_public_record_release_copies c
+JOIN mdt_public_record_requests r ON r.id=c.request_id
+WHERE r.request_number='PR-TEST-001' AND r.applicant_citizenid='cid-test-a'
+AND c.recipient_citizenid='cid-test-a' AND c.revoked_at IS NULL
+AND c.expires_at>UTC_TIMESTAMP();")" = 1
+test "$("${db[@]}" --batch --skip-column-names -e "
+SELECT COUNT(*) FROM mdt_public_record_release_copies c
+JOIN mdt_public_record_requests r ON r.id=c.request_id
+WHERE r.request_number='PR-TEST-001' AND r.applicant_citizenid='cid-test-b'
+AND c.recipient_citizenid='cid-test-b' AND c.revoked_at IS NULL
+AND c.expires_at>UTC_TIMESTAMP();")" = 0
+"${db[@]}" -e "
+UPDATE mdt_public_record_release_copies SET revoked_at=UTC_TIMESTAMP(),
+revoked_by_citizenid='office-test',revocation_reason='Corrected document'
+WHERE title='Public policy excerpt' AND revoked_at IS NULL;"
+test "$("${db[@]}" --batch --skip-column-names -e "
+SELECT COUNT(*) FROM mdt_public_record_release_copies
+WHERE revoked_at IS NULL AND expires_at>UTC_TIMESTAMP();")" = 0
+test "$("${db[@]}" --batch --skip-column-names -e "
+SELECT COUNT(*) FROM mdt_public_record_release_copies
+WHERE title='Public policy excerpt' AND revoked_by_citizenid='office-test';")" = 1
+echo 'Stage 5 MariaDB applicant, expiry, revocation and rollback smoke tests passed'
