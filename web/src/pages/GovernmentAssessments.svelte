@@ -109,7 +109,7 @@
                 propertyId:row.property_id,jurisdiction:row.jurisdiction,
                 taxYear:row.tax_year,version:row.version,action:decision,
                 reason:reason.trim(),assessedValue:assessValue,
-                jurisdiction:assessJurisdiction,propertyType:assessType,
+                propertyType:assessType,
                 governmentOwned,taxExempt:exempt,exemptionReason:exemptionReason.trim(),
             },{success:false});
             if(!response?.success){error=response?.error||"Assessment decision not saved";return;}
