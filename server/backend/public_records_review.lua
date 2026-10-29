@@ -36,6 +36,19 @@ end)
 
 -- Approved public replies are deliberately authored text, not raw case,
 -- evidence, IA, report, or medical records.
+-- The checked, row-locked transaction API is supported by oxmysql v2.12.0+.
+-- Do not replace it with the older blind batch API: a zero-row UPDATE can
+-- otherwise commit a partial decision. Fail closed and surface the dependency.
+local warnedTransactionUnavailable = false
+local function hasCheckedTransactions()
+    if MySQL and type(MySQL.startTransaction) == 'function' then return true end
+    if not warnedTransactionUnavailable then
+        warnedTransactionUnavailable = true
+        print('[ps-mdt] Stage 5 records office: requires oxmysql v2.12.0+ MySQL.startTransaction; review and publication are disabled')
+    end
+    return false
+end
+
 local function validId(value)
     local id = tonumber(value)
     return id and id >= 1 and id % 1 == 0 and id or nil
@@ -70,6 +83,9 @@ ps.registerCallback(resourceName .. ':server:reviewPublicRecordsRequest', functi
         return {success = false, error = 'Invalid review decision'}
     end
 
+    if not hasCheckedTransactions() then
+        return {success = false, error = 'Records office transaction support unavailable'}
+    end
     local previous = action == 'under_review' and 'submitted' or 'under_review'
     local ok, committed = pcall(MySQL.startTransaction, function(query)
         local rows = query([[
@@ -110,6 +126,9 @@ ps.registerCallback(resourceName .. ':server:publishPublicRecordsResponse', func
         return {success = false, error = 'A valid public response is required'}
     end
 
+    if not hasCheckedTransactions() then
+        return {success = false, error = 'Records office transaction support unavailable'}
+    end
     local ok, committed = pcall(MySQL.startTransaction, function(query)
         local rows = query([[
             SELECT applicant_citizenid, status FROM mdt_public_record_requests
