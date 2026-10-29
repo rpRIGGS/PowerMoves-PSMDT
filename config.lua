@@ -622,7 +622,7 @@ Config.MechanicJobs = {
 -- records or authority over another branch of government.
 -- MDT interface registry. One resource, six independently identified domains.
 -- The first three domains adapt the original LEO/DOJ/EMS PS-MDT workflows.
--- FIRE and GOV extend the same MDT architecture; DOT stays disabled.
+-- FIRE, GOV and DOT are registered domains; operational authority remains scoped.
 Config.Interfaces = {
     sadle = {
         JobType = 'leo',
@@ -676,17 +676,17 @@ Config.MdtAccess = {
     BossPermissionMode = 'legacy',
     -- SADOT.net is the sixth interface. Operator eligibility is separate:
     -- eligibility and operator permissions are separately enforced.
-    -- Public /511 will be routed by PS-Dispatch to on-duty mechanic jobs,
-    -- with a server-side first-accept claim once implemented.
+    -- Public /511 is the transportation service number; dispatch and
+    -- first-accept processing must enforce the server-side eligibility rules.
     Transportation = {
         Enabled = true,
         InterfaceId = 'sadot',
         JobType = Config.MechanicJobType,
         PublicServiceNumber = '511',
         FirstAcceptExclusive = true,
-        -- Empty until actual mechanic employer jobs and real SADOT authority
-        -- grades are vetted. Ordinary mechanic job type is not a tow license.
-        AllowedOperatorJobs = {},
+        -- These mechanic employers may be considered for qualified tow work.
+        -- Driver/operator permits and vehicle qualifications are still required.
+        AllowedOperatorJobs = Config.MechanicJobs,
         RequireQualifiedVehicle = true,
     },
     FireJobs = Config.FireJobs,
