@@ -5,6 +5,20 @@
 
 Updated October 28, 2026. **This document is a consolidated implementation contract**, drawn from the existing `POWERMOVES_PSMDT_PROJECT_CONTEXT.md`, `POWERMOVES_PSMDT_CODEX_CONTEXT.md`, foundation checkpoints, and owner discussions. A planned capability is **not** a claim that code works in FiveM.
 
+## Current execution-stage naming — October 29, 2026
+
+The active sequential implementation plan is **not** identical to the older
+workstream-number table retained below. Do not silently apply the historical
+table's "Stage 5 — calendar scoping" label to current development.
+
+- **Stage 4:** investigation/referral/discovery source checkpoint; DEV FiveM acceptance remains separate.
+- **Stage 5 (active):** configurable `qb-target` public-service counters and civilian IA/public-records access, agency records-office MDT review, requests and assigned reviewers, applicant-scoped decision notices and explicitly granted, expiring/revocable public copies, with audit and privacy checks. Source validation and DEV acceptance must be separately recorded.
+- **Stage 6 (next):** government/jurisdiction and transportation specialization (SAGOV/SADOT), preserving all shared MDT, permissions and agency boundaries. Do not imply SADOT is operational before its gates are implemented.
+
+The historical workstream entries below still identify separate unfinished work
+such as calendar scoping and government functions; they do **not** redefine
+the current Stage 5 or authorize dropping those requirements.
+
 ## Non-negotiable foundation
 
 - Remain on **QBCore**. One existing `ps-mdt` resource, shared database, interoperating with `PowerMoves-PSDispatch`; six agency-family interfaces `SADLE.net`, `SADOJ.net`, `SAFR.net`, `SAMS.net`, `SAGOV.net`, `SADOT.net`. Reuse the already working PSMDT LEO functions, adaptations, and proven handlers rather than starting a new MDT or six data stores.
