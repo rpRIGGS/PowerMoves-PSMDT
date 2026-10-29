@@ -1,4 +1,5 @@
--- Stage 5 records office: initial read-only review queue.
+-- Stage 5 records-office review, agency audit, and applicant-scoped publication.
+-- All staff actions require current job, MDT authorization and service-counter proximity.
 local resourceName = tostring(GetCurrentResourceName())
 
 local function authorized(src)
