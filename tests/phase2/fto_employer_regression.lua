@@ -67,4 +67,18 @@ env.MySQL.query.await = function(sql,args)
 end
 assert(#transcript(1)==0, 'Character switch must invalidate permanent milestone transcript')
 actor.cid='CID-A'
-print('PASS exact-job FTO, legacy quarantine and transcript anti-transfer checks')
+actor.job, actor.cid = 'lspd', 'CID-A'
+local rosterHistory = assert(callbacks['ps-mdt:server:getOfficerFTOHistory'])
+env.MySQL.query.await = function(sql,args)
+    assert(sql:find('a.agency_job = ?',1,true), 'Roster DOR history must restrict employer')
+    assert(sql:find('a.job_type = ?',1,true), 'Roster DOR history must restrict domain')
+    assert(args[1]=='CID-A' and args[2]=='police' and args[3]=='lspd')
+    return {{id=8, latest_rating=4}}
+end
+assert(#rosterHistory(1,'CID-A')==1, 'Current employer history remains available')
+env.MySQL.query.await = function(sql,args)
+    actor.job='bcso'
+    return {{id=8, latest_rating=4}}
+end
+assert(#rosterHistory(1,'CID-A')==0, 'Employer transfer must suppress former DOR scores')
+print('PASS FTO employer scopes, confidential DOR ratings and personal transcript protection')
