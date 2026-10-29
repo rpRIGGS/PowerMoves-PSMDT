@@ -146,6 +146,9 @@ ps.registerCallback(resourceName .. ':server:issueWarrant', function(source, dat
         return { success = false, error = 'Missing required fields' }
     end
 
+    if not canReadWarrantData(src) then
+        return { success = false, error = 'Unauthorized warrant role' }
+    end
     if not warrantReportExists(reportId) then
         return { success = false, error = 'Report not found' }
     end
@@ -209,6 +212,9 @@ ps.registerCallback(resourceName .. ':server:closeWarrant', function(source, dat
         return { success = false, error = 'Missing required fields' }
     end
 
+    if not canReadWarrantData(src) then
+        return { success = false, error = 'Unauthorized warrant role' }
+    end
     if not warrantReportExists(reportId) then
         return { success = false, error = 'Report not found' }
     end
