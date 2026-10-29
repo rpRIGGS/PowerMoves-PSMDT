@@ -2,7 +2,7 @@
 -- Does not modify PS Housing properties, ownership or sale status.
 local callbacks={}
 local actor={cid='ASSESSOR-A',job='sagov',assess=true,view=true}
-local homes={[77]={property_id=77,owner_citizenid='CIV-HOME',street='Paleto',region='Blaine',for_sale=0,owner_citizenid='OWNER-A'}}
+local homes={[77]={property_id=77,owner_citizenid='CIV-HOME',street='Paleto',region='Blaine',for_sale=0}}
 local records,audits={},{}
 local failAudit=false
 local transferAtAudit=false
@@ -136,7 +136,7 @@ assert(not queue('blaine_county',2026).success,'Duplicate authority/year rejecte
 assert(records[key(77,'blaine_county',2026)].status=='pending' and #audits==3)
 assert(env.assessExport(77,'blaine_county',2026)==false)
 assert(env.assessExport(77,'state',2026)==false)
-assert(env.assessExport(77,'blaine_county',2026)==false,'Jurisdiction and year must be explicit')
+assert(env.assessExport(77,'blaine_county')==false,'Jurisdiction and year must be explicit')
 local q=call('getGovernmentPropertyAssessments',{page=0})
 assert(q.success and #q.assessments==3 and #q.jurisdictions==4)
 
