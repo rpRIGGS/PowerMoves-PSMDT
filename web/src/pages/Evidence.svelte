@@ -6,6 +6,7 @@
 	import type { createTabService } from "../services/tabService.svelte";
 	import type { MDTTab } from "../constants";
 	import Pagination from "../components/Pagination.svelte";
+	import EvidenceDiscovery from "../components/EvidenceDiscovery.svelte";
 
 	let { tabService }: { tabService?: ReturnType<typeof createTabService> } = $props();
 
@@ -516,6 +517,7 @@
 {/if}
 
 <div class="evidence-page">
+	<EvidenceDiscovery />
 	<!-- Topbar -->
 	<div class="topbar">
 		<div class="search-box">
