@@ -148,3 +148,15 @@ RegisterNUICallback('deleteIANote', function(data, cb)
     local result = ps.callback(resourceName .. ':server:deleteIANote', data.noteId, data.complaintId)
     cb(result or { success = false })
 end)
+-- Stage 4 controlled complaint referral and SADLE queue; permissions stay server-side.
+RegisterNUICallback('referIAComplaintToSADLE', function(data, cb)
+    if not MDTOpen or type(data) ~= 'table' then cb({success = false}) return end
+    cb(ps.callback(resourceName .. ':server:referIAComplaintToSADLE', data.id, data.reason)
+        or {success = false})
+end)
+
+RegisterNUICallback('getSADLEIAReferrals', function(data, cb)
+    if not MDTOpen then cb({}) return end
+    local page = type(data) == 'table' and tonumber(data.page) or 1
+    cb(ps.callback(resourceName .. ':server:getSADLEIAReferrals', page) or {})
+end)
