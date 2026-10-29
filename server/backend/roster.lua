@@ -884,7 +884,7 @@ ps.registerCallback('ps-mdt:server:fireOfficer', function(source, payload)
     payload = payload or {}
     local citizenid = payload.citizenid
 
-    if not citizenid then
+    if type(citizenid) ~= 'string' or citizenid == '' then
         return { success = false, message = 'Missing citizen ID' }
     end
 
