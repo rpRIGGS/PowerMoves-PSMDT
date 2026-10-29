@@ -1,14 +1,10 @@
 local resourceName = tostring(GetCurrentResourceName())
 
 local function resolvePoliceJobName(source)
-    local jobName = (Config and Config.PoliceJobs and Config.PoliceJobs[1]) or 'police'
-    if source and ps and ps.getJobName then
-        local playerJob = ps.getJobName(source)
-        if playerJob then
-            jobName = playerJob
-        end
-    end
-    return jobName
+    -- Resolve the actual QBCore employer. Never fall back to the development
+    -- 'police' job when a PowerMoves department cannot be resolved.
+    if not source or not ps or not ps.getJobName then return nil end
+    return ps.getJobName(source)
 end
 
 local function normalizeGrades(grades)
