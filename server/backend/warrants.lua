@@ -193,6 +193,14 @@ ps.registerCallback(resourceName .. ':server:closeWarrant', function(source, dat
         return { success = false, error = 'Missing required fields' }
     end
 
+    local owner = MySQL.scalar.await(
+        "SELECT identifier FROM mdt_reports_restrictions WHERE reportid = ? AND type = 'owner' LIMIT 1",
+        { reportId }
+    )
+    if owner and owner ~= ps.getJobName(src) then
+        return { success = false, error = 'Report belongs to another agency' }
+    end
+
     local updated = MySQL.update.await([[
         UPDATE mdt_reports_warrants
         SET expirydate = NOW()
