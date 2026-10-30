@@ -343,7 +343,7 @@ ps.registerCallback(resourceName .. ':server:addEvidenceItem', function(source, 
         collector
     })
 
-    if not evidenceId then
+    if type(evidenceId) ~= 'number' or evidenceId <= 0 then
         return { success = false, error = 'Failed to add evidence' }
     end
 
