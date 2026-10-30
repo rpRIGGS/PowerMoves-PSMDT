@@ -253,7 +253,7 @@ ps.registerCallback(resourceName .. ':server:getCase', function(source, caseId)
         FROM mdt_case_reports mcr
         INNER JOIN mdt_reports mr ON mr.id = mcr.report_id
         WHERE mcr.case_id = ?
-        ORDER BY mr.datecreated DESC
+        ORDER BY mr.datecreated DESC, mr.id DESC
     ]], { caseId })
 
     if type(CanReadMdtReport) ~= 'function' then
