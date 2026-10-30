@@ -91,7 +91,7 @@ ps.registerCallback(resourceName .. ':server:createCase', function(source, paylo
     end
 
     local citizenid = ps.getIdentifier(src)
-    if not citizenid then
+    if type(citizenid) ~= 'string' or citizenid == '' then
         return { success = false, error = 'Missing citizen id' }
     end
 
