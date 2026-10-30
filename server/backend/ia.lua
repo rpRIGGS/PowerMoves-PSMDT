@@ -185,7 +185,8 @@ ps.registerCallback(resourceName .. ':server:submitComplaint', function(source, 
     end
 
     -- Anti-spam.
-    local cooldownMs = iaCfg().CooldownMs or 0
+    local cooldownMs = tonumber(iaCfg().CooldownMs) or 0
+    if cooldownMs ~= cooldownMs or cooldownMs == math.huge or cooldownMs < 0 then cooldownMs = 0 end
     if cooldownMs > 0 then
         local last = ComplaintCooldown[citizenid]
         local now = GetGameTimer()
