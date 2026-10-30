@@ -713,6 +713,7 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
             'SELECT current_phase_id FROM mdt_fto_assignments WHERE id = ?', { assignmentId })
         phaseId = assignment and tonumber(assignment.current_phase_id) or nil
     end
+    if not phaseId then return { success = false, error = 'Assignment has no training phase' } end
     if phaseId then
         local phaseJob = MySQL.scalar.await('SELECT job FROM mdt_fto_phases WHERE id = ? LIMIT 1', { phaseId })
         if phaseJob ~= ps.getJobName(src) then
