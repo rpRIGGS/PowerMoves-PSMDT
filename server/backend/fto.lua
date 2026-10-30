@@ -334,7 +334,7 @@ ps.registerCallback(resourceName .. ':server:createFTOAssignment', function(sour
     if not CheckAuth(src) then return { success = false } end
     if not CheckPermission(src, 'fto_manage') then return { success = false, error = 'No permission' } end
 
-    data = data or {}
+    if type(data) ~= 'table' then return { success = false, error = 'Invalid assignment' } end
     if not data.trainee_citizenid or data.trainee_citizenid == '' then
         return { success = false, error = 'Trainee is required' }
     end
