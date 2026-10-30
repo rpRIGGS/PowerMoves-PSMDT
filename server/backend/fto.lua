@@ -513,7 +513,7 @@ ps.registerCallback(resourceName .. ':server:updateFTOAssignment', function(sour
     if not canAccessFTORecord(src, assignmentId) then return { success = false, error = 'Unauthorized' } end
     if not CheckPermission(src, 'fto_manage') then return { success = false, error = 'No permission' } end
     if updates.trainer_citizenid ~= nil and (type(updates.trainer_citizenid) ~= 'string'
-        or updates.trainer_citizenid == '' or #updates.trainer_citizenid > 64
+        or not updates.trainer_citizenid:find('%S') or #updates.trainer_citizenid > 64
         or not CanManageMdtPersonnel(src, updates.trainer_citizenid)) then
         return { success = false, error = 'Trainer must belong to your department' }
     end
