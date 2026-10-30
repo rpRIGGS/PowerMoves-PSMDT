@@ -1393,8 +1393,10 @@ ps.registerCallback(resourceName..':server:getCitizenTags', function(source, pla
         ORDER BY t.name ASC
     ]], { citizenTagDomain })
 
-    if not CheckAuth(src) or not CheckPermission(src, 'reports_view') then return {} end
-    return tags or {}
+    if not CheckAuth(src) or not CheckPermission(src, 'reports_view')
+        or getEffectiveJobType(src) ~= citizenTagDomain
+        or type(tags) ~= 'table' then return {} end
+    return tags
 end)
 
 ps.registerCallback(resourceName..':server:generateReportId', function(source)
