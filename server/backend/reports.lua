@@ -32,7 +32,8 @@ local function collectCitizenIds(reportData)
     if type(reportData.involved) == 'table' then
         for _, involved in ipairs(reportData.involved) do
             if type(involved) == 'table' and type(involved.citizenid) == 'string'
-                and involved.citizenid ~= '' then
+                and involved.citizenid:find('%S') and #involved.citizenid <= 64
+                and not involved.citizenid:find('%z') then
                 citizenids[involved.citizenid] = true
             end
         end
