@@ -101,6 +101,15 @@ ps.registerCallback(resourceName .. ':server:createCase', function(source, paylo
 
     local createdByName = getOfficerDisplayName(src)
 
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_create')
+        or ps.getIdentifier(src) ~= citizenid then
+        return { success = false, error = 'Case creation authorization changed' }
+    end
+    local currentScope = getCaseScope(src)
+    if not currentScope or currentScope.agency ~= scope.agency
+        or currentScope.statewide ~= scope.statewide then
+        return { success = false, error = 'Case agency changed' }
+    end
     local caseId = MySQL.insert.await([[INSERT INTO mdt_cases
         (case_number, title, summary, status, priority, assigned_department, created_by, created_by_name)
         VALUES ('', ?, ?, ?, ?, ?, ?, ?)
