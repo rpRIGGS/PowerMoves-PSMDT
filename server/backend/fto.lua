@@ -451,7 +451,7 @@ ps.registerCallback(resourceName .. ':server:updateFTOAssignment', function(sour
     if not CheckPermission(src, 'fto_manage') then return { success = false, error = 'No permission' } end
 
     assignmentId = tonumber(assignmentId)
-    updates = updates or {}
+    if type(updates) ~= 'table' then return { success = false, error = 'Invalid updates' } end
     if not assignmentId then return { success = false, error = 'Invalid ID' } end
 
     local sets = {}
