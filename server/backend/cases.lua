@@ -903,6 +903,10 @@ ps.registerCallback(resourceName .. ':server:grantCaseDisclosure', function(sour
     if not CheckAuth(src) or not CheckPermission(src, 'cases_edit')
         or not canAccessCaseId(src, id) then return {success=false, error='Unauthorized'} end
     local actor, employer = ps.getIdentifier(src), ps.getJobName(src)
+    if type(actor) ~= 'string' or actor == ''
+        or type(employer) ~= 'string' or employer == '' then
+        return {success=false,error='Missing disclosure author identity'}
+    end
     local caseRow = MySQL.single.await('SELECT assigned_department FROM mdt_cases WHERE id = ?', {id})
     if not caseRow or caseRow.assigned_department ~= employer then
         return {success=false, error='Only originating department may disclose a case'}
