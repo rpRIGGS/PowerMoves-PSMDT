@@ -843,6 +843,11 @@ ps.registerCallback('ps-mdt:server:promoteOfficer', function(source, payload)
     -- Validate the grade exists
     local gradeData = ps.getSharedJobGrade(jobName, newGrade)
     if not gradeData then
+        local ok, core = pcall(function() return exports['qb-core']:GetCoreObject() end)
+        local job = ok and core and core.Shared and core.Shared.Jobs and core.Shared.Jobs[jobName]
+        gradeData = job and job.grades and (job.grades[tostring(newGrade)] or job.grades[newGrade])
+    end
+    if not gradeData then
         return { success = false, message = 'Invalid grade for this job' }
     end
 
