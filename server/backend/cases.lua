@@ -470,6 +470,10 @@ ps.registerCallback(resourceName .. ':server:updateCase', function(source, caseI
         return { success = false, error = 'No updates provided' }
     end
 
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_edit')
+        or not canAccessCaseId(src, caseId) then
+        return { success = false, error = 'Authorization changed' }
+    end
     values[#values + 1] = caseId
     local success = MySQL.update.await(('UPDATE mdt_cases SET %s WHERE id = ?'):format(table.concat(updates, ', ')), values)
 
