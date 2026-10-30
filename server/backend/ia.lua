@@ -699,7 +699,7 @@ ps.registerCallback(resourceName .. ':server:referIAComplaintToSADLE', function(
             (complaint_id, referring_agency, referred_by_citizenid, reason, status)
         VALUES (?, ?, ?, ?, 'pending')
     ]], {id, job, cid, reason})
-    if not ok or not idOrError then
+    if not ok or type(idOrError) ~= 'number' or idOrError <= 0 then
         return {success = false, error = 'Referral already exists or could not be saved'}
     end
     if ps.auditLog then
