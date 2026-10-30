@@ -756,6 +756,7 @@ ps.registerCallback(resourceName .. ':server:linkEvidenceToCase', function(sourc
     end
 
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_transfer')
+        or not CheckPermission(src, 'cases_edit')
         or not canEditEvidenceRecord(src, evidenceId) or not CanAccessMdtCase(src, caseId) then
         return { success = false, error = 'Evidence authorization changed' }
     end
