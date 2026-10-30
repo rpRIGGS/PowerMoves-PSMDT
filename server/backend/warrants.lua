@@ -124,7 +124,8 @@ end
 function BroadcastActiveWarrants()
     for _, playerSource in pairs(GetPlayers()) do
         local target = tonumber(playerSource)
-        if target and target > 0 and canReadWarrantData(target)
+        if target and target > 0 and target % 1 == 0
+            and canReadWarrantData(target)
             and CheckPermission(target, 'warrants_view') then
             TriggerClientEvent(resourceName .. ':client:updateActiveWarrants', target, GetActiveWarrantsData(target))
         end
