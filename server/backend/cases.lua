@@ -860,6 +860,9 @@ ps.registerCallback(resourceName .. ':server:addCaseNote', function(source, case
         return { success = false, error = 'Authorization changed' }
     end
 
+    if ps.getIdentifier(src) ~= citizenId then
+        return { success = false, error = 'Note author identity changed' }
+    end
     local noteId = MySQL.insert.await([[
         INSERT INTO mdt_case_notes (case_id, content, author_citizenid, author_name)
         VALUES (?, ?, ?, ?)
