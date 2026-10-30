@@ -67,7 +67,8 @@ end
 
 local function isAttorneyGeneral(identity)
     local rule = (Config.MdtAccess or {}).AttorneyGeneral or {}
-    return identity and identity.job == rule.job and identity.grade == tonumber(rule.grade)
+    return identity and identity.gradeValid == true
+        and identity.job == rule.job and identity.grade == tonumber(rule.grade)
 end
 
 local function hasJudicialAuthority(identity)
