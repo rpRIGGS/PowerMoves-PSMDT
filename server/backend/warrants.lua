@@ -120,6 +120,9 @@ function GetActiveWarrantsData(src)
             or not CheckPermission(src, 'warrants_view')
             or not CanReadMdtReport(src, warrant.reportid)) then return {} end
     end
+    if src ~= nil and (ps.getIdentifier(src) ~= citizenid
+        or ps.getJobName(src) ~= jobName
+        or (GetMdtAccess(src) or {}).interfaceId ~= interfaceId) then return {} end
     return results
 end
 
