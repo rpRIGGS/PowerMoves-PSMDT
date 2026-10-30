@@ -47,6 +47,9 @@ ps.registerCallback(resourceName .. ':server:getEvidenceItems', function(source,
     limit = math.floor(math.max(1, math.min(tonumber(limit) or 20, 100)))
     local offset = (page - 1) * limit
 
+    if filters ~= nil and type(filters) ~= 'table' then
+        return { success = false, error = 'Invalid evidence filters' }
+    end
     local scopeParams = evidenceReadParams(src)
     if not scopeParams then return { success = false, error = 'Unauthorized' } end
     local queryParts = { evidenceReadScope }
