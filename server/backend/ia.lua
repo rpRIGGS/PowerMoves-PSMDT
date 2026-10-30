@@ -481,7 +481,7 @@ ps.registerCallback(resourceName .. ':server:updateIAComplaintInfo', function(so
     -- finally be pinned to a real officer, so re-resolve it here.
     if updates.officer_name ~= nil or updates.officer_badge ~= nil then
         local existing = MySQL.single.await(
-            'SELECT officer_name, officer_badge FROM mdt_ia_complaints WHERE id = ?', { complaintId })
+            'SELECT officer_name, officer_badge, officer_citizenid, agency FROM mdt_ia_complaints WHERE id = ?', { complaintId })
         local name  = updates.officer_name  ~= nil and updates.officer_name  or (existing and existing.officer_name)
         local badge = updates.officer_badge ~= nil and updates.officer_badge or (existing and existing.officer_badge)
         local correctedCid = resolveOfficer(name, badge)
