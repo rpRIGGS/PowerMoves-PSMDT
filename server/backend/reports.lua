@@ -1045,7 +1045,7 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
         end
     end
 
-    if reportData.vehicles and #reportData.vehicles > 0 then
+    if type(reportData.vehicles) == 'table' and #reportData.vehicles > 0 then
         for _, vehicle in ipairs(reportData.vehicles) do
             table.insert(attachmentQueries, {
                 query = "INSERT INTO mdt_report_vehicles (reportid, plate, vehicle_label, owner_name, owner_citizenid) VALUES (?, ?, ?, ?, ?)",
