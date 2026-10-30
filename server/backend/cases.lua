@@ -1040,8 +1040,8 @@ ps.registerCallback(resourceName .. ':server:getCaseDisclosures', function(sourc
     if not id or id ~= id or id == math.huge or id <= 0 or id % 1 ~= 0
         or not CheckAuth(src) or not CheckPermission(src,'cases_edit') then return {} end
     local actor, employer=ps.getIdentifier(src),ps.getJobName(src)
-    if type(actor) ~= 'string' or actor == ''
-        or type(employer) ~= 'string' or employer == '' then return {} end
+    if type(actor) ~= 'string' or not actor:find('%S') or #actor > 64
+        or type(employer) ~= 'string' or not employer:find('%S') or #employer > 64 then return {} end
     local record=MySQL.single.await('SELECT assigned_department FROM mdt_cases WHERE id = ?', {id})
     if not record or record.assigned_department~=employer then return {} end
     local ok,rows=pcall(MySQL.query.await,[[
