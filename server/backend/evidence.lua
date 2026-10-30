@@ -619,7 +619,7 @@ ps.registerCallback(resourceName .. ':server:logEvidenceViewed', function(source
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_view') then return { success = false } end
 
     evidenceId = tonumber(evidenceId)
-    if not canEditEvidenceRecord(src, evidenceId) then return { success = false, error = 'Evidence not found or inaccessible' } end
+    if not canReadEvidenceRecord(src, evidenceId) then return { success = false, error = 'Evidence not found or inaccessible' } end
     if not evidenceId or evidenceId ~= evidenceId or evidenceId == math.huge
         or evidenceId <= 0 or evidenceId % 1 ~= 0 then return { success = false } end
 
