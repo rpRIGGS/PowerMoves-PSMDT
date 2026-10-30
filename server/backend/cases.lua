@@ -654,6 +654,9 @@ ps.registerCallback(resourceName .. ':server:addCaseAttachmentUpload', function(
 
     local data = attachment.data
     local filename = attachment.filename
+    if #filename > 255 or filename:find('%.%.', 1, true) or filename:find('[/\\]') then
+        return { success = false, error = 'Invalid filename' }
+    end
     local contentType = attachment.contentType or ''
     local label = attachment.label or ''
     local attachmentType = attachment.type or 'document'
