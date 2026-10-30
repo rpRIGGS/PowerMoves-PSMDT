@@ -589,7 +589,8 @@ ps.registerCallback(resourceName .. ':server:advanceFTOPhase', function(source, 
     if direction == 'back' then
         if idx <= 1 then return { success = false, error = 'Already at the first phase' } end
         local target = phases[idx - 1]
-        MySQL.update.await('UPDATE mdt_fto_assignments SET current_phase_id = ? WHERE id = ?', { target.id, assignmentId })
+        local changed = MySQL.update.await('UPDATE mdt_fto_assignments SET current_phase_id = ? WHERE id = ? AND status = ?', { target.id, assignmentId, 'active' })
+        if not changed or changed < 1 then return { success = false, error = 'Phase was not updated' } end
         if ps.auditLog then ps.auditLog(src, 'fto_phase_back', 'fto', assignmentId, { to = target.name }) end
         return { success = true, completed = false, action = 'back', phase = target }
     end
