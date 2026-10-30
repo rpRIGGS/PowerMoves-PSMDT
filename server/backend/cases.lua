@@ -988,6 +988,7 @@ ps.registerCallback(resourceName .. ':server:getDisclosedCases', function(source
         ORDER BY g.granted_at DESC LIMIT 100
     ]], {actor,job})
     if not CheckAuth(src) or not CheckPermission(src, 'cases_view')
-        or ps.getIdentifier(src) ~= actor or ps.getJobName(src) ~= job then return {} end
+        or ps.getIdentifier(src) ~= actor or ps.getJobName(src) ~= job
+        or not getCaseScope(src) then return {} end
     return ok and rows or {}
 end)
