@@ -14,7 +14,9 @@ local function canEditEvidenceRecord(source, evidenceId)
     -- Fail closed for another creator rather than expose unknown agency records.
     local cid = ps.getIdentifier(source)
     local access = GetMdtAccess(source)
-    return cid ~= nil and row.created_by == cid and access ~= nil and access.authorized == true
+    return type(cid) == 'string' and cid ~= '' and row.created_by == cid
+        and access ~= nil and access.authorized == true and CheckAuth(source)
+        and CheckPermission(source, 'evidence_edit')
 end
 
 -- SQL read guard: evidence linked to a case belongs to its assigned
