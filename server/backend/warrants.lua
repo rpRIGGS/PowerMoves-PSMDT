@@ -198,6 +198,10 @@ ps.registerCallback(resourceName .. ':server:issueWarrant', function(source, dat
                   SELECT 1 FROM mdt_reports_restrictions o
                   WHERE o.reportid = r.id AND o.type = 'owner' AND o.identifier <> ?
               )
+              AND NOT EXISTS (
+                  SELECT 1 FROM mdt_reports_warrants existing
+                  WHERE existing.reportid = r.id AND existing.expirydate >= NOW()
+              )
         ]], { citizenid, expiryDate, reportId, ps.getJobName(src) })
         if not inserted or inserted == 0 then
             return { success = false, error = 'Report not found or inaccessible' }
