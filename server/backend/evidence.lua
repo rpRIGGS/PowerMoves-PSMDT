@@ -616,7 +616,8 @@ ps.registerCallback(resourceName .. ':server:logEvidenceViewed', function(source
         INSERT INTO mdt_evidence_custody (evidence_id, from_citizenid, to_citizenid, action, notes)
         VALUES (?, NULL, ?, 'viewed', '')
     ]], { evidenceId, citizenid })
-    if type(custodyId) ~= 'number' or custodyId <= 0 then
+    if type(custodyId) ~= 'number' or custodyId ~= custodyId
+        or custodyId == math.huge or custodyId <= 0 or custodyId % 1 ~= 0 then
         return { success = false, error = 'Failed to log evidence view' }
     end
 
