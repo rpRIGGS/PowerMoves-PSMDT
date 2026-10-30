@@ -781,7 +781,7 @@ ps.registerCallback(resourceName .. ':server:addCaseNote', function(source, case
     if not canAccessCaseId(src, caseId) then return { success = false, error = 'Case not found or inaccessible' } end
 
     caseId = tonumber(caseId)
-    if not caseId or not content or content == '' then
+    if not caseId or type(content) ~= 'string' or content == '' or #content > 20000 then
         return { success = false, error = 'Invalid case or empty note' }
     end
 
