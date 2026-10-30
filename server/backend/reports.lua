@@ -917,7 +917,10 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
     local attachmentQueries = {}
     local warrantCitizenIds = {}
 
-    if reportData.involved and #reportData.involved > 0 then
+    if reportData.involved ~= nil and type(reportData.involved) ~= 'table' then
+        return { success = false, error = 'Invalid report involved records' }
+    end
+    if type(reportData.involved) == 'table' and #reportData.involved > 0 then
         for _, involved in ipairs(reportData.involved) do
             table.insert(attachmentQueries, {
                 query = "INSERT INTO mdt_reports_involved (reportid, citizenid, type, notes) VALUES (?, ?, ?, ?)",
