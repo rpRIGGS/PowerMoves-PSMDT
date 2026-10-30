@@ -338,7 +338,7 @@ ps.registerCallback(resourceName .. ':server:linkReportToCase', function(source,
         return { success = false, error = 'Authorization changed' }
     end
     local actor = ps.getIdentifier(src)
-    if type(actor) ~= 'string' or actor == '' then
+    if type(actor) ~= 'string' or not actor:find('%S') or #actor > 64 then
         return { success = false, error = 'Missing report link author' }
     end
     local linked = MySQL.insert.await([[
