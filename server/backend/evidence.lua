@@ -3,9 +3,9 @@ local resourceName = tostring(GetCurrentResourceName())
 local function canEditEvidenceRecord(source, evidenceId)
     local id = tonumber(evidenceId)
     if not id or id ~= id or id == math.huge or id <= 0 or id % 1 ~= 0 then return false end
-    if not CheckAuth(source) or not CheckPermission(source, 'evidence_edit') then return false end
+    if not CheckAuth(source) or not CheckPermission(source, 'evidence_transfer') then return false end
     local row = MySQL.single.await('SELECT case_id, created_by FROM mdt_evidence_items WHERE id = ?', { id })
-    if not row or not CheckAuth(source) or not CheckPermission(source, 'evidence_edit') then return false end
+    if not row or not CheckAuth(source) or not CheckPermission(source, 'evidence_transfer') then return false end
     if row.case_id then
         return CheckAuth(source) and CheckPermission(source, 'cases_view')
             and CanAccessMdtCase(source, row.case_id)
@@ -16,7 +16,7 @@ local function canEditEvidenceRecord(source, evidenceId)
     local access = GetMdtAccess(source)
     return type(cid) == 'string' and cid ~= '' and row.created_by == cid
         and access ~= nil and access.authorized == true and CheckAuth(source)
-        and CheckPermission(source, 'evidence_edit')
+        and CheckPermission(source, 'evidence_transfer')
 end
 
 -- SQL read guard: evidence linked to a case belongs to its assigned
