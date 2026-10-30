@@ -525,6 +525,9 @@ ps.registerCallback(resourceName .. ':server:logEvidenceViewed', function(source
     if not evidenceId then return { success = false } end
 
     local citizenid = ps.getIdentifier(src)
+    if type(citizenid) ~= 'string' or citizenid == '' then
+        return { success = false, error = 'Missing viewer identity' }
+    end
 
     MySQL.insert.await([[
         INSERT INTO mdt_evidence_custody (evidence_id, from_citizenid, to_citizenid, action, notes)
