@@ -1165,7 +1165,12 @@ ps.registerCallback(resourceName..':server:updateReportContent', function(source
         return { success = false, error = 'Report editing not permitted' }
     end
 
-    if type(content) ~= 'string' or not content:find('%S') or #content > 2000000 then
+    if type(content) ~= 'string' and type(content) ~= 'table' then
+        return { success = false, error = 'Invalid report content' }
+    end
+    local encodedContent = type(content) == 'table' and json.encode(content) or content
+    if type(encodedContent) ~= 'string' or not encodedContent:find('%S')
+        or #encodedContent > 2000000 then
         return { success = false, error = 'Invalid report content' }
     end
 
