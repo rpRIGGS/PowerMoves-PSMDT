@@ -299,6 +299,9 @@ ps.registerCallback(resourceName .. ':server:getFTO', function(source, data)
 
     local citizenId = ps.getIdentifier(src)
     local hasFTOView = CheckPermission(src, 'fto_view')
+    if type(citizenId) ~= 'string' or not citizenId:find('%S') or #citizenId > 64 then
+        return { success = false, error = 'Invalid identity' }
+    end
     if not hasFTOView and entry.trainee_citizenid ~= citizenId and entry.trainer_citizenid ~= citizenId then
         return { success = false, error = 'Unauthorized' }
     end
