@@ -531,7 +531,9 @@ ps.registerCallback(resourceName .. ':server:updateIAComplaintInfo', function(so
     end
     vals[#vals + 1] = complaintId
     local affected = MySQL.update.await('UPDATE mdt_ia_complaints SET ' .. table.concat(sets, ', ') .. ' WHERE id = ?', vals)
-    if affected == nil then return { success = false, error = 'Complaint update failed' } end
+    if type(affected) ~= 'number' or affected < 1 then
+        return { success = false, error = 'Complaint update failed' }
+    end
     return { success = true }
 end)
 
