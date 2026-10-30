@@ -293,6 +293,10 @@ ps.registerCallback(resourceName .. ':server:deleteBulletin', function(source, p
         return { success = false, message = 'Invalid bulletin ID' }
     end
 
+    if not sameDashboardSnapshot(snapshot, dashboardSnapshot(src))
+        or not CheckPermission(src, 'bulletin_delete') then
+        return { success = false, message = 'Authorization changed' }
+    end
     local deleted = MySQL.update.await('DELETE FROM mdt_bulletins WHERE id = ?', { id })
     if type(deleted) ~= 'number' or deleted ~= deleted
         or deleted == math.huge or deleted == -math.huge or deleted <= 0 then
