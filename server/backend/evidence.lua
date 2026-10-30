@@ -210,6 +210,9 @@ ps.registerCallback(resourceName .. ':server:searchEvidenceItems', function(sour
         local ids = {}
         local idLookup = {}
         for _, item in ipairs(evidence) do
+            if type(item) ~= 'table' or not tonumber(item.id) then
+                return { success = false, error = 'Invalid evidence search entry' }
+            end
             ids[#ids + 1] = item.id
             idLookup[item.id] = item
             item.images = {}
