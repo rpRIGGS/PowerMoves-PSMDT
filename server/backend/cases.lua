@@ -853,7 +853,8 @@ ps.registerCallback(resourceName .. ':server:addCaseNote', function(source, case
         return { success = false, error = 'Missing author identity' }
     end
     local profile = MySQL.single.await('SELECT fullname FROM mdt_profiles WHERE citizenid = ?', { citizenId })
-    local authorName = profile and profile.fullname or 'Unknown'
+    local authorName = profile and type(profile.fullname) == 'string'
+        and profile.fullname ~= '' and profile.fullname or 'Unknown'
     if not CheckAuth(src) or not CheckPermission(src, 'cases_edit')
         or ps.getIdentifier(src) ~= citizenId or not canAccessCaseId(src, caseId) then
         return { success = false, error = 'Authorization changed' }
