@@ -1166,5 +1166,9 @@ ps.registerCallback(resourceName .. ':server:getEvidenceDisclosures', function(s
         or ps.getIdentifier(src)~=actor or ps.getJobName(src)~=job
         or not (GetMdtAccess(src) or {}).authorized
         or not canEditEvidenceRecord(src,id) then return {} end
-    return ok and type(rows) == 'table' and rows or {}
+    if not ok or type(rows) ~= 'table' then return {} end
+    for _, record in ipairs(rows) do
+        if type(record) ~= 'table' then return {} end
+    end
+    return rows
 end)
