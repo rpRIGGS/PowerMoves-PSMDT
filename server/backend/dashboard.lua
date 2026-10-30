@@ -150,7 +150,8 @@ local function computeReportStatistics(src, snapshot)
             changeFromLastWeek = (tonumber(row.totalThisWeek) or 0) - (tonumber(row.totalLastWeek) or 0),
         }
     end
-    return Cache.getOrSet('dashboard:reportStats:' .. tostring(snapshot.job) .. ':' .. tostring(snapshot.jobType),
+    return Cache.getOrSet('dashboard:reportStats:' .. tostring(snapshot.job) .. ':' .. tostring(snapshot.jobType)
+        .. ':' .. tostring(snapshot.permissionKey),
         Config.CacheTTL and Config.CacheTTL.ReportStats or 30, function()
         local response = MySQL.query.await([[
             SELECT
