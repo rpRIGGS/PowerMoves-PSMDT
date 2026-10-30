@@ -669,6 +669,12 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
             'SELECT current_phase_id FROM mdt_fto_assignments WHERE id = ?', { assignmentId })
         phaseId = assignment and tonumber(assignment.current_phase_id) or nil
     end
+    if phaseId then
+        local phaseJob = MySQL.scalar.await('SELECT job FROM mdt_fto_phases WHERE id = ? LIMIT 1', { phaseId })
+        if phaseJob ~= ps.getJobName(src) then
+            return { success = false, error = 'DOR phase belongs to another program' }
+        end
+    end
     local citizenId = ps.getIdentifier(src)
     if type(citizenId) ~= 'string' or citizenId == '' then
         return { success = false, error = 'Missing author identity' }
