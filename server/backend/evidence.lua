@@ -49,7 +49,8 @@ local function evidenceReadParams(source)
         or access.isCivilian == true or type(access.agency) ~= 'string'
         or not access.agency:find('%S') or #access.agency > 64 then return nil end
     local citizenid = ps.getIdentifier(source)
-    if type(citizenid) ~= 'string' or not citizenid:find('%S') or #citizenid > 64 then return nil end
+    if type(citizenid) ~= 'string' or not citizenid:find('%S')
+        or #citizenid > 64 or citizenid:find('%z') then return nil end
     return { access.agency, access.interfaceId == 'sadoj' and 1 or 0, citizenid }
 end
 
