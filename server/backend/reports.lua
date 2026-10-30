@@ -204,7 +204,7 @@ local function buildReportFilterClause(filters)
     end
 
     if hasValue(filters.type) and type(filters.type) == 'string'
-        and #filters.type <= 80 then
+        and #filters.type <= 80 and not filters.type:find('%z') then
         clauses[#clauses + 1] = 'mr.type = ?'
         values[#values + 1] = filters.type
     end
