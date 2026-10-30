@@ -251,7 +251,8 @@ ps.registerCallback(resourceName .. ':server:getFTOList', function(source, pageN
     -- Reject an old employer's results if the user changes character/job
     -- while the database query is running.
     if not CheckAuth(src) or ps.getIdentifier(src) ~= citizenId
-        or getFTODomain(src) ~= values[1] or ps.getJobName(src) ~= values[2] then
+        or getFTODomain(src) ~= values[1] or ps.getJobName(src) ~= values[2]
+        or (hasFTOView and not CheckPermission(src, 'fto_view')) then
         return { entries = {}, hasMore = false }
     end
     return {
