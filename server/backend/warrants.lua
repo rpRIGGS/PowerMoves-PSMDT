@@ -168,6 +168,13 @@ ps.registerCallback(resourceName .. ':server:issueWarrant', function(source, dat
         return { success = false, error = 'Report belongs to another agency' }
     end
 
+    -- Database lookups yield; confirm the issuer still holds the same role and report access.
+    if not canReadWarrantData(src) or not CheckPermission(src, 'warrants_issue')
+        or not CanReadMdtReport(src, reportId)
+        or (owner and owner ~= ps.getJobName(src)) then
+        return { success = false, error = 'Warrant authorization changed' }
+    end
+
     -- One warrant per report: refuse if this report already has any active
     -- (non-expired) warrant, regardless of which subject it targets.
     local activeForReport = MySQL.single.await('SELECT 1 AS x FROM mdt_reports_warrants WHERE reportid = ? AND expirydate >= NOW() LIMIT 1', { reportId })
