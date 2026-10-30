@@ -242,6 +242,7 @@ ps.registerCallback('ps-mdt:server:getRosterList', function(source)
     if GetResourceState('ps-multijob') == 'started' and exports['ps-multijob'] then
         for _, jobName in ipairs(jobList) do
             local list = exports['ps-multijob']:getEmployees(jobName) or {}
+            if type(list) ~= 'table' then list = {} end
             for _, employee in pairs(list) do
                 if employee and employee.citizenid then
                     employees[employee.citizenid] = employee
