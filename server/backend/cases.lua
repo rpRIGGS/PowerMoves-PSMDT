@@ -622,6 +622,9 @@ ps.registerCallback(resourceName .. ':server:removeCaseOfficer', function(source
         return { success = false, error = 'Invalid case or officer' }
     end
 
+    if type(officerCitizenId) ~= 'string' or not officerCitizenId:find('%S') then
+        return { success = false, error = 'Invalid officer identity' }
+    end
     if not CheckAuth(src) or not CheckPermission(src, 'cases_edit')
         or not canAccessCaseId(src, caseId) then
         return { success = false, error = 'Authorization changed' }
