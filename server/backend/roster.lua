@@ -305,6 +305,12 @@ ps.registerCallback('ps-mdt:server:getRosterList', function(source)
             end
         end
     end
+    if not CheckAuth(source) then return { roster = {}, activeUnits = {} } end
+    local currentAccess = GetMdtAccess(source)
+    if not currentAccess or not currentAccess.authorized
+        or currentAccess.agency ~= access.agency or currentAccess.interfaceId ~= access.interfaceId then
+        return { roster = {}, activeUnits = {} }
+    end
     return {
         roster = rosterList,
         activeUnits = activeUnits
