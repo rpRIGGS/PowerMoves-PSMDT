@@ -995,6 +995,7 @@ ps.registerCallback(resourceName .. ':server:getEvidenceDisclosures', function(s
     ]],{id,job})
     if not CheckAuth(src) or not CheckPermission(src,'evidence_transfer')
         or ps.getIdentifier(src)~=actor or ps.getJobName(src)~=job
+        or not GetMdtAccess(src).authorized
         or not canEditEvidenceRecord(src,id) then return {} end
     return ok and rows or {}
 end)
