@@ -491,6 +491,9 @@ ps.registerCallback(resourceName .. ':server:updateIAComplaintInfo', function(so
         sets[#sets + 1] = 'agency = ?'
         vals[#vals + 1] = correctedAgency
     end
+    if updates.incident_date ~= nil and (type(updates.incident_date) ~= 'string' or #updates.incident_date > 32) then
+        return { success = false, error = 'Invalid incident date' }
+    end
     if updates.incident_date ~= nil then
         sets[#sets + 1] = 'incident_date = ?'
         vals[#vals + 1] = updates.incident_date
