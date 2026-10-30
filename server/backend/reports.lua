@@ -1648,5 +1648,5 @@ ps.registerCallback(resourceName .. ':server:getReportDisclosures', function(sou
     ]],{id})
     if not CheckAuth(src) or not CheckPermission(src,'reports_delete')
         or ps.getIdentifier(src)~=actor or ps.getJobName(src)~=employer then return {} end
-    return ok and rows or {}
+    return ok and type(rows) == 'table' and rows or {}
 end)
