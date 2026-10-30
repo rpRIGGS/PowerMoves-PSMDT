@@ -849,6 +849,10 @@ ps.registerCallback(resourceName .. ':server:grantCaseDisclosure', function(sour
         WHERE id = ? AND assigned_department = ?
     ]], {recipientCid, recipientJob, purpose, actor, id, employer})
     if not ok or not tonumber(newId) or tonumber(newId) <= 0 then return {success=false,error='Disclosure storage unavailable'} end
+    if not CheckAuth(src) or not CheckPermission(src,'cases_edit')
+        or ps.getIdentifier(src) ~= actor or ps.getJobName(src) ~= employer then
+        return {success=false,error='Authorization changed'}
+    end
     if ps.auditLog then ps.auditLog(src,'case_disclosure_granted','case',id,
         {grant_id=newId, recipient=recipientCid, purpose=purpose}) end
     return {success=true,grantId=newId}
