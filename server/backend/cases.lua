@@ -934,7 +934,9 @@ ps.registerCallback(resourceName .. ':server:addCaseNote', function(source, case
         INSERT INTO mdt_case_notes (case_id, content, author_citizenid, author_name)
         VALUES (?, ?, ?, ?)
     ]], { caseId, content, citizenId, authorName })
-    if not noteId then return { success = false, error = 'Failed to save case note' } end
+    if type(noteId) ~= 'number' or noteId <= 0 then
+        return { success = false, error = 'Failed to save case note' }
+    end
     return { success = true }
 end)
 
