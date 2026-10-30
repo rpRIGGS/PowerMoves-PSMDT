@@ -178,7 +178,7 @@ local function computeTimeStatistics(src)
     if type(citizenid) ~= 'string' or not citizenid:find('%S')
         or #citizenid > 64 or citizenid:find('%z') then return {} end
 
-    local rows = MySQL.query.await([[
+    local ok, rows = pcall(MySQL.query.await, [[
         SELECT DATE(login_at) AS day,
                SUM(TIMESTAMPDIFF(SECOND, login_at, COALESCE(logout_at, NOW()))) AS seconds
         FROM mdt_profile_sessions
@@ -187,6 +187,7 @@ local function computeTimeStatistics(src)
         GROUP BY DATE(login_at)
         ORDER BY day ASC
     ]], { citizenid })
+    if not ok then return {} end
 
     local secondsByDay = {}
     if type(rows) ~= 'table' then return {} end
