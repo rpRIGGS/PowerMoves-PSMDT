@@ -69,6 +69,10 @@ ps.registerCallback(resourceName .. ':server:createCase', function(source, paylo
     if type(payload) ~= 'table' then return { success = false, error = 'Invalid case payload' } end
     local title = payload.title or 'Untitled Case'
     local summary = payload.summary or ''
+    if type(title) ~= 'string' or #title < 1 or #title > 255
+        or type(summary) ~= 'string' or #summary > 20000 then
+        return { success = false, error = 'Invalid case title or summary' }
+    end
     local status = normalizeStatus(payload.status)
     local priority = payload.priority or 'medium'
     local scope = getCaseScope(src)
