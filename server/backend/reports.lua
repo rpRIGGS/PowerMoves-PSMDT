@@ -1270,9 +1270,9 @@ end)
 
 ps.registerCallback(resourceName .. ':server:getReportsByPlate', function(source, plate)
     local src = source
-    if not CheckAuth(src) then return {} end
+    if not CheckAuth(src) or not CheckPermission(src, 'reports_view') then return {} end
 
-    if not plate or plate == '' then
+    if type(plate) ~= 'string' or plate == '' then
         return {}
     end
 
