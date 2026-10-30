@@ -645,6 +645,7 @@ ps.registerCallback(resourceName .. ':server:addEvidenceImage', function(source,
         return { success = false, error = 'Missing uploader identity' }
     end
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_upload')
+        or ps.getIdentifier(src) ~= uploader
         or not canEditEvidenceRecord(src, evidenceId) then
         return { success = false, error = 'Authorization changed' }
     end
