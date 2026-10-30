@@ -357,7 +357,6 @@ end)
 
 ps.registerCallback(resourceName..':server:getReport', function(source, reportid)
     local src = source
-	if not CheckAuth(src) then return end
     if not CanReadMdtReport(src, reportid) then return nil end
 
 	local identifier = ps.getIdentifier(src)
