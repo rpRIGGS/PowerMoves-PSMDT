@@ -144,7 +144,8 @@ local function computeReportStatistics(src, snapshot)
                 COUNT(DISTINCT CASE WHEN mr.datecreated >= NOW() - INTERVAL 2 WEEK AND mr.datecreated < NOW() - INTERVAL 1 WEEK THEN mr.id END) AS totalLastWeek
             FROM mdt_reports mr WHERE %s
         ]]):format(EMS_REPORT_ACCESS), emsReportParameters(snapshot))
-        local row = response and response[1] or {}
+        local row = type(response) == 'table' and type(response[1]) == 'table'
+            and response[1] or {}
         return {
             totalThisWeek = tonumber(row.totalThisWeek) or 0,
             changeFromLastWeek = (tonumber(row.totalThisWeek) or 0) - (tonumber(row.totalLastWeek) or 0),
