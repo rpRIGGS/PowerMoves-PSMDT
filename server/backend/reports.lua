@@ -1036,7 +1036,7 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
         })
     end
 
-    if reportData.tags and #reportData.tags > 0 then
+    if type(reportData.tags) == 'table' and #reportData.tags > 0 then
         for _, tag in ipairs(reportData.tags) do
             table.insert(attachmentQueries, {
                 query = "INSERT INTO mdt_reports_tags (reportid, tag) VALUES (?, ?)",
