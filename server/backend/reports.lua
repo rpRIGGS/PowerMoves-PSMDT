@@ -1055,6 +1055,11 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
     end
 
     if #attachmentQueries > 0 then
+        if not CheckAuth(src) or not CheckPermission(src, 'reports_create')
+            or ps.getIdentifier(src) ~= identifier or ps.getJobName(src) ~= originatingJob
+            or not checkReportWriteAccess(src, reportId, 'reports_create') then
+            return { success = false, error = 'Report attachment authorization changed' }
+        end
         local attachOk, attachResult = pcall(function()
             return MySQL.transaction.await(attachmentQueries)
         end)
