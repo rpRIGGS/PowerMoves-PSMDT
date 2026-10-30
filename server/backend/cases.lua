@@ -702,8 +702,8 @@ ps.registerCallback(resourceName .. ':server:addCaseAttachmentUpload', function(
         return { success = false, error = 'Authorization changed' }
     end
     local publicUrl, uploadError = FiveManageUpload(data, filename)
-    if not publicUrl then
-        return { success = false, error = 'Upload failed: ' .. (uploadError or 'Unknown error') }
+    if type(publicUrl) ~= 'string' or publicUrl == '' or #publicUrl > 2048 then
+        return { success = false, error = 'Upload failed: ' .. tostring(uploadError or 'Invalid URL') }
     end
 
     local attachmentId = MySQL.insert.await([[
