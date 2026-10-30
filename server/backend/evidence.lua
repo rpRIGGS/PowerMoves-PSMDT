@@ -517,6 +517,7 @@ ps.registerCallback(resourceName .. ':server:transferEvidenceItem', function(sou
         return { success = false, error = 'Missing transferring officer identity' }
     end
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_transfer')
+        or ps.getIdentifier(src) ~= fromCitizenId
         or not canEditEvidenceRecord(src, evidenceId) then
         return { success = false, error = 'Evidence authorization changed' }
     end
