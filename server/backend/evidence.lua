@@ -865,8 +865,14 @@ ps.registerCallback(resourceName .. ':server:createCaseFromEvidence', function(s
     end
 
     local caseNumber = ('CASE-%s-%05d'):format(os.date('%Y'), caseId)
-    MySQL.update.await('UPDATE mdt_cases SET case_number = ? WHERE id = ?', { caseNumber, caseId })
-    MySQL.update.await('UPDATE mdt_evidence_items SET case_id = ? WHERE id = ?', { caseId, evidenceId })
+    local numbered = MySQL.update.await('UPDATE mdt_cases SET case_number = ? WHERE id = ?', { caseNumber, caseId })
+    if not numbered or numbered < 1 then
+        return { success = false, error = 'Case number could not be saved' }
+    end
+    local linked = MySQL.update.await('UPDATE mdt_evidence_items SET case_id = ? WHERE id = ?', { caseId, evidenceId })
+    if not linked or linked < 1 then
+        return { success = false, error = 'Evidence could not be linked to case' }
+    end
     if reportId then
         linkReportToCase(reportId, caseId, citizenid)
     end
