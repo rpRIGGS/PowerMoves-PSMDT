@@ -1026,8 +1026,8 @@ ps.registerCallback('ps-mdt:server:fireOfficer', function(source, payload)
     if payload.deleteData then
         if cleanup and cleanup.ok then
             message = 'Officer terminated and MDT data removed'
-        elseif cleanup then
-            message = 'Officer terminated, but data cleanup failed: ' .. tostring(cleanup.error)
+        else
+            message = 'Officer terminated, but data cleanup failed: ' .. tostring(cleanup and cleanup.error or 'unknown error')
         end
     end
 
