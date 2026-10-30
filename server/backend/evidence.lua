@@ -611,6 +611,9 @@ ps.registerCallback(resourceName .. ':server:getEvidenceCustody', function(sourc
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_view')
         or not canReadEvidenceRecord(src, evidenceId) then return {} end
     if type(custody) ~= 'table' then return {} end
+    for _, record in ipairs(custody) do
+        if type(record) ~= 'table' then return {} end
+    end
     return custody
 end)
 
