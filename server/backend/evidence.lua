@@ -584,7 +584,7 @@ ps.registerCallback(resourceName .. ':server:getEvidenceCustody', function(sourc
         SELECT id, evidence_id, from_citizenid, to_citizenid, action, notes, created_at
         FROM mdt_evidence_custody
         WHERE evidence_id = ?
-        ORDER BY created_at DESC
+        ORDER BY created_at DESC, id DESC
     ]], { evidenceId })
 
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_view')
