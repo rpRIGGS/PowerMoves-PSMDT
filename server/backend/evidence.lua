@@ -360,7 +360,7 @@ ps.registerCallback(resourceName .. ':server:addEvidenceItem', function(source, 
         INSERT INTO mdt_evidence_custody (evidence_id, from_citizenid, to_citizenid, action, notes)
         VALUES (?, ?, ?, 'collected', ?)
     ]], { evidenceId, nil, collector, evidence.notes or '' })
-    if not custodyOk or not custodyId then
+    if not custodyOk or type(custodyId) ~= 'number' or custodyId <= 0 then
         MySQL.update.await('DELETE FROM mdt_evidence_items WHERE id = ? AND created_by = ?', { evidenceId, collector })
         return { success = false, error = 'Evidence custody record could not be created' }
     end
