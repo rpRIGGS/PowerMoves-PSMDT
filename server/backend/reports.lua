@@ -622,7 +622,8 @@ ps.registerCallback(resourceName .. ':server:searchOfficers', function(source, q
     -- busy server an officer could be missing entirely. Filtering in SQL also
     -- shrinks the scanned set dramatically.
     local jobClauses, jobParams = {}, {}
-    if Config and Config.PoliceJobType then
+    if Config and type(Config.PoliceJobType) == 'string'
+        and Config.PoliceJobType ~= '' then
         jobClauses[#jobClauses + 1] = "JSON_UNQUOTE(JSON_EXTRACT(p.job, '$.type')) = ?"
         jobParams[#jobParams + 1] = tostring(Config.PoliceJobType)
     end
