@@ -1637,7 +1637,11 @@ ps.registerCallback(resourceName .. ':server:getDisclosedReports', function(sour
     ]],{actor,employer})
     if not CheckAuth(src) or not CheckPermission(src,'reports_view')
         or ps.getIdentifier(src)~=actor or ps.getJobName(src)~=employer then return {} end
-    return ok and type(rows) == 'table' and rows or {}
+    if not ok or type(rows) ~= 'table' then return {} end
+    for _, record in ipairs(rows) do
+        if type(record) ~= 'table' then return {} end
+    end
+    return rows
 end)
 
 ps.registerCallback(resourceName .. ':server:getReportDisclosures', function(source, reportId)
