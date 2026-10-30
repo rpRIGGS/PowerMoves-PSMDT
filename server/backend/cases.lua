@@ -387,7 +387,7 @@ ps.registerCallback(resourceName .. ':server:unlinkReportFromCase', function(sou
         return { success = false, error = 'Report unlink authorization changed' }
     end
     local deleted = MySQL.update.await('DELETE FROM mdt_case_reports WHERE case_id = ? AND report_id = ?', { caseId, reportId })
-    return { success = deleted ~= nil and deleted > 0 }
+    return { success = type(deleted) == 'number' and deleted > 0 }
 end)
 
 ps.registerCallback(resourceName .. ':server:getCaseEvidencePage', function(source, caseId, page, limit)
