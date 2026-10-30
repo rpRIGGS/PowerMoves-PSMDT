@@ -971,7 +971,9 @@ ps.registerCallback(resourceName .. ':server:grantCaseDisclosure', function(sour
         or type(purpose) ~= 'string' or #purpose < 10 or #purpose > 255 then
         return {success=false, error='Case, recipient and purpose are required'}
     end
-    if not recipientCid:find('%S') then return {success=false,error='Disclosure recipient is required'} end
+    if not recipientCid:find('%S') or recipientCid:find('%z') then
+        return {success=false,error='Disclosure recipient is required'}
+    end
     if not purpose:find('%S') then return {success=false,error='Disclosure purpose is required'} end
     if not CheckAuth(src) or not CheckPermission(src, 'cases_edit')
         or not canAccessCaseId(src, id) then return {success=false, error='Unauthorized'} end
