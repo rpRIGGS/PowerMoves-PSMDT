@@ -49,7 +49,7 @@ ps.registerCallback(resourceName .. ':server:saveFTOPhases', function(source, ph
     if not CheckAuth(src) then return { success = false } end
     if not CheckPermission(src, 'fto_manage') then return { success = false, error = 'No permission' } end
     local job = ps.getJobName(src)
-    if type(job) ~= 'string' or job == '' or #job > 64 then
+    if type(job) ~= 'string' or not job:find('%S') or #job > 64 then
         return { success = false, error = 'Missing agency' }
     end
     if type(phases) ~= 'table' or #phases > 100 then
