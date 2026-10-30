@@ -1175,7 +1175,10 @@ ps.registerCallback(resourceName..':server:updateReportContent', function(source
         return { success = false, error = 'Invalid report identifier' }
     end
     local title = (reportData and reportData.title) or "Draft Report"
-    local reportType = (reportData and reportData.type) or "Incident Report"
+    local reportType = (type(reportData) == 'table' and reportData.type) or 'Incident Report'
+    if type(reportType) ~= 'string' or not reportType:find('%S') or #reportType > 100 then
+        return { success = false, error = 'Invalid report type' }
+    end
 
     local identifier = ps.getIdentifier(src)
     local playerName = ps.getPlayerName(src)
