@@ -881,6 +881,11 @@ ps.registerCallback('ps-mdt:server:promoteOfficer', function(source, payload)
         return { success = false, message = 'You cannot change your own rank' }
     end
 
+    local currentTarget = ps.getPlayerByIdentifier(citizenid)
+    local currentSrc = currentTarget and (currentTarget.source or (currentTarget.PlayerData and currentTarget.PlayerData.source))
+    if tonumber(currentSrc) ~= tonumber(targetSrc) then
+        return { success = false, message = 'Officer session changed; refresh the roster' }
+    end
     if not CheckAuth(src) or not CheckPermission(src, 'roster_manage_officers')
         or not CanManageMdtPersonnel(src, citizenid, jobName) then
         return { success = false, message = 'Personnel authorization changed' }
