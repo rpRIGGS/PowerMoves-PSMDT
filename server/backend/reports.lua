@@ -28,6 +28,7 @@ local ownerScope = [[
 local function collectCitizenIds(reportData)
     local citizenids = {}
 
+    if type(reportData) ~= 'table' then return citizenids end
     if type(reportData.involved) == 'table' then
         for _, involved in ipairs(reportData.involved) do
             if type(involved) == 'table' and type(involved.citizenid) == 'string'
