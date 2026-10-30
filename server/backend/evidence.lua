@@ -226,6 +226,9 @@ ps.registerCallback(resourceName .. ':server:addEvidenceItem', function(source, 
     local caseId = nil
     if payload.caseId and tostring(payload.caseId) ~= '' then
         local n = tonumber(payload.caseId)
+        if not n or n ~= n or n == math.huge or n <= 0 or n % 1 ~= 0 then
+            return { success = false, error = 'Invalid case reference' }
+        end
         if n then
             if not CanAccessMdtCase(src, n) then
                 return { success = false, error = 'Case not found or inaccessible' }
