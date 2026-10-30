@@ -198,7 +198,7 @@ ps.registerCallback(resourceName .. ':server:searchEvidenceItems', function(sour
         FROM mdt_evidence_items
         WHERE (title LIKE ? OR serial LIKE ? OR notes LIKE ? OR location LIKE ? OR stash_id LIKE ?)
           AND %s
-        ORDER BY created_at DESC
+        ORDER BY created_at DESC, id DESC
         LIMIT ? OFFSET ?
     ]]):format(evidenceReadScope), pagedParams)
 
