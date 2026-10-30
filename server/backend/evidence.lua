@@ -1008,7 +1008,7 @@ ps.registerCallback(resourceName .. ':server:grantEvidenceDisclosure', function(
         FROM players WHERE citizenid = ? LIMIT 1
     ]],{recipientCid})
     if type(recipientJob) ~= 'string' or not recipientJob:find('%S')
-        or #recipientJob > 64 or not CheckAuth(src)
+        or #recipientJob > 64 or recipientJob:find('%z') or not CheckAuth(src)
         or not CheckPermission(src,'evidence_transfer')
         or ps.getIdentifier(src)~=actor or ps.getJobName(src)~=employer
         or not canEditEvidenceRecord(src,id) then
