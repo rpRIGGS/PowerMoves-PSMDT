@@ -233,6 +233,7 @@ function CanViewStatewideLeoRoster(source)
             and now.job == identity.job and now.grade == identity.grade
             and now.onDuty == identity.onDuty and now.gradeValid
             and now.jobType == 'leo' and now.primaryInterfaceId == 'sadle'
+            and contains(((Config.MdtAccess or {}).LeoRosterOversightJobs) or {}, now.job)
             and isAttorneyGeneral(now) and GetMdtAccess(source).authorized == true
     end
     local ok, row = pcall(MySQL.single.await,
