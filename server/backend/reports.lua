@@ -781,6 +781,9 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
         or ps.getIdentifier(src) ~= identifier or ps.getJobName(src) ~= originatingJob then
         return { success = false, error = 'Report author authorization changed' }
     end
+    if reportId and not checkReportWriteAccess(src, reportId, 'reports_create') then
+        return { success = false, error = 'Report edit authorization changed' }
+    end
     if not reportId then
         local insertResult = MySQL.insert.await([[
             INSERT INTO mdt_reports (title, type, contentyjs, contentplaintext, author, authorplaintext)
