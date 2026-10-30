@@ -1076,7 +1076,7 @@ ps.registerCallback(resourceName .. ':server:getDisclosedEvidenceDetail', functi
         or not disclosedEvidenceScope(src,id) then
         return {success=false,error='Authorization changed'}
     end
-    if not GetMdtAccess(src).authorized then
+    if not (GetMdtAccess(src) or {}).authorized then
         return {success=false,error='Authorization changed'}
     end
     if ps.auditLog then ps.auditLog(src,'evidence_disclosure_accessed','evidence',id,
