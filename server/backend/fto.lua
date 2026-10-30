@@ -84,6 +84,9 @@ ps.registerCallback(resourceName .. ':server:saveFTOPhases', function(source, ph
             values = { job, phase.name, phase.description or '', tonumber(phase.duration_days) or 0, i }
         }
     end
+    if not MySQL.transaction or not MySQL.transaction.await then
+        return { success = false, error = 'Database transactions unavailable' }
+    end
     local ok, committed = pcall(MySQL.transaction.await, statements)
     if not ok or not committed then
         return { success = false, error = 'Failed to save FTO phases' }
