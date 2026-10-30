@@ -302,10 +302,6 @@ ps.registerCallback(resourceName .. ':server:linkReportToCase', function(source,
         INSERT IGNORE INTO mdt_case_reports (case_id, report_id, linked_by)
         VALUES (?, ?, ?)
     ]], { caseId, reportId, ps.getIdentifier(src) })
-    if not CheckAuth(src) or not CheckPermission(src, 'cases_edit')
-        or not canAccessCaseId(src, caseId) then
-        return { success = false, error = 'Authorization changed' }
-    end
     return { success = true }
 end)
 
