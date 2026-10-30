@@ -585,7 +585,7 @@ ps.registerCallback(resourceName .. ':server:assignIAComplaint', function(source
         return { success = false, error = 'Authorization changed' }
     end
 
-    MySQL.update.await('UPDATE mdt_ia_complaints SET assigned_to = ?, assigned_to_name = ? WHERE id = ?', {
+    local affected = MySQL.update.await('UPDATE mdt_ia_complaints SET assigned_to = ?, assigned_to_name = ? WHERE id = ?', {
         assigneeCitizenId,
         assigneeName,
         complaintId
