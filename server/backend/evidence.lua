@@ -447,6 +447,9 @@ ps.registerCallback(resourceName .. ':server:transferEvidenceItem', function(sou
         or not canEditEvidenceRecord(src, evidenceId) then
         return { success = false, error = 'Evidence authorization changed' }
     end
+    if not MySQL.transaction or not MySQL.transaction.await then
+        return { success = false, error = 'Database transaction unavailable' }
+    end
     local ok, committed = pcall(MySQL.transaction.await, {
         {
             query = 'UPDATE mdt_evidence_items SET last_holder = ? WHERE id = ?',
