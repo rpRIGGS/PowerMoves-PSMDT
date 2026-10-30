@@ -703,6 +703,9 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
     if not dorId then return { success = false, error = 'Failed to create DOR' } end
 
     local ratings = data.ratings or {}
+    if type(ratings) ~= 'table' or #ratings > 100 then
+        return { success = false, error = 'Invalid DOR ratings' }
+    end
     for _, r in ipairs(ratings) do
         local compId = tonumber(r.competency_id)
         local rating = tonumber(r.rating)
