@@ -424,6 +424,9 @@ ps.registerCallback(resourceName .. ':server:updateEvidenceItem', function(sourc
     end
 
     if evidence.caseId then
+        if not CheckPermission(src, 'cases_edit') then
+            return { success = false, error = 'Case editing permission required' }
+        end
         local caseId = tonumber(evidence.caseId)
         if not caseId or caseId ~= caseId or caseId == math.huge or caseId <= 0 or caseId % 1 ~= 0
             or not CanAccessMdtCase(src, caseId) then
