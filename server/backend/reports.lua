@@ -161,9 +161,9 @@ local function normalizeDateFilter(value)
     end
     if type(value) ~= 'string' then return nil end
     local year, month, day = value:match('^(%d%d%d%d)%-(%d%d)%-(%d%d)
-    if not year then
-        return nil
-    end
+    if not year then return nil end
+    local y, m, d = tonumber(year), tonumber(month), tonumber(day)
+    if y < 1970 or y > 2100 or m < 1 or m > 12 or d < 1 or d > 31 then return nil end
     return ('%s-%s-%s'):format(year, month, day)
 end
 
