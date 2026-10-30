@@ -672,7 +672,10 @@ ps.registerCallback(resourceName .. ':server:linkEvidenceToCase', function(sourc
         or not canEditEvidenceRecord(src, evidenceId) or not CanAccessMdtCase(src, caseId) then
         return { success = false, error = 'Evidence authorization changed' }
     end
-    MySQL.update.await('UPDATE mdt_evidence_items SET case_id = ? WHERE id = ?', { caseId, evidenceId })
+    local linked = MySQL.update.await('UPDATE mdt_evidence_items SET case_id = ? WHERE id = ?', { caseId, evidenceId })
+    if not linked or linked < 1 then
+        return { success = false, error = 'Evidence case link not saved' }
+    end
 
     if reportId then
         local reportExists = MySQL.single.await('SELECT id FROM mdt_reports WHERE id = ?', { reportId })
