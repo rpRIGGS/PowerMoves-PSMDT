@@ -346,6 +346,11 @@ ps.registerCallback(resourceName .. ':server:updateEvidenceItem', function(sourc
     end
 
     if evidence.reportId then
+        local reportId = tonumber(evidence.reportId)
+        if not reportId or reportId ~= reportId or reportId == math.huge or reportId <= 0 or reportId % 1 ~= 0
+            or type(CanReadMdtReport) ~= 'function' or not CanReadMdtReport(src, reportId) then
+            return { success = false, error = 'Report not accessible' }
+        end
         updates[#updates + 1] = 'report_id = ?'
         values[#values + 1] = tonumber(evidence.reportId)
     end
