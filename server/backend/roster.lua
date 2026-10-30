@@ -1011,7 +1011,7 @@ ps.registerCallback('ps-mdt:server:updateOfficerCallsign', function(source, payl
     local newCallsign = payload.callsign
 
     if type(citizenid) ~= 'string' or citizenid == ''
-        or type(newCallsign) ~= 'string' or newCallsign == ''
+        or type(newCallsign) ~= 'string' or not newCallsign:find('%S')
         or #newCallsign > 32 or newCallsign:find('[%c]') then
         return { success = false, message = 'Invalid citizen ID or callsign' }
     end
