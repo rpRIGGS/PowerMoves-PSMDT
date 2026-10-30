@@ -998,7 +998,8 @@ ps.registerCallback(resourceName .. ':server:grantEvidenceDisclosure', function(
         or not canEditEvidenceRecord(src,id) then return {success=false,error='Unauthorized'} end
     local actor,employer=ps.getIdentifier(src),ps.getJobName(src)
     if type(actor) ~= 'string' or not actor:find('%S') or #actor > 64
-        or type(employer) ~= 'string' or not employer:find('%S') or #employer > 64 then
+        or actor:find('%z') or type(employer) ~= 'string' or not employer:find('%S')
+        or #employer > 64 or employer:find('%z') then
         return {success=false,error='Unauthorized'}
     end
     local recipientJob=MySQL.scalar.await([[
