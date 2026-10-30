@@ -293,7 +293,7 @@ ps.registerCallback(resourceName .. ':server:getReports', function(source, page,
     if not identifier or not job or not jobType then return { reports = {}, total = 0 } end
 
     if type(filters) ~= 'table' then filters = nil end
-    local pageNumber = math.floor(math.max(1, tonumber(page) or 1))
+    local pageNumber = math.floor(math.max(1, math.min(tonumber(page) or 1, 10000)))
     local limit = math.floor(math.max(1, math.min(tonumber(filters and filters.limit) or 20, 100)))
     local offset = (pageNumber - 1) * limit
 
