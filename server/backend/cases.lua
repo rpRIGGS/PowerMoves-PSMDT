@@ -965,7 +965,8 @@ ps.registerCallback(resourceName .. ':server:getCaseDisclosures', function(sourc
         FROM mdt_case_disclosures WHERE case_id = ? ORDER BY granted_at DESC LIMIT 100
     ]],{id})
     if not CheckAuth(src) or not CheckPermission(src,'cases_edit')
-        or ps.getJobName(src)~=employer or ps.getIdentifier(src)~=actor then return {} end
+        or ps.getJobName(src)~=employer or ps.getIdentifier(src)~=actor
+        or not canAccessCaseId(src,id) then return {} end
     return ok and rows or {}
 end)
 
