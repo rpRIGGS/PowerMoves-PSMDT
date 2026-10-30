@@ -136,10 +136,12 @@ local function checkReportWriteAccess(src, reportId, action)
     if not CheckAuth(src) or not CheckPermission(src, action) then return false end
     if reportId == nil then return getEffectiveJobType(src) ~= nil end
     if not checkReportAccess(src, reportId) then return false end
+    local originalIdentifier, originalJob = ps.getIdentifier(src), ps.getJobName(src)
     local owner = MySQL.scalar.await(
         "SELECT identifier FROM mdt_reports_restrictions WHERE reportid = ? AND type = 'owner' LIMIT 1",
         { reportId })
     if owner ~= nil and owner ~= ps.getJobName(src) then return false end
+    if ps.getIdentifier(src) ~= originalIdentifier or ps.getJobName(src) ~= originalJob then return false end
     if not CheckAuth(src) or not CheckPermission(src, action) then return false end
     return CheckAuth(src) and CheckPermission(src, action)
         and getEffectiveJobType(src) ~= nil
