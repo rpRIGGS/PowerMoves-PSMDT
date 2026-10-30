@@ -344,7 +344,7 @@ registerDashboardRead('getRecentReports', function(src, snapshot, page, limit)
         ]]):format(EMS_REPORT_ACCESS), params) or {}
     end
 
-    local rows = MySQL.query.await([[
+    local ok, rows = pcall(MySQL.query.await, [[
         SELECT mr.id, mr.title, mr.type, mr.contentplaintext, mr.author, mr.authorplaintext, mr.datecreated, mr.dateupdated
         FROM mdt_reports mr
         LEFT JOIN mdt_reports_restrictions mrr ON mr.id = mrr.reportid
@@ -371,6 +371,7 @@ registerDashboardRead('getRecentReports', function(src, snapshot, page, limit)
         LIMIT ?
         OFFSET ?
     ]], { jobType, jobType, jobType, identifier, job, jobType, job, identifier, job, pageSize, offset })
+    if not ok then return {} end
     if type(rows) ~= 'table' then return {} end
     for _, row in ipairs(rows) do
         if type(row) ~= 'table' then return {} end
