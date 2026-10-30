@@ -88,7 +88,9 @@ ps.registerCallback(resourceName .. ':server:setRadio', function(source, payload
     local cid = payload.citizenid or payload.cid
     local newRadio = payload.radio or payload.newradio
  
-    if not cid or not newRadio then
+    if type(cid) ~= 'string' or cid == ''
+        or (type(newRadio) ~= 'number' and type(newRadio) ~= 'string')
+        or not tonumber(newRadio) or tonumber(newRadio) <= 0 then
         return { success = false, message = 'Missing citizen ID or radio frequency' }
     end
     -- Radio changes for another employee require actual departmental
