@@ -795,7 +795,11 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
         return { success = false, message = 'At least one tag is required' }
     end
 
-    local reportId = reportData.report and tonumber(reportData.report.id) or nil
+    local rawReportId = reportData.report and reportData.report.id
+    local reportId = rawReportId ~= nil and tonumber(rawReportId) or nil
+    if rawReportId ~= nil and reportId == nil then
+        return { success = false, error = 'Invalid report identifier' }
+    end
     local reportType = reportData.report and reportData.report.type or 'Incident Report'
     if type(reportType) ~= 'string' or not reportType:find('%S')
         or #reportType > 100 then
