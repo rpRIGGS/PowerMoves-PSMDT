@@ -462,7 +462,8 @@ ps.registerCallback(resourceName .. ':server:updateIAComplaintInfo', function(so
     local sets = {}
     local vals = {}
 
-    if updates.officer_name ~= nil and (type(updates.officer_name) ~= 'string' or #updates.officer_name > 255) then
+    if updates.officer_name ~= nil and (type(updates.officer_name) ~= 'string'
+        or #updates.officer_name > 255 or updates.officer_name:find('%z')) then
         return { success = false, error = 'Invalid officer name' }
     end
     if updates.officer_name ~= nil then
