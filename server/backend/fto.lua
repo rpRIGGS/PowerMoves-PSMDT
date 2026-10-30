@@ -663,6 +663,10 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
     -- Always tag a DOR with a phase. If the client didn't send one, fall back to
     -- the assignment's current phase so it counts for the right phase.
     local phaseId = tonumber(data.phase_id)
+    if phaseId and (phaseId ~= phaseId or phaseId == math.huge
+        or phaseId <= 0 or phaseId % 1 ~= 0) then
+        return { success = false, error = 'Invalid DOR phase' }
+    end
     if not phaseId then
         local a = MySQL.single.await('SELECT current_phase_id FROM mdt_fto_assignments WHERE id = ?', { assignmentId })
         phaseId = a and a.current_phase_id or nil
