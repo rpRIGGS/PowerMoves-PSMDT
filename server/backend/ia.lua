@@ -254,7 +254,7 @@ ps.registerCallback(resourceName .. ':server:submitComplaint', function(source, 
         responsibleAgency
     })
 
-    if not complaintId then
+    if not complaintId or complaintId <= 0 then
         return { success = false, error = 'Failed to submit complaint' }
     end
 
