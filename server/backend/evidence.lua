@@ -1096,7 +1096,11 @@ ps.registerCallback(resourceName .. ':server:getDisclosedEvidence', function(sou
     if not CheckAuth(src) or not CheckPermission(src,'evidence_view')
         or ps.getIdentifier(src)~=cid or ps.getJobName(src)~=job
         or not (GetMdtAccess(src) or {}).authorized then return {} end
-    return ok and type(rows) == 'table' and rows or {}
+    if not ok or type(rows) ~= 'table' then return {} end
+    for _, record in ipairs(rows) do
+        if type(record) ~= 'table' then return {} end
+    end
+    return rows
 end)
 
 ps.registerCallback(resourceName .. ':server:getDisclosedEvidenceDetail', function(source, evidenceId)
