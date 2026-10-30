@@ -271,7 +271,8 @@ ps.registerCallback(resourceName .. ':server:deleteBulletin', function(source, p
 
     if type(payload) ~= 'table' then return { success = false, message = 'Invalid bulletin' } end
     local id = tonumber(payload.id)
-    if not id then
+    if not id or id ~= id or id == math.huge or id == -math.huge
+        or id <= 0 or id % 1 ~= 0 then
         return { success = false, message = 'Invalid bulletin ID' }
     end
 
