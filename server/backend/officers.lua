@@ -28,7 +28,7 @@ ps.registerCallback(resourceName .. ':server:setCallsign', function(source, payl
     local cid = payload.citizenid or payload.cid
     local newCallsign = payload.callsign or payload.newcallsign
  
-    if type(cid) ~= 'string' or cid == ''
+    if type(cid) ~= 'string' or not cid:find('%S') or #cid > 64
         or type(newCallsign) ~= 'string' or not newCallsign:match('%S') or #newCallsign > 32 then
         return { success = false, message = 'Missing citizen ID or callsign' }
     end
