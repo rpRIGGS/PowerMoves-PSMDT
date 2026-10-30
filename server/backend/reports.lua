@@ -1599,7 +1599,8 @@ end)
 
 ps.registerCallback(resourceName .. ':server:revokeReportDisclosure', function(source, grantId)
     local src,id=source,tonumber(grantId)
-    if not id or id ~= id or id == math.huge or id <= 0 or id % 1 ~= 0
+    if not id or id ~= id or id == math.huge or id == -math.huge
+        or id <= 0 or id % 1 ~= 0
         or not CheckAuth(src) or not CheckPermission(src,'reports_delete') then
         return {success=false,error='Unauthorized'}
     end
