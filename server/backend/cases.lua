@@ -238,7 +238,7 @@ ps.registerCallback(resourceName .. ':server:getCase', function(source, caseId)
         FROM mdt_case_officers mco
         LEFT JOIN mdt_profiles mp ON mp.citizenid COLLATE utf8mb4_general_ci = mco.citizenid COLLATE utf8mb4_general_ci
         WHERE mco.case_id = ?
-        ORDER BY mco.assigned_at ASC
+        ORDER BY mco.assigned_at ASC, mco.citizenid ASC
     ]], { caseId })
 
     local attachments = MySQL.query.await([[
