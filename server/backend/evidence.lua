@@ -530,7 +530,7 @@ ps.registerCallback(resourceName .. ':server:logEvidenceViewed', function(source
         return { success = false, error = 'Missing viewer identity' }
     end
 
-    MySQL.insert.await([[
+    local custodyId = MySQL.insert.await([[
         INSERT INTO mdt_evidence_custody (evidence_id, from_citizenid, to_citizenid, action, notes)
         VALUES (?, NULL, ?, 'viewed', '')
     ]], { evidenceId, citizenid })
