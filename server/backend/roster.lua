@@ -832,7 +832,9 @@ ps.registerCallback('ps-mdt:server:promoteOfficer', function(source, payload)
         return { success = false, message = 'No permission to manage officers' }
     end
 
-    payload = payload or {}
+    if type(payload) ~= 'table' then
+        return { success = false, message = 'Invalid personnel request' }
+    end
     local citizenid = payload.citizenid
     local jobName = payload.job
     local newGrade = tonumber(payload.grade)
