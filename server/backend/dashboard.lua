@@ -153,7 +153,7 @@ local function computeReportStatistics(src, snapshot)
     return Cache.getOrSet('dashboard:reportStats:' .. tostring(snapshot.job) .. ':' .. tostring(snapshot.jobType)
         .. ':' .. tostring(snapshot.permissionKey),
         Config.CacheTTL and Config.CacheTTL.ReportStats or 30, function()
-        local response = MySQL.query.await([[
+        local ok, response = pcall(MySQL.query.await, [[
             SELECT
                 COUNT(CASE WHEN datecreated >= NOW() - INTERVAL 1 WEEK THEN 1 END) AS totalThisWeek,
                 COUNT(CASE WHEN datecreated >= NOW() - INTERVAL 2 WEEK AND datecreated < NOW() - INTERVAL 1 WEEK THEN 1 END) AS totalLastWeek
@@ -163,6 +163,7 @@ local function computeReportStatistics(src, snapshot)
               OR EXISTS (SELECT 1 FROM mdt_reports_restrictions own
                 WHERE own.reportid = mr.id AND own.type = 'owner' AND own.identifier = ?)
         ]], { snapshot.job })
+        if not ok then return { totalThisWeek = 0, changeFromLastWeek = 0 } end
 
         local row = type(response) == 'table' and type(response[1]) == 'table'
             and response[1] or { totalThisWeek = 0, totalLastWeek = 0 }
