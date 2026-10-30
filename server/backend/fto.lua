@@ -353,6 +353,8 @@ ps.registerCallback(resourceName .. ':server:getOfficerFTOHistory', function(sou
         end
     end
 
+    local domain = getFTODomain(src)
+    if not domain then return {} end
     local ok, rows = pcall(MySQL.query.await, [[
         SELECT a.id, a.fto_number, a.status, a.trainer_name, a.trainee_name,
             a.start_date, a.end_date, a.created_at,
