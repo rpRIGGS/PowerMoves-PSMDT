@@ -54,7 +54,7 @@ local function getExpiryDate(value)
     if ts then
         return os.date('%Y-%m-%d %H:%M:%S', ts)
     end
-    if type(value) == 'string' and value ~= '' then
+    if type(value) == 'string' and value ~= '' and #value <= 32 then
         return value
     end
     return nil
