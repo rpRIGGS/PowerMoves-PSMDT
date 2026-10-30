@@ -58,7 +58,8 @@ ps.registerCallback(resourceName .. ':server:saveFTOPhases', function(source, ph
             or phase.name == '' or #phase.name > 255
             or (phase.description ~= nil and (type(phase.description) ~= 'string' or #phase.description > 2000))
             or (phase.duration_days ~= nil and (not tonumber(phase.duration_days)
-                or tonumber(phase.duration_days) < 0 or tonumber(phase.duration_days) > 3650)) then
+                or tonumber(phase.duration_days) < 0 or tonumber(phase.duration_days) > 3650
+                or tonumber(phase.duration_days) % 1 ~= 0)) then
             return { success = false, error = 'Invalid phase' }
         end
     end
