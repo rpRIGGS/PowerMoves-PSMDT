@@ -223,7 +223,8 @@ local function computeBulletins()
     if type(rows) ~= 'table' then return {} end
     if #rows == 0 then return { { content = 'No bulletins found..' } } end
     for _, row in ipairs(rows) do
-        if type(row) ~= 'table' then return {} end
+        if type(row) ~= 'table' or not tonumber(row.id)
+            or type(row.content) ~= 'string' then return {} end
     end
     return rows
 end
