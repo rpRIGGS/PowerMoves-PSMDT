@@ -1187,7 +1187,10 @@ ps.registerCallback(resourceName..':server:updateReportContent', function(source
     local playerName = ps.getPlayerName(src)
     local callsign = ps.getMetadata(src, 'callsign')
 
-    if not identifier then return { success = false, error = "Player not found" } end
+    if type(identifier) ~= 'string' or not identifier:find('%S') or #identifier > 64
+        or getEffectiveJobType(src) == nil then
+        return { success = false, error = 'Player not authorized' }
+    end
 
     if reportId then
         if not checkReportWriteAccess(src, reportId, 'reports_create') then
