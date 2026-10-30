@@ -807,6 +807,9 @@ ps.registerCallback(resourceName .. ':server:addCaseNote', function(source, case
     end
 
     local citizenId = ps.getIdentifier(src)
+    if type(citizenId) ~= 'string' or citizenId == '' then
+        return { success = false, error = 'Missing author identity' }
+    end
     local profile = MySQL.single.await('SELECT fullname FROM mdt_profiles WHERE citizenid = ?', { citizenId })
     local authorName = profile and profile.fullname or 'Unknown'
     if not CheckAuth(src) or not CheckPermission(src, 'cases_edit')
