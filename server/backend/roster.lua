@@ -769,6 +769,7 @@ ps.registerCallback('ps-mdt:server:getJobGrades', function(source, payload)
     if not CheckAuth(src) then return {} end
     if not CheckPermission(src, 'roster_manage_officers') then return {} end
 
+    if payload ~= nil and type(payload) ~= 'table' then return {} end
     payload = payload or {}
     local jobName = payload.job or ps.getJobName(src)
     if jobName ~= ps.getJobName(src) then return {} end
