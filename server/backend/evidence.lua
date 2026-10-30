@@ -384,8 +384,8 @@ ps.registerCallback(resourceName .. ':server:deleteEvidenceItem', function(sourc
     end
 
     local success = MySQL.update.await('DELETE FROM mdt_evidence_items WHERE id = ?', { evidenceId })
-    if not success then
-        return { success = false, error = 'Failed to delete evidence' }
+    if not success or success < 1 then
+        return { success = false, error = 'Evidence not found' }
     end
 
     if ps.auditLog then
