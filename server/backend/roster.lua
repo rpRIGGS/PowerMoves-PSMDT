@@ -12,7 +12,9 @@ local function getRadioChannel(playerSource)
     pcall(function()
         channel = Player(playerSource).state.radioChannel or 0
     end)
-    return tonumber(channel) or 0
+    channel = tonumber(channel)
+    if not channel or channel ~= channel or channel == math.huge or channel < 0 then return 0 end
+    return channel
 end
 
 local function getCertifications(citizenid)
