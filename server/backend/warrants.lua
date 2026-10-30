@@ -16,7 +16,7 @@ local function warrantReportExists(reportId)
 end
 
 local function validateExpiry(expiry)
-    if not expiry then
+    if expiry == nil then
         return nil
     end
     if type(expiry) ~= 'string' and type(expiry) ~= 'number' then return nil end
