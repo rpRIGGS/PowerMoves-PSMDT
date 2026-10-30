@@ -66,7 +66,7 @@ ps.registerCallback(resourceName .. ':server:createCase', function(source, paylo
     local src = source
     if not CheckAuth(src) or not CheckPermission(src, 'cases_create') then return { success = false, error = 'Unauthorized' } end
 
-    payload = payload or {}
+    if type(payload) ~= 'table' then return { success = false, error = 'Invalid case payload' } end
     local title = payload.title or 'Untitled Case'
     local summary = payload.summary or ''
     local status = normalizeStatus(payload.status)
