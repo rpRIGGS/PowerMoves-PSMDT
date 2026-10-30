@@ -42,6 +42,8 @@ jobs:
         run: |
           find server client -type f -name '*.lua' -print0 | xargs -0 -r luac5.4 -p
           luac5.4 -p config.lua
+      - name: PowerMoves LEO jobs and SADLE oversight contract
+        run: lua5.4 tests/phase1/leo_jobs_contract.lua
       - name: Stage 1 access regression
         run: lua5.4 tests/phase1/access_regression.lua
       - name: EMS dashboard server regression
