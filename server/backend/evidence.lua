@@ -939,7 +939,8 @@ ps.registerCallback(resourceName .. ':server:getDisclosedEvidence', function(sou
         ORDER BY g.granted_at DESC LIMIT 100
     ]],{cid,job})
     if not CheckAuth(src) or not CheckPermission(src,'evidence_view')
-        or ps.getIdentifier(src)~=cid or ps.getJobName(src)~=job then return {} end
+        or ps.getIdentifier(src)~=cid or ps.getJobName(src)~=job
+        or not GetMdtAccess(src).authorized then return {} end
     return ok and rows or {}
 end)
 
