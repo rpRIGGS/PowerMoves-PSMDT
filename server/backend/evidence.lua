@@ -594,7 +594,9 @@ ps.registerCallback(resourceName .. ':server:removeEvidenceImage', function(sour
         return { success = false, error = 'Evidence image not found' }
     end
 
-    if image and image.url and image.url:find('^/ps%-mdt%-v3/uploads/') then
+    if image and type(image.url) == 'string'
+        and not image.url:find('..', 1, true)
+        and image.url:find('^/ps%-mdt%-v3/uploads/') then
         local path = image.url:gsub('^/ps%-mdt%-v3/', '')
         if path ~= '' then
             os.remove(path)
