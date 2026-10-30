@@ -606,6 +606,9 @@ ps.registerCallback(resourceName .. ':server:logEvidenceViewed', function(source
         return { success = false, error = 'Missing viewer identity' }
     end
 
+    if not canReadEvidenceRecord(src, evidenceId) or ps.getIdentifier(src) ~= citizenid then
+        return { success = false, error = 'Evidence viewing authorization changed' }
+    end
     local custodyId = MySQL.insert.await([[
         INSERT INTO mdt_evidence_custody (evidence_id, from_citizenid, to_citizenid, action, notes)
         VALUES (?, NULL, ?, 'viewed', '')
