@@ -321,11 +321,19 @@ registerDashboardRead('getRecentReports', function(src, snapshot, page, limit)
             OR (mrr.type = 'job'       AND mrr.identifier = ?)
             OR (mrr.type = 'jobtype'   AND mrr.identifier = ?)
         )
+        AND (NOT EXISTS (SELECT 1 FROM mdt_reports_restrictions own
+            WHERE own.reportid = mr.id AND own.type = 'owner')
+          OR EXISTS (SELECT 1 FROM mdt_reports_restrictions own
+            WHERE own.reportid = mr.id AND own.type = 'owner' AND own.identifier = ?)
+          OR EXISTS (SELECT 1 FROM mdt_reports_restrictions grant_scope
+            WHERE grant_scope.reportid = mr.id
+              AND ((grant_scope.type = 'citizenid' AND grant_scope.identifier = ?)
+                OR (grant_scope.type = 'job' AND grant_scope.identifier = ?))))
         GROUP BY mr.id
         ORDER BY mr.datecreated DESC
         LIMIT ?
         OFFSET ?
-    ]], { jobType, jobType, jobType, identifier, job, jobType, pageSize, offset })
+    ]], { jobType, jobType, jobType, identifier, job, jobType, job, identifier, job, pageSize, offset })
     return rows or {}
 end)
 
