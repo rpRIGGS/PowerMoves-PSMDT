@@ -1608,6 +1608,10 @@ ps.registerCallback(resourceName .. ':server:revokeReportDisclosure', function(s
     if type(actor) ~= 'string' or not actor:find('%S') or #actor > 64
         or type(employer) ~= 'string' or not employer:find('%S')
         or #employer > 64 then return {success=false,error='Unauthorized'} end
+    if not CheckAuth(src) or not CheckPermission(src,'reports_delete')
+        or ps.getIdentifier(src) ~= actor or ps.getJobName(src) ~= employer then
+        return {success=false,error='Authorization changed'}
+    end
     local ok,count=pcall(MySQL.update.await,[[
         UPDATE mdt_report_disclosures g
         INNER JOIN mdt_reports_restrictions o ON o.reportid = g.report_id
