@@ -81,7 +81,7 @@ ps.registerCallback(resourceName .. ':server:createCase', function(source, paylo
     local scope = getCaseScope(src)
     if not scope then return { success = false, error = 'Unauthorized' } end
     local department = scope.statewide and (payload.department or scope.agency) or scope.agency
-    if type(department) ~= 'string' or department == '' or #department > 64 then
+    if type(department) ~= 'string' or not department:find('%S') or #department > 64 then
         return { success = false, error = 'Invalid department' }
     end
 
