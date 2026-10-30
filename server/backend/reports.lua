@@ -801,6 +801,10 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
     if type(creatorEmployer) ~= 'string' or creatorEmployer == '' then
         return { success = false, error = 'Missing employing agency' }
     end
+    if reportId and (reportId ~= reportId or reportId == math.huge
+        or reportId <= 0 or reportId % 1 ~= 0) then
+        return { success = false, error = 'Invalid report identifier' }
+    end
     local newReport = reportId == nil
     -- An explicitly shared editor must not transfer the original owner.
     local existingOwner = reportId and MySQL.scalar.await(
