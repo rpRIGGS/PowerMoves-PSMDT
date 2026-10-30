@@ -101,6 +101,10 @@ ps.registerCallback(resourceName .. ':server:saveFTOCompetencies', function(sour
         end
     end
 
+    if not CheckAuth(src) or not CheckPermission(src, 'fto_manage')
+        or ps.getJobName(src) ~= job then
+        return { success = false, error = 'Authorization changed' }
+    end
     MySQL.query.await('DELETE FROM mdt_fto_competencies WHERE job = ?', { job })
     for i, comp in ipairs(competencies) do
         MySQL.insert.await('INSERT INTO mdt_fto_competencies (job, name, category, sort_order) VALUES (?, ?, ?, ?)', {
