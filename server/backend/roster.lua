@@ -273,7 +273,8 @@ ps.registerCallback('ps-mdt:server:getRosterList', function(source)
             local callsign = type(metadata.callsign) == 'string' and metadata.callsign or 'N/A'
             local firstName = type(charinfo.firstname) == 'string' and charinfo.firstname or 'N/A'
             local lastName = type(charinfo.lastname) == 'string' and charinfo.lastname or 'N/A'
-            local grade = job.grade
+            local grade = type(job.grade) == 'table' or type(job.grade) == 'number'
+                or type(job.grade) == 'string' and job.grade or nil
             local gradeLevel = type(grade) == 'table' and (grade.level or grade.grade) or grade
             local rank = (type(grade) == 'table' and grade.name)
                 or (gradeLevel ~= nil and ps.getSharedJobGradeData(jobName, gradeLevel, 'name'))
