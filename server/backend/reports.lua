@@ -1260,7 +1260,7 @@ ps.registerCallback(resourceName..':server:updateReportContent', function(source
         reportId
     })
 
-    if updateSuccess and updateSuccess > 0 then
+    if type(updateSuccess) == 'number' and updateSuccess > 0 then
         return {
             success = true,
             reportId = reportId,
