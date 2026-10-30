@@ -501,7 +501,10 @@ ps.registerCallback(resourceName .. ':server:advanceFTOPhase', function(source, 
     if direction ~= 'next' and direction ~= 'back' then
         return { success = false, error = 'Invalid direction' }
     end
-    if not assignmentId then return { success = false, error = 'Invalid assignment' } end
+    if not assignmentId or assignmentId ~= assignmentId or assignmentId == math.huge
+        or assignmentId <= 0 or assignmentId % 1 ~= 0 then
+        return { success = false, error = 'Invalid assignment' }
+    end
 
     local a = MySQL.single.await(
         'SELECT id, current_phase_id, status, trainee_name FROM mdt_fto_assignments WHERE id = ?', { assignmentId })
