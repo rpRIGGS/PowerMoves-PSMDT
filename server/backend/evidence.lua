@@ -216,7 +216,7 @@ ps.registerCallback(resourceName .. ':server:searchEvidenceItems', function(sour
             SELECT id, evidence_id, url, label, uploaded_by, uploaded_at
             FROM mdt_evidence_images
             WHERE evidence_id IN (%s)
-            ORDER BY uploaded_at DESC
+            ORDER BY uploaded_at DESC, id DESC
         ]]):format(placeholders), ids)
 
         for _, img in ipairs(images or {}) do
