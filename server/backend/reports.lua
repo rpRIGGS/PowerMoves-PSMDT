@@ -1416,7 +1416,9 @@ ps.registerCallback(resourceName..':server:getReportAnalytics', function(source,
     local identifier = ps.getIdentifier(src)
     local job = ps.getJobName(src)
     local jobType = getEffectiveJobType(src)
-    if not identifier or not job or not jobType then return { success = false, error = 'Unauthorized' } end
+    if type(identifier) ~= 'string' or not identifier:find('%S') or #identifier > 64
+        or type(job) ~= 'string' or not job:find('%S') or #job > 64
+        or not jobType then return { success = false, error = 'Unauthorized' } end
     if type(filters) ~= 'table' then filters = nil end
 
     local filterClause, filterValues = buildReportFilterClause(filters)
