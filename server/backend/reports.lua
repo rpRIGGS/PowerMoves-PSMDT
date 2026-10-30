@@ -1382,8 +1382,9 @@ ps.registerCallback(resourceName..':server:getCitizenTags', function(source, pla
     local src = source
     if not CheckAuth(src) or not CheckPermission(src, 'reports_view') then return {} end
 
-    -- Return the full citizen-tag dictionary (with job_type) so the UI can
-    -- colour every tag; the client gates which ones a domain may add/remove.
+    local citizenTagDomain = getEffectiveJobType(src)
+    if not citizenTagDomain then return {} end
+    -- Citizen tag options are restricted on the server to the active MDT domain.
     local tags = MySQL.query.await([[
         SELECT t.name, t.color, t.job_type, t.description
         FROM mdt_tags t
