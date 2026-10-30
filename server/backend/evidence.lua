@@ -1097,7 +1097,7 @@ ps.registerCallback(resourceName .. ':server:getEvidenceDisclosures', function(s
         SELECT id,recipient_citizenid,recipient_job,purpose,granted_at,revoked_at
         FROM mdt_evidence_disclosures
         WHERE evidence_id = ? AND granted_by_job = ?
-        ORDER BY granted_at DESC LIMIT 100
+        ORDER BY granted_at DESC, id DESC LIMIT 100
     ]],{id,job})
     if not CheckAuth(src) or not CheckPermission(src,'evidence_transfer')
         or ps.getIdentifier(src)~=actor or ps.getJobName(src)~=job
