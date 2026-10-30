@@ -135,6 +135,7 @@ ps.registerCallback(resourceName .. ':server:getCases', function(source, page, f
     if page ~= page or page == math.huge or page < 1 then page = 1 end
     page = math.min(math.floor(page), 10000)
     local limit = tonumber(Config.Pagination and Config.Pagination.Cases) or 20
+    if limit ~= limit or limit == math.huge or limit == -math.huge then limit = 20 end
     limit = math.max(1, math.min(100, math.floor(limit)))
     local offset = (page - 1) * limit
 
