@@ -991,7 +991,8 @@ ps.registerCallback(resourceName .. ':server:grantEvidenceDisclosure', function(
         or type(purpose)~='string' or #purpose<10 or #purpose>255 then
         return {success=false,error='Evidence, recipient and purpose required'}
     end
-    if not recipientCid:find('%S') or not purpose:find('%S') then
+    if not recipientCid:find('%S') or recipientCid:find('%z')
+        or not purpose:find('%S') or purpose:find('%z') then
         return {success=false,error='Disclosure recipient and purpose required'}
     end
     if not CheckAuth(src) or not CheckPermission(src,'evidence_transfer')
