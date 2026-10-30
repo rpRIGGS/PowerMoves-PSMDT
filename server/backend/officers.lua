@@ -112,7 +112,8 @@ ps.registerCallback(resourceName .. ':server:setRadio', function(source, payload
     if type(cid) ~= 'string' or not cid:find('%S') or #cid > 64
         or (type(newRadio) ~= 'number' and type(newRadio) ~= 'string')
         or not tonumber(newRadio) or tonumber(newRadio) <= 0
-        or tonumber(newRadio) == math.huge or tonumber(newRadio) ~= tonumber(newRadio) then
+        or tonumber(newRadio) == math.huge or tonumber(newRadio) ~= tonumber(newRadio)
+        or tonumber(newRadio) > 100000 then
         return { success = false, message = 'Missing citizen ID or radio frequency' }
     end
     -- Radio changes for another employee require actual departmental
