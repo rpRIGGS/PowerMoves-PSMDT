@@ -893,7 +893,8 @@ ps.registerCallback(resourceName .. ':server:grantEvidenceDisclosure', function(
         WHERE e.id = ?
           AND (c.assigned_department = ? OR (e.case_id IS NULL AND e.created_by = ?))
     ]],{recipientCid,recipientJob,purpose,actor,employer,id,employer,actor})
-    if not ok or not tonumber(grantId) or tonumber(grantId)<=0 then
+    if not ok or not tonumber(grantId) or tonumber(grantId) ~= tonumber(grantId)
+        or tonumber(grantId) <= 0 then
         return {success=false,error='Could not store evidence disclosure'}
     end
     if ps.auditLog then ps.auditLog(src,'evidence_disclosure_granted','evidence',id,
