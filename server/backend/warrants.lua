@@ -237,7 +237,8 @@ ps.registerCallback(resourceName .. ':server:issueWarrant', function(source, dat
                   WHERE existing.reportid = r.id AND existing.expirydate >= NOW()
               )
         ]], { citizenid, expiryDate, reportId, ps.getJobName(src) })
-        if type(inserted) ~= 'number' or inserted <= 0 then
+        if type(inserted) ~= 'number' or inserted ~= inserted
+            or inserted == math.huge or inserted == -math.huge or inserted <= 0 then
             return { success = false, error = 'Report not found or inaccessible' }
         end
     end
