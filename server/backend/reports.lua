@@ -837,6 +837,11 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
             return { success = false, error = 'Invalid charged person' }
         end
     end
+    for _, evidence in ipairs(reportData.evidence or {}) do
+        if type(evidence) ~= 'table' then
+            return { success = false, error = 'Invalid report evidence' }
+        end
+    end
     local newReport = reportId == nil
     -- An explicitly shared editor must not transfer the original owner.
     local existingOwner = reportId and MySQL.scalar.await(
