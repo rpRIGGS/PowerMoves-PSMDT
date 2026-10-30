@@ -248,7 +248,8 @@ ps.registerCallback(resourceName .. ':server:createBulletin', function(source, p
 
     if type(payload) ~= 'table' then return { success = false, message = 'Invalid bulletin' } end
     local content = payload.content
-    if not content or content == '' then
+    if type(content) ~= 'string' or not content:find('%S')
+        or #content > 10000 or content:find('%z') then
         return { success = false, message = 'Bulletin content is required' }
     end
 
