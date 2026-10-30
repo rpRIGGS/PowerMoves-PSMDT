@@ -377,7 +377,7 @@ ps.registerCallback(resourceName .. ':server:createFTOAssignment', function(sour
         or #data.trainee_citizenid > 64 then
         return { success = false, error = 'Trainee is required' }
     end
-    if type(data.trainer_citizenid) ~= 'string' or data.trainer_citizenid == ''
+    if type(data.trainer_citizenid) ~= 'string' or not data.trainer_citizenid:find('%S')
         or #data.trainer_citizenid > 64 then
         return { success = false, error = 'Trainer is required' }
     end
