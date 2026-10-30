@@ -1044,7 +1044,7 @@ ps.registerCallback(resourceName .. ':server:getDisclosedEvidence', function(sou
         WHERE g.recipient_citizenid = ? AND g.recipient_job = ?
           AND g.revoked_at IS NULL
           AND (e.case_id IS NULL OR c.assigned_department = g.granted_by_job)
-        ORDER BY g.granted_at DESC LIMIT 100
+        ORDER BY g.granted_at DESC, g.id DESC LIMIT 100
     ]],{cid,job})
     if not CheckAuth(src) or not CheckPermission(src,'evidence_view')
         or ps.getIdentifier(src)~=cid or ps.getJobName(src)~=job
