@@ -335,7 +335,7 @@ ps.registerCallback(resourceName .. ':server:getOfficerFTOHistory', function(sou
     -- agency; other persons' records are not discoverable by arbitrary ID.
     local actorCitizenid, actorEmployer = ps.getIdentifier(src), ps.getJobName(src)
     if type(actorCitizenid) ~= 'string' or not actorCitizenid:find('%S') or #actorCitizenid > 64
-        or type(actorEmployer) ~= 'string' or not actorEmployer:find('%S') then return {} end
+        or type(actorEmployer) ~= 'string' or not actorEmployer:find('%S') or #actorEmployer > 64 then return {} end
     local isSelf = officerCitizenId == actorCitizenid
     if not isSelf then
         if not CheckPermission(src, 'fto_view') or not CanManageMdtPersonnel(src, officerCitizenId) then
