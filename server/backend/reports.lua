@@ -842,6 +842,13 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
             return { success = false, error = 'Invalid report evidence' }
         end
     end
+    for _, restriction in ipairs(reportData.restrictions or {}) do
+        if type(restriction) ~= 'table' or type(restriction.type) ~= 'string'
+            or type(restriction.identifier) ~= 'string'
+            or not restriction.identifier:find('%S') or #restriction.identifier > 64 then
+            return { success = false, error = 'Invalid report restriction' }
+        end
+    end
     local newReport = reportId == nil
     -- An explicitly shared editor must not transfer the original owner.
     local existingOwner = reportId and MySQL.scalar.await(
