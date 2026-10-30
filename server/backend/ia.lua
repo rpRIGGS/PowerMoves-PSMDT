@@ -633,7 +633,9 @@ ps.registerCallback(resourceName .. ':server:deleteIANote', function(source, not
 
     noteId = tonumber(noteId)
     complaintId = tonumber(complaintId)
-    if not noteId or not complaintId then
+    if not noteId or noteId ~= noteId or noteId == math.huge or noteId <= 0 or noteId % 1 ~= 0
+        or not complaintId or complaintId ~= complaintId or complaintId == math.huge
+        or complaintId <= 0 or complaintId % 1 ~= 0 then
         return { success = false, error = 'Invalid note or complaint' }
     end
     if not ownsIAComplaint(src, complaintId) then return { success = false, error = 'Complaint access denied' } end
