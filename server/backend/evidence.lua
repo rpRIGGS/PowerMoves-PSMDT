@@ -1129,7 +1129,8 @@ end)
 
 ps.registerCallback(resourceName .. ':server:getEvidenceDisclosures', function(source, evidenceId)
     local src,id=source,tonumber(evidenceId)
-    if not id or id ~= id or id == math.huge or id <= 0 or id % 1 ~= 0
+    if not id or id ~= id or id == math.huge or id == -math.huge
+        or id <= 0 or id % 1 ~= 0
         or not CheckAuth(src) or not CheckPermission(src,'evidence_transfer')
         or not canEditEvidenceRecord(src,id) then return {} end
     local actor,job=ps.getIdentifier(src),ps.getJobName(src)
