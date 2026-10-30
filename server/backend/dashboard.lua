@@ -70,7 +70,9 @@ local function dashboardSnapshot(src)
         current.permissions, current.permissionKeys = {}, {}
         if type(access.permissions) ~= 'table' then return nil end
         for _, permission in ipairs(access.permissions) do
-            if type(permission) == 'string' and not current.permissions[permission] then
+            if type(permission) == 'string' and #permission <= 100
+                and permission:find('%S') and not permission:find('%z')
+                and not current.permissions[permission] then
                 current.permissions[permission] = true
                 current.permissionKeys[#current.permissionKeys + 1] = permission
             end
