@@ -155,7 +155,9 @@ ps.registerCallback(resourceName .. ':server:getUnitLocation', function(source, 
         if not CheckAuth(source) or (cid ~= ps.getIdentifier(source)
             and (not CheckPermission(source, 'roster_manage_officers')
                 or not CanManageMdtPersonnel(source, cid))) then return {} end
-        local coords = GetEntityCoords(GetPlayerPed(Player.PlayerData.source))
+        local ped = GetPlayerPed(Player.PlayerData.source)
+        if not ped or ped == 0 or not DoesEntityExist(ped) then return {} end
+        local coords = GetEntityCoords(ped)
         return { x = coords.x, y = coords.y, z = coords.z }
     end
  
