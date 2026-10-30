@@ -748,7 +748,9 @@ ps.registerCallback('ps-mdt:server:updateOfficerCertifications', function(source
         return { success = false, message = 'No permission to manage certifications' }
     end
 
-    payload = payload or {}
+    if type(payload) ~= 'table' then
+        return { success = false, message = 'Invalid certification request' }
+    end
     local citizenid = payload.citizenid
     local certifications = payload.certifications
 
