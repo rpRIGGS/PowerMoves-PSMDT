@@ -374,6 +374,7 @@ ps.registerCallback(resourceName .. ':server:getReports', function(source, page,
     for _, v in ipairs(filterValues or {}) do reportsParams[#reportsParams + 1] = v end
 
     local reports = MySQL.query.await(reportsQuery, reportsParams)
+    if type(countRow) ~= 'table' then return { reports = {}, total = 0 } end
     -- The count and list queries may yield across a duty/job/character switch.
     -- Never return confidential results from the old source identity.
     if not CheckAuth(src) or ps.getIdentifier(src) ~= identifier
