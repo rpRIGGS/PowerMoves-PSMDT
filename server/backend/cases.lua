@@ -709,7 +709,8 @@ ps.registerCallback(resourceName .. ':server:addCaseAttachmentUpload', function(
     local attachmentType = attachment.type or 'document'
     if type(contentType) ~= 'string' or #contentType > 128
         or type(label) ~= 'string' or #label > 255
-        or type(attachmentType) ~= 'string' or #attachmentType > 40 then
+        or type(attachmentType) ~= 'string' or not attachmentType:find('%S')
+        or #attachmentType > 40 then
         return { success = false, error = 'Invalid attachment metadata' }
     end
 
