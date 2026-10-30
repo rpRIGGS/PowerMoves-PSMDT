@@ -205,9 +205,10 @@ ps.registerCallback(resourceName .. ':server:getCases', function(source, page, f
         or current.statewide ~= scope.statewide then
         return { cases = {}, hasMore = false }
     end
+    if type(rows) ~= 'table' then return { cases = {}, hasMore = false } end
     return {
-        cases = rows or {},
-        hasMore = rows and #rows >= limit or false
+        cases = rows,
+        hasMore = #rows >= limit
     }
 end)
 
