@@ -668,7 +668,7 @@ ps.registerCallback(resourceName .. ':server:addCaseAttachment', function(source
         attachment.type or 'document',
         attachment.url,
         attachment.label or '',
-        ps.getIdentifier(src)
+        uploader
     })
 
     if not attachmentId then
