@@ -455,6 +455,9 @@ ps.registerCallback(resourceName .. ':server:updateCase', function(source, caseI
     if payload.department and not scope.statewide and payload.department ~= scope.agency then
         return { success = false, error = 'Cross-department reassignment denied' }
     end
+    if payload.status ~= nil and type(payload.status) ~= 'string' then
+        return { success = false, error = 'Invalid case status' }
+    end
     local status = payload.status and normalizeStatus(payload.status) or nil
     local priority = payload.priority
     if priority ~= nil and (type(priority) ~= 'string'
