@@ -309,7 +309,7 @@ end)
 ps.registerCallback(resourceName .. ':server:getOfficerFTOHistory', function(source, officerCitizenId)
     local src = source
     if not CheckAuth(src) then return {} end
-    if type(officerCitizenId) ~= 'string' or officerCitizenId == ''
+    if type(officerCitizenId) ~= 'string' or not officerCitizenId:find('%S')
         or #officerCitizenId > 64 then return {} end
     -- A person's milestone summary follows them across employment changes.
     -- Managers may see it only for someone currently employed by their own
