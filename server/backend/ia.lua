@@ -57,7 +57,7 @@ local function allegedEmployeeAgency(citizenid)
     for _, configured in ipairs(Config.PoliceJobs or {}) do
         if configured == name then return name, 'police' end
     end
-    for _, configured in ipairs(Config.FireJobs or {}) do
+    for _, configured in ipairs(((Config.MdtAccess or {}).FireJobs) or Config.FireJobs or {}) do
         if configured == name then return name, 'ems' end
     end
     for _, configured in ipairs(Config.MedicalJobs or {}) do
