@@ -241,7 +241,7 @@ ps.registerCallback(resourceName .. ':server:getFTOList', function(source, pageN
         FROM mdt_fto_assignments a
         LEFT JOIN mdt_fto_phases p ON a.current_phase_id = p.id
         %s
-        ORDER BY a.created_at DESC
+        ORDER BY a.created_at DESC, a.id DESC
         LIMIT ? OFFSET ?
     ]]):format(whereClause)
 
