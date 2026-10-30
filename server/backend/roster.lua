@@ -222,9 +222,8 @@ ps.registerCallback('ps-mdt:server:getRosterList', function(source)
         defaultDept = employer
     end
 
-    if GetResourceState('qbx_core') == 'started' and exports['qbx_core'] then
-        return buildRosterFromQbx(jobList, matchFn, defaultDept)
-    end
+    -- PowerMoves uses QBCore. Do not switch the entire roster to QBX
+    -- merely because an unrelated QBX resource happens to be started.
 
     local rosterList = {}
     local activeUnits = {}
