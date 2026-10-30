@@ -266,7 +266,7 @@ ps.registerCallback('ps-mdt:server:getRosterList', function(source)
             if type(liveData.metadata) == 'table' then metadata = liveData.metadata end
             if type(liveData.charinfo) == 'table' then charinfo = liveData.charinfo end
         end
-        local jobName = job.name and tostring(job.name) or nil
+        local jobName = type(job.name) == 'string' and job.name or nil
         local inDomain = jobName ~= nil and jobLookup[jobName] == true
         if inDomain then
             local employee = employees[citizenid] or {}
