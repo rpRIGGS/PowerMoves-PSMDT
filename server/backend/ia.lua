@@ -380,7 +380,7 @@ ps.registerCallback(resourceName .. ':server:getIAComplaint', function(source, d
         SELECT id, complaint_id, content, author_citizenid, author_name, created_at
         FROM mdt_ia_notes
         WHERE complaint_id = ?
-        ORDER BY created_at DESC
+        ORDER BY created_at DESC, id DESC
     ]], { complaintId })
 
     if not canAccessIARecord(src, complaint) then
