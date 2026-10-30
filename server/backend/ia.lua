@@ -737,7 +737,11 @@ ps.registerCallback(resourceName .. ':server:getSADLEIAReferrals', function(sour
     local cid = ps.getIdentifier(src)
     if type(cid) ~= 'string' or not cid:find('%S') or #cid > 64
         or not iaReferralSchemaReady() then return {} end
-    local n = math.max(1, math.min(100, math.floor(tonumber(page) or 1)))
+    local requested = tonumber(page) or 1
+    if requested ~= requested or requested == math.huge or requested == -math.huge then
+        requested = 1
+    end
+    local n = math.max(1, math.min(100, math.floor(requested)))
     local ok, rows = pcall(MySQL.query.await, [[
         SELECT r.id, r.complaint_id, r.referring_agency, r.status, r.reason,
                r.created_at, c.complaint_number, c.category
