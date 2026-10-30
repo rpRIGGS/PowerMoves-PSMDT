@@ -164,7 +164,8 @@ local function computeReportStatistics(src, snapshot)
                 WHERE own.reportid = mr.id AND own.type = 'owner' AND own.identifier = ?)
         ]], { snapshot.job })
 
-        local row = response and response[1] or { totalThisWeek = 0, totalLastWeek = 0 }
+        local row = type(response) == 'table' and type(response[1]) == 'table'
+            and response[1] or { totalThisWeek = 0, totalLastWeek = 0 }
         return {
             totalThisWeek      = tonumber(row.totalThisWeek) or 0,
             changeFromLastWeek = (tonumber(row.totalThisWeek) or 0) - (tonumber(row.totalLastWeek) or 0),
