@@ -241,7 +241,10 @@ ps.registerCallback(resourceName .. ':server:searchEvidenceItems', function(sour
             ORDER BY uploaded_at DESC, id DESC
         ]]):format(placeholders), ids)
 
-        for _, img in ipairs(images or {}) do
+        if type(images) ~= 'table' then
+            return { success = false, error = 'Evidence search images unavailable' }
+        end
+        for _, img in ipairs(images) do
             local parent = idLookup[img.evidence_id]
             if parent then
                 parent.images[#parent.images + 1] = {
