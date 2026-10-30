@@ -75,6 +75,9 @@ ps.registerCallback(resourceName .. ':server:createCase', function(source, paylo
     end
     local status = normalizeStatus(payload.status)
     local priority = payload.priority or 'medium'
+    if type(priority) ~= 'string' or not ({ low = true, medium = true, high = true, critical = true })[priority] then
+        return { success = false, error = 'Invalid case priority' }
+    end
     local scope = getCaseScope(src)
     if not scope then return { success = false, error = 'Unauthorized' } end
     local department = scope.statewide and (payload.department or scope.agency) or scope.agency
