@@ -1304,7 +1304,9 @@ ps.registerCallback(resourceName .. ':server:getReportsByPlate', function(source
     for _, row in ipairs(rows or {}) do
         if CanReadMdtReport(src, row.id) then visible[#visible + 1] = row end
     end
-    if not CheckAuth(src) or not CheckPermission(src, 'reports_view') then return {} end
+    if not CheckAuth(src) or not CheckPermission(src, 'reports_view')
+        or ps.getIdentifier(src) ~= requesterCitizenId
+        or ps.getJobName(src) ~= requesterJob then return {} end
     return visible
 end)
 
