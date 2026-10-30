@@ -1622,7 +1622,7 @@ ps.registerCallback(resourceName .. ':server:getDisclosedReports', function(sour
         INNER JOIN mdt_reports r ON r.id = g.report_id
         WHERE g.recipient_citizenid = ? AND g.recipient_job = ? AND g.revoked_at IS NULL
           AND (g.expires_at IS NULL OR g.expires_at > NOW())
-        ORDER BY g.granted_at DESC LIMIT 100
+        ORDER BY g.granted_at DESC, g.id DESC LIMIT 100
     ]],{actor,employer})
     if not CheckAuth(src) or not CheckPermission(src,'reports_view')
         or ps.getIdentifier(src)~=actor or ps.getJobName(src)~=employer then return {} end
