@@ -1117,7 +1117,10 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
                 values = { reportId, citizenid, expiryDate }
             })
         end
-        MySQL.transaction.await(warrantQueries)
+        local warrantSaved = MySQL.transaction.await(warrantQueries)
+        if warrantSaved ~= true then
+            return { success = false, error = 'Warrant records not saved' }
+        end
     end
 
     Cache.invalidatePrefix('reports:analytics:')
