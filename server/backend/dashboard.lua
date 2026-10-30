@@ -346,7 +346,8 @@ local function computeActiveBolos(src)
     local BOLOS = MySQL.query.await('SELECT id, type, subject_id, subject_name, reportId, notes, status FROM mdt_bolos WHERE status = ? ORDER BY id DESC', { 'active' })
     if type(BOLOS) ~= 'table' then return {} end
     local result = {}
-    for _, v in pairs(BOLOS or {}) do
+    for _, v in pairs(BOLOS) do
+        if type(v) ~= 'table' then return {} end
         result[#result + 1] = {
             id       = v.id,
             reportId = v.reportId and tostring(v.reportId) or 'N/A',
