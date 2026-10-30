@@ -38,7 +38,7 @@ end
 -- players), falls back to the shared job config's label (offline / DB rows), and
 -- finally the raw job name. Avoids showing the internal id like "police" as DEPT.
 local function deptLabel(jobName, jobObj)
-    if jobObj and jobObj.label and jobObj.label ~= '' then return jobObj.label end
+    if jobObj and type(jobObj.label) == 'string' and jobObj.label ~= '' then return jobObj.label end
     if jobName and ps.getSharedJobData then
         local shared = ps.getSharedJobData(jobName)
         if shared and shared.label and shared.label ~= '' then return shared.label end
