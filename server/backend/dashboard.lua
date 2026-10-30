@@ -156,8 +156,12 @@ local function computeReportStatistics(src, snapshot)
             SELECT
                 COUNT(CASE WHEN datecreated >= NOW() - INTERVAL 1 WEEK THEN 1 END) AS totalThisWeek,
                 COUNT(CASE WHEN datecreated >= NOW() - INTERVAL 2 WEEK AND datecreated < NOW() - INTERVAL 1 WEEK THEN 1 END) AS totalLastWeek
-            FROM mdt_reports
-        ]], {})
+            FROM mdt_reports mr
+            WHERE NOT EXISTS (SELECT 1 FROM mdt_reports_restrictions own
+                WHERE own.reportid = mr.id AND own.type = 'owner')
+              OR EXISTS (SELECT 1 FROM mdt_reports_restrictions own
+                WHERE own.reportid = mr.id AND own.type = 'owner' AND own.identifier = ?)
+        ]], { snapshot.job })
 
         local row = response and response[1] or { totalThisWeek = 0, totalLastWeek = 0 }
         return {
