@@ -673,7 +673,7 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
         phaseId,
         citizenId, authorName,
         data.shift_date or os.date('%Y-%m-%d'),
-        tonumber(data.overall_rating) or 3,
+        overall,
         data.notes or nil,
     })
 
