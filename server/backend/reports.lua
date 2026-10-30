@@ -801,6 +801,12 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
     end
 
     local rawReportId = reportData.report and reportData.report.id
+    for _, tag in ipairs(tags) do
+        if type(tag) ~= 'table' or type(tag.tag) ~= 'string'
+            or not tag.tag:find('%S') or #tag.tag > 80 then
+            return { success = false, error = 'Invalid report tag' }
+        end
+    end
     local reportId = rawReportId ~= nil and tonumber(rawReportId) or nil
     if rawReportId ~= nil and reportId == nil then
         return { success = false, error = 'Invalid report identifier' }
