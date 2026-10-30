@@ -583,7 +583,8 @@ ps.registerCallback(resourceName .. ':server:removeEvidenceImage', function(sour
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_transfer') then return { success = false, error = 'Unauthorized' } end
 
     imageId = tonumber(imageId)
-    if not imageId then
+    if not imageId or imageId ~= imageId or imageId == math.huge
+        or imageId <= 0 or imageId % 1 ~= 0 then
         return { success = false, error = 'Invalid image id' }
     end
 
