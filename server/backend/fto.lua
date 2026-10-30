@@ -721,7 +721,7 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
         end
     end
     local citizenId = ps.getIdentifier(src)
-    if type(citizenId) ~= 'string' or not citizenId:find('%S') then
+    if type(citizenId) ~= 'string' or not citizenId:find('%S') or #citizenId > 64 then
         return { success = false, error = 'Missing author identity' }
     end
     if data.shift_date ~= nil and (type(data.shift_date) ~= 'string'
