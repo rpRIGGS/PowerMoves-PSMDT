@@ -1065,6 +1065,10 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
     end
 
     if reportId and reportType == 'Arrest Report' and reportData.involved and #reportData.involved > 0 then
+        if not CheckAuth(src) or ps.getIdentifier(src) ~= identifier
+            or ps.getJobName(src) ~= originatingJob then
+            return { success = false, error = 'Arrest author authorization changed' }
+        end
         local officerId = ps.getIdentifier(src)
         local officerName = (callsign or '') .. ' ' .. (playerName or '')
         officerName = officerName:gsub('^%s+', ''):gsub('%s+$', '')
