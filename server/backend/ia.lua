@@ -608,6 +608,9 @@ ps.registerCallback(resourceName .. ':server:addIANote', function(source, compla
     if not ownsIAComplaint(src, complaintId) then return { success = false, error = 'Complaint access denied' } end
 
     local citizenId = ps.getIdentifier(src)
+    if type(citizenId) ~= 'string' or not citizenId:find('%S') or #citizenId > 64 then
+        return { success = false, error = 'Invalid investigator identity' }
+    end
     local profile = MySQL.single.await('SELECT fullname FROM mdt_profiles WHERE citizenid = ?', { citizenId })
     local authorName = profile and profile.fullname or 'Unknown'
 
