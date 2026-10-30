@@ -917,7 +917,8 @@ end)
 -- Stage 4 discovery is deliberately separate from evidence mutation/stash APIs.
 -- A named recipient can view redacted metadata + custody only, never transfer.
 local function disclosedEvidenceScope(src, id)
-    if not CheckAuth(src) or not CheckPermission(src,'evidence_view') then return false end
+    if not CheckAuth(src) or not CheckPermission(src,'evidence_view')
+        or not id or tonumber(id) == nil then return false end
     local cid,job=ps.getIdentifier(src),ps.getJobName(src)
     if type(cid) ~= 'string' or not cid:find('%S') or #cid > 64
         or type(job) ~= 'string' or not job:find('%S') or #job > 64 then return false end
