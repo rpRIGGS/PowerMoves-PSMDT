@@ -558,7 +558,12 @@ ps.registerCallback(resourceName .. ':server:updateCase', function(source, caseI
         return { success = false, error = 'Case agency changed' }
     end
     values[#values + 1] = caseId
-    local success = MySQL.update.await(('UPDATE mdt_cases SET %s WHERE id = ?'):format(table.concat(updates, ', ')), values)
+    local updateSql = 'UPDATE mdt_cases SET ' .. table.concat(updates, ', ') .. ' WHERE id = ?'
+    if not scope.statewide then
+        updateSql = updateSql .. ' AND assigned_department = ?'
+        values[#values + 1] = scope.agency
+    end
+    local success = MySQL.update.await(updateSql, values)
 
     if not success or success < 1 then
         return { success = false, error = 'Case update not saved' }
