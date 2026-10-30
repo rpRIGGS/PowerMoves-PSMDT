@@ -602,7 +602,7 @@ ps.registerCallback(resourceName .. ':server:logEvidenceViewed', function(source
         or evidenceId <= 0 or evidenceId % 1 ~= 0 then return { success = false } end
 
     local citizenid = ps.getIdentifier(src)
-    if type(citizenid) ~= 'string' or citizenid == '' then
+    if type(citizenid) ~= 'string' or not citizenid:find('%S') or #citizenid > 64 then
         return { success = false, error = 'Missing viewer identity' }
     end
 
