@@ -191,7 +191,7 @@ ps.registerCallback(resourceName .. ':server:getCases', function(source, page, f
         LEFT JOIN mdt_case_officers mco ON mco.case_id = mc.id AND mco.role = 'primary'
         LEFT JOIN mdt_profiles mp ON mp.citizenid COLLATE utf8mb4_general_ci = mco.citizenid COLLATE utf8mb4_general_ci
         %s
-        ORDER BY mc.updated_at DESC
+        ORDER BY mc.updated_at DESC, mc.id DESC
         LIMIT ? OFFSET ?
     ]]):format(whereClause), values)
 
