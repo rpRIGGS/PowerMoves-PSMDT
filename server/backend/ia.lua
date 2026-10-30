@@ -54,7 +54,8 @@ local function allegedEmployeeAgency(citizenid)
     local encoded = MySQL.scalar.await('SELECT job FROM players WHERE citizenid = ? LIMIT 1', {citizenid})
     if type(encoded) ~= 'string' then return nil, 'police' end
     local ok, job = pcall(json.decode, encoded)
-    if not ok or type(job) ~= 'table' or type(job.name) ~= 'string' then return nil, 'police' end
+    if not ok or type(job) ~= 'table' or type(job.name) ~= 'string'
+        or not job.name:find('%S') then return nil, 'police' end
     local name = job.name
     for _, configured in ipairs(Config.PoliceJobs or {}) do
         if configured == name then return name, 'police' end
