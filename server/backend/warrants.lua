@@ -83,7 +83,7 @@ function GetActiveWarrantsData(src)
         FROM mdt_reports_warrants w
         LEFT JOIN players p ON p.citizenid COLLATE utf8mb4_general_ci = w.citizenid COLLATE utf8mb4_general_ci
         WHERE w.expirydate >= NOW()
-        ORDER BY w.expirydate ASC
+        ORDER BY w.expirydate ASC, w.reportid ASC, w.citizenid ASC
     ]])
 
     if type(rows) ~= 'table' then return {} end
