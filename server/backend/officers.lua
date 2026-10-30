@@ -84,6 +84,9 @@ ps.registerCallback(resourceName .. ':server:getCallsign', function(source, payl
         return { callsign = tostring((Player.PlayerData.metadata or {}).callsign or '') }
     end
     local row = MySQL.single.await('SELECT callsign FROM mdt_profiles WHERE citizenid = ?', { cid })
+    if not CheckAuth(source) or (cid ~= ps.getIdentifier(source)
+        and (not CheckPermission(source, 'roster_manage_officers')
+            or not CanManageMdtPersonnel(source, cid))) then return { callsign = '' } end
     return { callsign = tostring(row and row.callsign or '') }
 end)
  
