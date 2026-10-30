@@ -19,6 +19,19 @@ local function canEditEvidenceRecord(source, evidenceId)
         and CheckPermission(source, 'evidence_transfer')
 end
 
+local function canReadEvidenceRecord(source, evidenceId)
+    local id = tonumber(evidenceId)
+    if not id or id ~= id or id == math.huge or id <= 0 or id % 1 ~= 0 then return false end
+    if not CheckAuth(source) or not CheckPermission(source, 'evidence_view') then return false end
+    local row = MySQL.single.await('SELECT case_id, created_by FROM mdt_evidence_items WHERE id = ?', { id })
+    if not row or not CheckAuth(source) or not CheckPermission(source, 'evidence_view') then return false end
+    if row.case_id then
+        return CheckPermission(source, 'cases_view') and CanAccessMdtCase(source, row.case_id)
+    end
+    local cid = ps.getIdentifier(source)
+    return type(cid) == 'string' and cid ~= '' and row.created_by == cid
+end
+
 -- SQL read guard: evidence linked to a case belongs to its assigned
 -- department; unlinked legacy evidence has no dependable employer marker,
 -- so only the original collecting citizen can view it by default.
