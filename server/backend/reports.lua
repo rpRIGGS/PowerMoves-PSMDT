@@ -710,6 +710,9 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
     local identifier = ps.getIdentifier(src)
     local playerName = ps.getPlayerName(src)
     local callsign = ps.getMetadata(src, 'callsign')
+    if not identifier or not ps.getJobName(src) then
+        return { success = false, error = 'Officer identity unavailable' }
+    end
 
     if type(reportData) ~= 'table' or type(reportData.report) ~= 'table' then
         return { success = false, error = 'Invalid report data' }
