@@ -588,7 +588,7 @@ ps.registerCallback(resourceName .. ':server:getEvidenceCustody', function(sourc
     ]], { evidenceId })
 
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_view')
-        or not canEditEvidenceRecord(src, evidenceId) then return {} end
+        or not canReadEvidenceRecord(src, evidenceId) then return {} end
     return custody or {}
 end)
 
