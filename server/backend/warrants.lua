@@ -83,6 +83,7 @@ function GetActiveWarrantsData(src)
 
     local results = {}
     for _, row in ipairs(rows or {}) do
+        if src == nil or (type(CanReadMdtReport) == 'function' and CanReadMdtReport(src, row.reportid)) then
         local name = ((row.firstname or '') .. ' ' .. (row.lastname or '')):gsub('^%s+', ''):gsub('%s+$', '')
         if name == '' then
             name = ps.getPlayerNameByIdentifier(row.citizenid) or 'Unknown'
@@ -96,6 +97,7 @@ function GetActiveWarrantsData(src)
             infractions = tonumber(row.infractions) or 0,
             expirydate = row.expirydate,
         }
+        end
     end
 
     -- SQL and name resolution can yield while the source changes character or job.
