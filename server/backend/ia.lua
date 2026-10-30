@@ -735,7 +735,8 @@ ps.registerCallback(resourceName .. ':server:getSADLEIAReferrals', function(sour
     local src = source
     if ps.getJobName(src) ~= 'sadle' or not canViewIA(src) then return {} end
     local cid = ps.getIdentifier(src)
-    if not cid or not iaReferralSchemaReady() then return {} end
+    if type(cid) ~= 'string' or not cid:find('%S') or #cid > 64
+        or not iaReferralSchemaReady() then return {} end
     local n = math.max(1, math.min(100, math.floor(tonumber(page) or 1)))
     local ok, rows = pcall(MySQL.query.await, [[
         SELECT r.id, r.complaint_id, r.referring_agency, r.status, r.reason,
