@@ -264,7 +264,9 @@ end)
 ps.registerCallback(resourceName .. ':server:deleteBulletin', function(source, payload)
     local src = source
     assert(src, 'Player ID cannot be nil')
-    if not CheckAuth(src) then return { success = false, message = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'bulletin_delete') then
+        return { success = false, message = 'Unauthorized' }
+    end
 
     payload = payload or {}
     local id = tonumber(payload.id)
