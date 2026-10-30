@@ -729,7 +729,7 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
     if data.notes ~= nil and (type(data.notes) ~= 'string' or #data.notes > 20000) then
         return { success = false, error = 'Invalid notes' }
     end
-    local overallRating = tonumber(data.overall_rating) or 3
+    local overallRating = data.overall_rating == nil and 3 or tonumber(data.overall_rating)
     if overallRating ~= overallRating or overallRating == math.huge
         or overallRating < 1 or overallRating > 5 or overallRating % 1 ~= 0 then
         return { success = false, error = 'Invalid overall rating' }
