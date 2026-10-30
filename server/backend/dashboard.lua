@@ -94,7 +94,8 @@ local function registerDashboardRead(name, reader, empty)
         local snapshot = dashboardSnapshot(source)
         if not snapshot then return empty and empty() or {} end
         local ok, result = pcall(reader, source, snapshot, ...)
-        if not ok or not sameDashboardSnapshot(snapshot, dashboardSnapshot(source)) then
+        if not ok or not sameDashboardSnapshot(snapshot, dashboardSnapshot(source))
+            or not CheckAuth(source) then
             return empty and empty() or {}
         end
         return result
