@@ -525,7 +525,7 @@ ps.registerCallback(resourceName .. ':server:transferEvidenceItem', function(sou
     if not evidenceId or evidenceId ~= evidenceId or evidenceId == math.huge
         or evidenceId <= 0 or evidenceId % 1 ~= 0
         or type(toCitizenId) ~= 'string' or not toCitizenId:find('%S')
-        or #toCitizenId > 64 then
+        or #toCitizenId > 64 or toCitizenId:find('%z') then
         return { success = false, error = 'Invalid evidence transfer' }
     end
 
