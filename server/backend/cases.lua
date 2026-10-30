@@ -1070,7 +1070,7 @@ ps.registerCallback(resourceName .. ':server:getDisclosedCases', function(source
         INNER JOIN mdt_cases c ON c.id = g.case_id
         WHERE g.recipient_citizenid = ? AND g.recipient_job = ? AND g.revoked_at IS NULL
           AND (g.expires_at IS NULL OR g.expires_at > NOW())
-        ORDER BY g.granted_at DESC LIMIT 100
+        ORDER BY g.granted_at DESC, g.id DESC LIMIT 100
     ]], {actor,job})
     if not CheckAuth(src) or not CheckPermission(src, 'cases_view')
         or ps.getIdentifier(src) ~= actor or ps.getJobName(src) ~= job
