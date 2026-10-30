@@ -1644,7 +1644,7 @@ ps.registerCallback(resourceName .. ':server:getReportDisclosures', function(sou
     local ok,rows=pcall(MySQL.query.await,[[
         SELECT id,recipient_citizenid,purpose,granted_at,expires_at,revoked_at
         FROM mdt_report_disclosures WHERE report_id = ?
-        ORDER BY granted_at DESC LIMIT 100
+        ORDER BY granted_at DESC, id DESC LIMIT 100
     ]],{id})
     if not CheckAuth(src) or not CheckPermission(src,'reports_delete')
         or ps.getIdentifier(src)~=actor or ps.getJobName(src)~=employer then return {} end
