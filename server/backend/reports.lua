@@ -782,7 +782,9 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
     end
 
     local content = reportData.report and reportData.report.content
-    if type(content) ~= 'string' or not content:find('%S') or #content > 2000000 then
+    local encodedReportContent = type(content) == 'table' and json.encode(content) or content
+    if type(encodedReportContent) ~= 'string' or not encodedReportContent:find('%S')
+        or #encodedReportContent > 2000000 then
         ps.notify(src, 'Failed to save Report: Needs content', 'error')
         ps.warn('Report with missing/empty content from player: ' .. src .. ' Name: ' .. playerName)
         return { success = false, error = 'Report needs content' }
