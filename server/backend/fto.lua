@@ -727,7 +727,10 @@ ps.registerCallback(resourceName .. ':server:deleteFTODor', function(source, dor
     if not CheckPermission(src, 'fto_manage') then return { success = false, error = 'No permission' } end
 
     dorId = tonumber(dorId)
-    if not dorId then return { success = false, error = 'Invalid ID' } end
+    if not dorId or dorId ~= dorId or dorId == math.huge
+        or dorId <= 0 or dorId % 1 ~= 0 then
+        return { success = false, error = 'Invalid DOR ID' }
+    end
 
     local owner = MySQL.single.await('SELECT assignment_id FROM mdt_fto_dors WHERE id = ?', { dorId })
     if not owner or not canAccessFTORecord(src, owner.assignment_id) then return { success = false, error = 'Unauthorized' } end
