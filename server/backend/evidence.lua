@@ -362,7 +362,7 @@ ps.registerCallback(resourceName .. ':server:deleteEvidenceItem', function(sourc
         return { success = false, error = 'Invalid evidence id' }
     end
 
-    local success = MySQL.query.await('DELETE FROM mdt_evidence_items WHERE id = ?', { evidenceId })
+    local success = MySQL.update.await('DELETE FROM mdt_evidence_items WHERE id = ?', { evidenceId })
     if not success then
         return { success = false, error = 'Failed to delete evidence' }
     end
