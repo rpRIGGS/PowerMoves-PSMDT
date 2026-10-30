@@ -371,7 +371,8 @@ ps.registerCallback(resourceName .. ':server:getIAComplaint', function(source, d
 
     local actorCitizenid, actorJob = ps.getIdentifier(src), ps.getJobName(src)
     local complaint = MySQL.single.await('SELECT * FROM mdt_ia_complaints WHERE id = ?', { complaintId })
-    if not canAccessIARecord(src, complaint) then
+    if not canViewIA(src) or ps.getIdentifier(src) ~= actorCitizenid
+        or ps.getJobName(src) ~= actorJob or not canAccessIARecord(src, complaint) then
         return { success = false, error = 'Complaint not found or access denied' }
     end
 
