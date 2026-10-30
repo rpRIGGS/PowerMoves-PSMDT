@@ -855,7 +855,8 @@ ps.registerCallback(resourceName .. ':server:createCaseFromEvidence', function(s
         return { success = false, error = 'Missing case creator agency' }
     end
     if not CheckAuth(src) or not CheckPermission(src, 'cases_create')
-        or ps.getIdentifier(src) ~= citizenid or not canEditEvidenceRecord(src, evidenceId)
+        or ps.getIdentifier(src) ~= citizenid or ps.getJobName(src) ~= creatorJob
+        or not canEditEvidenceRecord(src, evidenceId)
         or (reportId and not CanReadMdtReport(src, reportId)) then
         return { success = false, error = 'Case creation authorization changed' }
     end
