@@ -345,6 +345,7 @@ ps.registerCallback(resourceName .. ':server:getReports', function(source, page,
 
     local countRow = MySQL.single.await(countQuery, queryParams)
     local total = tonumber(countRow and countRow.total) or 0
+    if total ~= total or total == math.huge or total < 0 then total = 0 end
 
     local reportsQuery = ([[
         SELECT
