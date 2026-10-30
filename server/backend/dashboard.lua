@@ -250,7 +250,9 @@ end)
 ps.registerCallback(resourceName .. ':server:createBulletin', function(source, payload)
     local src = source
     assert(src, 'Player ID cannot be nil')
-    if not CheckAuth(src) or not CheckPermission(src, 'bulletin_create') then
+    local snapshot = dashboardSnapshot(src)
+    if not snapshot or (snapshot.jobType ~= 'leo' and snapshot.jobType ~= 'doj')
+        or not CheckAuth(src) or not CheckPermission(src, 'bulletin_create') then
         return { success = false, message = 'Unauthorized' }
     end
 
