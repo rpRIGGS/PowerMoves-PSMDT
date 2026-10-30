@@ -937,12 +937,12 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
     end
 
     if #attachmentQueries > 0 then
-        local attachOk, attachErr = pcall(function()
+        local attachOk, attachResult = pcall(function()
             return MySQL.transaction.await(attachmentQueries)
         end)
-        if not attachOk then
-            ps.warn(('[Attachment Transaction Error] Report %s: %s'):format(reportId, tostring(attachErr)))
-            return { success = false, error = "Failed to save report attachments: " .. tostring(attachErr) }
+        if not attachOk or not attachResult then
+            ps.warn(('[Attachment Transaction Error] Report %s: %s'):format(reportId, tostring(attachResult)))
+            return { success = false, error = "Failed to save report attachments: " .. tostring(attachResult) }
         end
     end
 
