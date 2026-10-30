@@ -75,7 +75,9 @@ local function checkReportAccess(src, reportId)
     local job = ps.getJobName(src)
     local jobType = getEffectiveJobType(src)
 
-    if not identifier or not jobType then
+    if type(identifier) ~= 'string' or not identifier:find('%S') or #identifier > 64
+        or type(job) ~= 'string' or not job:find('%S') or #job > 64
+        or not jobType then
         return false
     end
     if hasReportDisclosure(src,reportId) then return true end
