@@ -646,7 +646,8 @@ ps.registerCallback(resourceName .. ':server:addCaseAttachment', function(source
         return { success = false, error = 'Invalid attachment' }
     end
 
-    if attachment.type ~= nil and (type(attachment.type) ~= 'string' or #attachment.type > 40) then
+    if attachment.type ~= nil and (type(attachment.type) ~= 'string'
+        or not attachment.type:find('%S') or #attachment.type > 40) then
         return { success = false, error = 'Invalid attachment type' }
     end
     if attachment.label ~= nil and (type(attachment.label) ~= 'string' or #attachment.label > 255) then
