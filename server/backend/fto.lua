@@ -108,7 +108,9 @@ ps.registerCallback(resourceName .. ':server:saveFTOCompetencies', function(sour
     if not CheckAuth(src) then return { success = false } end
     if not CheckPermission(src, 'fto_manage') then return { success = false, error = 'No permission' } end
     local job = ps.getJobName(src)
-    if not job then return { success = false, error = 'Missing agency' } end
+    if type(job) ~= 'string' or job == '' or #job > 64 then
+        return { success = false, error = 'Missing agency' }
+    end
     if type(competencies) ~= 'table' or #competencies > 200 then
         return { success = false, error = 'Invalid competency list' }
     end
