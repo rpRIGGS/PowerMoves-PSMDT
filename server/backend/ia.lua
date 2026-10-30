@@ -301,6 +301,9 @@ ps.registerCallback(resourceName .. ':server:getIAComplaints', function(source, 
     values[#values + 1] = ps.getJobName(src)
     values[#values + 1] = ps.getJobName(src)
 
+    if filters.status ~= nil and (type(filters.status) ~= 'string' or #filters.status > 40) then
+        return { complaints = {}, hasMore = false, error = 'Invalid status filter' }
+    end
     if filters.status and filters.status ~= '' then
         clauses[#clauses + 1] = 'status = ?'
         values[#values + 1] = filters.status
