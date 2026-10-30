@@ -517,6 +517,10 @@ ps.registerCallback(resourceName .. ':server:updateFTOAssignment', function(sour
         or not CanManageMdtPersonnel(src, updates.trainer_citizenid)) then
         return { success = false, error = 'Trainer must belong to your department' }
     end
+    if not CheckAuth(src) or not CheckPermission(src, 'fto_manage')
+        or not canAccessFTORecord(src, assignmentId) then
+        return { success = false, error = 'Authorization changed' }
+    end
     vals[#vals + 1] = assignmentId
     local saved = MySQL.update.await('UPDATE mdt_fto_assignments SET ' .. table.concat(sets, ', ') .. ' WHERE id = ?', vals)
     if saved == nil then return { success = false, error = 'Failed to save FTO assignment' } end
