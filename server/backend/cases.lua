@@ -427,6 +427,10 @@ ps.registerCallback(resourceName .. ':server:updateCase', function(source, caseI
     end
     local status = payload.status and normalizeStatus(payload.status) or nil
     local priority = payload.priority
+    if priority ~= nil and (type(priority) ~= 'string'
+        or not ({ low = true, medium = true, high = true, critical = true })[priority]) then
+        return { success = false, error = 'Invalid case priority' }
+    end
 
     local updates = {}
     local values = {}
