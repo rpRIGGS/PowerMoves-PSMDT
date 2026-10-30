@@ -815,6 +815,10 @@ ps.registerCallback(resourceName .. ':server:deleteCaseNote', function(source, n
         return { success = false, error = 'Invalid note or case' }
     end
 
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_edit')
+        or not canAccessCaseId(src, caseId) then
+        return { success = false, error = 'Authorization changed' }
+    end
     MySQL.query.await('DELETE FROM mdt_case_notes WHERE id = ? AND case_id = ?', { noteId, caseId })
     return { success = true }
 end)
