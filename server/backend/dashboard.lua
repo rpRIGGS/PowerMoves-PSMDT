@@ -167,6 +167,9 @@ local function computeReportStatistics(src, snapshot)
 end
 
 registerDashboardRead('getReportStatistics', function(src, snapshot)
+    if not snapshot.permissions.reports_view then
+        return { totalThisWeek = 0, changeFromLastWeek = 0 }
+    end
     return computeReportStatistics(src, snapshot)
 end)
 
