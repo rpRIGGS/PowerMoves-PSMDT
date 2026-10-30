@@ -1165,8 +1165,8 @@ ps.registerCallback(resourceName..':server:updateReportContent', function(source
         return { success = false, error = 'Report editing not permitted' }
     end
 
-    if not content then
-        return { success = false, error = "Missing content" }
+    if type(content) ~= 'string' or not content:find('%S') or #content > 2000000 then
+        return { success = false, error = 'Invalid report content' }
     end
 
     local reportId = reportid and tonumber(reportid) or nil
