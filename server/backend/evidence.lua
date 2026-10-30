@@ -978,7 +978,7 @@ ps.registerCallback(resourceName .. ':server:getDisclosedEvidenceDetail', functi
     end
     if ps.auditLog then ps.auditLog(src,'evidence_disclosure_accessed','evidence',id,
         {recipient=ps.getIdentifier(src)}) end
-    return {success=true,data={item=item,custody=custody or {}}}
+    return {success=true,data={item=item,custody=type(custody) == 'table' and custody or {}}}
 end)
 
 
