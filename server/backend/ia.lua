@@ -757,7 +757,9 @@ end)
 ps.registerCallback(resourceName .. ':server:acceptSADLEIAReferral', function(source, referralId)
     local src = source
     local id = tonumber(referralId)
-    if not id then return {success = false, error = 'Invalid referral'} end
+    if not id or id ~= id or id == math.huge or id <= 0 or id % 1 ~= 0 then
+        return {success = false, error = 'Invalid referral'}
+    end
     if ps.getJobName(src) ~= 'sadle' or not canManageIA(src) then
         return {success = false, error = 'SADLE IA authorization required'}
     end
