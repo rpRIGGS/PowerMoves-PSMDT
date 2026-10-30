@@ -172,7 +172,7 @@ end
 
 ps.registerCallback(resourceName .. ':server:submitComplaint', function(source, data)
     local src = source
-    data = data or {}
+    if type(data) ~= 'table' then return { success = false, error = 'Invalid complaint' } end
 
     local citizenid = ps.getIdentifier(src)
     if not citizenid then
