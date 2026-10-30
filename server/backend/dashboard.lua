@@ -54,7 +54,9 @@ local function dashboardSnapshot(src)
         if not CheckAuth(src) then return nil end
         local before = dashboardIdentity(src)
         if type(before.citizenid) ~= 'string' or not before.citizenid:find('%S')
-            or type(before.job) ~= 'string' or not before.job:find('%S') then return nil end
+            or #before.citizenid > 64 or before.citizenid:find('%z')
+            or type(before.job) ~= 'string' or not before.job:find('%S')
+            or #before.job > 64 or before.job:find('%z') then return nil end
         local access = GetMdtAccess(src)
         local current = dashboardIdentity(src)
         if not sameDashboardIdentity(before, current) or type(access) ~= 'table'
