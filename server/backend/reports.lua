@@ -1226,7 +1226,8 @@ ps.registerCallback(resourceName..':server:updateReportContent', function(source
         -- and original jobtype visibility together, or discard this new draft.
         local employer = ps.getJobName(src)
         local frameworkType = getEffectiveJobType(src)
-        if not employer or employer == '' or not frameworkType then
+        if type(employer) ~= 'string' or not employer:find('%S')
+            or #employer > 64 or not frameworkType then
             MySQL.update.await('DELETE FROM mdt_reports WHERE id = ?', { insertResult })
             return { success = false, error = 'Missing agency or job type' }
         end
