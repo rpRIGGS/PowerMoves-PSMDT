@@ -641,7 +641,7 @@ ps.registerCallback(resourceName .. ':server:addCaseAttachment', function(source
     caseId = tonumber(caseId)
     if not caseId or caseId ~= caseId or caseId == math.huge
         or caseId <= 0 or caseId % 1 ~= 0 or type(attachment) ~= 'table'
-        or type(attachment.url) ~= 'string' or attachment.url == ''
+        or type(attachment.url) ~= 'string' or not attachment.url:find('%S')
         or #attachment.url > 2048 then
         return { success = false, error = 'Invalid attachment' }
     end
