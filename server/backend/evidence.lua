@@ -907,6 +907,10 @@ ps.registerCallback(resourceName .. ':server:revokeEvidenceDisclosure', function
         or type(employer) ~= 'string' or employer == '' then
         return {success=false,error='Unauthorized'}
     end
+    if not CheckAuth(src) or not CheckPermission(src,'evidence_transfer')
+        or ps.getIdentifier(src) ~= actor or ps.getJobName(src) ~= employer then
+        return {success=false,error='Authorization changed'}
+    end
     local ok,changed=pcall(MySQL.update.await,[[
         UPDATE mdt_evidence_disclosures
         SET revoked_at = NOW(), revoked_by_citizenid = ?
