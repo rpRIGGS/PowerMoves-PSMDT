@@ -152,6 +152,9 @@ ps.registerCallback(resourceName .. ':server:issueWarrant', function(source, dat
     local citizenid = data.citizenid
     local expiryValue = validateExpiry(data.expirydate)
     local expiryDate = getExpiryDate(expiryValue)
+    if data.expirydate ~= nil and not expiryDate then
+        return { success = false, error = 'Invalid warrant expiry' }
+    end
     if not expiryDate then
         local defaultDays = (Config and Config.Warrants and Config.Warrants.DefaultExpiryDays) or 7
         expiryDate = os.date('%Y-%m-%d %H:%M:%S', os.time() + (defaultDays * 24 * 60 * 60))
