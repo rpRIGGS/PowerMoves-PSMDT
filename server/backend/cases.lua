@@ -662,6 +662,9 @@ ps.registerCallback(resourceName .. ':server:addCaseAttachmentUpload', function(
     end
 
     local data = attachment.data
+    if #data > 15 * 1024 * 1024 then
+        return { success = false, error = 'Attachment exceeds upload limit' }
+    end
     local filename = attachment.filename
     if #filename > 255 or filename:find('%.%.', 1, true) or filename:find('[/\\]') then
         return { success = false, error = 'Invalid filename' }
