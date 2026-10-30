@@ -819,5 +819,5 @@ ps.registerCallback(resourceName .. ':server:getIAReferralStatus', function(sour
     ]], {id, job})
     if not canViewIA(src) or ps.getJobName(src) ~= job
         or ps.getIdentifier(src) ~= cid or not ownsIAComplaint(src, id) then return {} end
-    return ok and row or {}
+    return ok and type(row) == 'table' and row or {}
 end)
