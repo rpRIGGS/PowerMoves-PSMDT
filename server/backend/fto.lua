@@ -55,7 +55,7 @@ ps.registerCallback(resourceName .. ':server:saveFTOPhases', function(source, ph
     end
     for _, phase in ipairs(phases) do
         if type(phase) ~= 'table' or type(phase.name) ~= 'string'
-            or phase.name == '' or #phase.name > 255
+            or not phase.name:find('%S') or #phase.name > 255
             or (phase.description ~= nil and (type(phase.description) ~= 'string' or #phase.description > 2000))
             or (phase.duration_days ~= nil and (not tonumber(phase.duration_days)
                 or tonumber(phase.duration_days) < 0 or tonumber(phase.duration_days) > 3650
