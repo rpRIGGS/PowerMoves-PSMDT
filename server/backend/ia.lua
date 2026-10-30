@@ -764,7 +764,9 @@ ps.registerCallback(resourceName .. ':server:acceptSADLEIAReferral', function(so
         return {success = false, error = 'SADLE IA authorization required'}
     end
     local actor = ps.getIdentifier(src)
-    if not actor then return {success = false, error = 'Invalid investigator'} end
+    if type(actor) ~= 'string' or not actor:find('%S') or #actor > 64 then
+        return {success = false, error = 'Invalid investigator'}
+    end
     if not iaReferralSchemaReady() then
         return {success = false, error = 'Referral storage unavailable'}
     end
