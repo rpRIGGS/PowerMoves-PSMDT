@@ -17,6 +17,7 @@ local function validateExpiry(expiry)
     if not expiry then
         return nil
     end
+    if type(expiry) ~= 'string' and type(expiry) ~= 'number' then return nil end
     local asNumber = tonumber(expiry)
     if asNumber then
         return asNumber
