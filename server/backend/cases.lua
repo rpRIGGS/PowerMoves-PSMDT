@@ -2,8 +2,9 @@ local resourceName = tostring(GetCurrentResourceName())
 
 local function getCaseScope(source)
     local access = GetMdtAccess(source)
-    if not access or not access.authorized or type(access.agency) ~= 'string'
-        or access.agency == '' then return nil end
+    if not access or not access.authorized or access.isCivilian == true
+        or not CheckAuth(source) or type(access.agency) ~= 'string'
+        or not access.agency:find('%S') or #access.agency > 64 then return nil end
     -- Court staff may read statewide case files; ordinary departmental MDT
     -- access does not imply visibility into another employer's cases.
     if access.interfaceId == 'sadoj' and access.jobType == 'doj' then
