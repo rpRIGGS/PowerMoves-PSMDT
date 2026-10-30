@@ -171,7 +171,7 @@ ps.registerCallback(resourceName .. ':server:getFTOList', function(source, pageN
         return { entries = {}, hasMore = false, error = 'Search too long' }
     end
     local citizenId = ps.getIdentifier(src)
-    if type(citizenId) ~= 'string' or not citizenId:find('%S') then
+    if type(citizenId) ~= 'string' or not citizenId:find('%S') or #citizenId > 64 then
         return { entries = {}, hasMore = false }
     end
     local hasFTOView = CheckPermission(src, 'fto_view')
