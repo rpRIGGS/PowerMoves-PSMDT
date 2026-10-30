@@ -908,6 +908,12 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
         return { success = false, error = 'Report edit authorization changed' }
     end
     if not reportId then
+        local draftJob = ps.getJobName(src)
+        if type(draftJob) ~= 'string' or not draftJob:find('%S')
+            or not CheckAuth(src) or not CheckPermission(src, 'reports_create')
+            or ps.getIdentifier(src) ~= identifier or getEffectiveJobType(src) == nil then
+            return { success = false, error = 'Draft creation authorization changed' }
+        end
         local insertResult = MySQL.insert.await([[
             INSERT INTO mdt_reports (title, type, contentyjs, contentplaintext, author, authorplaintext)
             VALUES (?, ?, ?, ?, ?, ?)
