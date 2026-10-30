@@ -347,7 +347,7 @@ ps.registerCallback(resourceName .. ':server:getIAComplaints', function(source, 
         return { complaints = {}, hasMore = false }
     end
 
-    if not ok then
+    if not ok or type(rows) ~= 'table' then
         ps.warn('[getIAComplaints] query failed: ' .. tostring(rows))
         return { complaints = {}, hasMore = false }
     end
