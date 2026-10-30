@@ -1654,8 +1654,8 @@ ps.registerCallback(resourceName .. ':server:getReportDisclosures', function(sou
     local owner=MySQL.scalar.await(
         "SELECT identifier FROM mdt_reports_restrictions WHERE reportid = ? AND type = 'owner' LIMIT 1",{id})
     if type(actor) ~= 'string' or not actor:find('%S') or #actor > 64
-        or type(employer) ~= 'string' or not employer:find('%S')
-        or #employer > 64 or owner ~= employer then return {} end
+        or actor:find('%z') or type(employer) ~= 'string' or not employer:find('%S')
+        or #employer > 64 or employer:find('%z') or owner ~= employer then return {} end
     local ok,rows=pcall(MySQL.query.await,[[
         SELECT id,recipient_citizenid,purpose,granted_at,expires_at,revoked_at
         FROM mdt_report_disclosures WHERE report_id = ?
