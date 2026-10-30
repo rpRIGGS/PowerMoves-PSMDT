@@ -678,7 +678,8 @@ ps.registerCallback(resourceName .. ':server:referIAComplaintToSADLE', function(
     end
     if not canManageIA(src) then return {success = false, error = 'Unauthorized'} end
     local job, cid = ps.getJobName(src), ps.getIdentifier(src)
-    if not job or not cid or job == 'sadle' then
+    if type(job) ~= 'string' or not job:find('%S') or #job > 64
+        or type(cid) ~= 'string' or not cid:find('%S') or #cid > 64 or job == 'sadle' then
         return {success = false, error = 'Local referring agency required'}
     end
     local record = MySQL.single.await(
