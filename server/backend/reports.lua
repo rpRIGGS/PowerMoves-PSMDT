@@ -1389,8 +1389,9 @@ ps.registerCallback(resourceName..':server:getCitizenTags', function(source, pla
         SELECT t.name, t.color, t.job_type, t.description
         FROM mdt_tags t
         WHERE t.type = 'citizen'
+          AND (t.job_type = ? OR t.job_type = 'all')
         ORDER BY t.name ASC
-    ]])
+    ]], { citizenTagDomain })
 
     if not CheckAuth(src) or not CheckPermission(src, 'reports_view') then return {} end
     return tags or {}
