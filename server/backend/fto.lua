@@ -334,7 +334,7 @@ ps.registerCallback(resourceName .. ':server:getOfficerFTOHistory', function(sou
     -- Managers may see it only for someone currently employed by their own
     -- agency; other persons' records are not discoverable by arbitrary ID.
     local actorCitizenid, actorEmployer = ps.getIdentifier(src), ps.getJobName(src)
-    if type(actorCitizenid) ~= 'string' or not actorCitizenid:find('%S')
+    if type(actorCitizenid) ~= 'string' or not actorCitizenid:find('%S') or #actorCitizenid > 64
         or type(actorEmployer) ~= 'string' or not actorEmployer:find('%S') then return {} end
     local isSelf = officerCitizenId == actorCitizenid
     if not isSelf then
