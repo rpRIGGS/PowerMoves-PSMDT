@@ -390,7 +390,7 @@ ps.registerCallback(resourceName .. ':server:updateEvidenceItem', function(sourc
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_transfer') then return { success = false, error = 'Unauthorized' } end
 
     evidenceId = tonumber(evidenceId)
-    if not canEditEvidenceRecord(src, evidenceId) then return { success = false, error = 'Evidence not found or inaccessible' } end
+    if not canReadEvidenceRecord(src, evidenceId) then return { success = false, error = 'Evidence not found or inaccessible' } end
     if not evidenceId or evidenceId ~= evidenceId or evidenceId == math.huge
         or evidenceId <= 0 or evidenceId % 1 ~= 0 or type(evidence) ~= 'table' then
         return { success = false, error = 'Invalid evidence' }
