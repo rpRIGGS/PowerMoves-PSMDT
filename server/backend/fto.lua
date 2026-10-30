@@ -564,7 +564,10 @@ ps.registerCallback(resourceName .. ':server:setFTOStatus', function(source, dat
     local assignmentId = tonumber(data.assignment_id)
     local status = tostring(data.status or '')
     local valid = { active = true, completed = true, failed = true, suspended = true }
-    if not assignmentId or not valid[status] then return { success = false, error = 'Invalid request' } end
+    if not assignmentId or assignmentId ~= assignmentId or assignmentId == math.huge
+        or assignmentId <= 0 or assignmentId % 1 ~= 0 or not valid[status] then
+        return { success = false, error = 'Invalid request' }
+    end
 
     local a = MySQL.single.await('SELECT id, trainee_name FROM mdt_fto_assignments WHERE id = ?', { assignmentId })
     if not a then return { success = false, error = 'Assignment not found' } end
