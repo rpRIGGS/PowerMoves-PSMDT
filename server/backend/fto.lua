@@ -471,7 +471,9 @@ ps.registerCallback(resourceName .. ':server:updateFTOAssignment', function(sour
     if #sets == 0 then return { success = false, error = 'No fields to update' } end
 
     if not canAccessFTORecord(src, assignmentId) then return { success = false, error = 'Unauthorized' } end
-    if updates.trainer_citizenid ~= nil and not CanManageMdtPersonnel(src, updates.trainer_citizenid) then
+    if updates.trainer_citizenid ~= nil and (type(updates.trainer_citizenid) ~= 'string'
+        or updates.trainer_citizenid == '' or #updates.trainer_citizenid > 64
+        or not CanManageMdtPersonnel(src, updates.trainer_citizenid)) then
         return { success = false, error = 'Trainer must belong to your department' }
     end
     vals[#vals + 1] = assignmentId
