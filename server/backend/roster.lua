@@ -759,6 +759,11 @@ ps.registerCallback('ps-mdt:server:updateOfficerCertifications', function(source
         return { success = false, message = 'Invalid payload' }
     end
 
+    local count = 0
+    for _ in pairs(certifications) do
+        count = count + 1
+        if count > 200 then return { success = false, message = 'Too many certifications' } end
+    end
     if not CanManageMdtPersonnel(src, citizenid) then
         return { success = false, message = 'Personnel administration is limited to your department' }
     end
