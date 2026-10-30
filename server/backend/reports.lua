@@ -647,7 +647,7 @@ ps.registerCallback(resourceName .. ':server:searchVehiclesForReport', function(
 
     -- Consistent, case/space-insensitive normalisation (see NormalizeSearch).
     local _, likePat, plateLike = NormalizeSearch(query)
-    if not likePat then return {} end
+    if not likePat or type(query) ~= 'string' or #query:gsub('%s+', '') < 2 then return {} end
 
     local vehicleShared = nil
     local ok, core = pcall(function() return exports['qb-core']:GetCoreObject() end)
