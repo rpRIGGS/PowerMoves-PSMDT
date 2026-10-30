@@ -304,7 +304,9 @@ ps.registerCallback(resourceName .. ':server:deleteBulletin', function(source, p
         or not CheckPermission(src, 'bulletin_delete') then
         return { success = false, message = 'Authorization changed' }
     end
-    local deleted = MySQL.update.await('DELETE FROM mdt_bulletins WHERE id = ?', { id })
+    local ok, deleted = pcall(MySQL.update.await,
+        'DELETE FROM mdt_bulletins WHERE id = ?', { id })
+    if not ok then return { success = false, message = 'Failed to delete bulletin' } end
     if type(deleted) ~= 'number' or deleted ~= deleted
         or deleted == math.huge or deleted == -math.huge or deleted <= 0 then
         return { success = false, message = 'Bulletin not found' }
