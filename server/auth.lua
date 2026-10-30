@@ -251,7 +251,8 @@ function CanViewStatewideLeoRoster(source)
         and contains(((Config.MdtAccess or {}).LeoRosterOversightJobs) or {}, now.job)
         and now.citizenid == identity.citizenid
         and now.job == identity.job and now.grade == identity.grade
-        and now.onDuty == identity.onDuty and GetMdtAccess(source).authorized == true
+        and now.onDuty == identity.onDuty
+        and GetMdtAccess(source).authorized == true
 end
 
 function CanViewStatewideServiceRoster(source, interfaceId)
