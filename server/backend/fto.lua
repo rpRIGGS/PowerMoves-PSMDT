@@ -497,7 +497,7 @@ ps.registerCallback(resourceName .. ':server:updateFTOAssignment', function(sour
         end
     end
     if updates.trainer_name ~= nil and (type(updates.trainer_name) ~= 'string'
-        or #updates.trainer_name > 255) then
+        or not updates.trainer_name:find('%S') or #updates.trainer_name > 255) then
         return { success = false, error = 'Invalid trainer name' }
     end
     if updates.status ~= nil and (type(updates.status) ~= 'string'
