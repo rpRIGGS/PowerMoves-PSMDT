@@ -70,7 +70,8 @@ end
 
 local function checkReportAccess(src, reportId)
     local id = tonumber(reportId)
-    if not src or not id or id ~= id or id == math.huge or id <= 0 or id % 1 ~= 0 then
+    if not src or not id or id ~= id or id == math.huge
+        or id == -math.huge or id <= 0 or id % 1 ~= 0 then
         return false
     end
     reportId = id
