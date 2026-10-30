@@ -604,7 +604,8 @@ ps.registerCallback(resourceName .. ':server:advanceFTOPhase', function(source, 
 
     -- Past the last phase → graduation.
     local endDate = os.date('%Y-%m-%d')
-    MySQL.update.await("UPDATE mdt_fto_assignments SET status = 'completed', end_date = ? WHERE id = ?", { endDate, assignmentId })
+    local graduated = MySQL.update.await("UPDATE mdt_fto_assignments SET status = 'completed', end_date = ? WHERE id = ? AND status = 'active'", { endDate, assignmentId })
+    if not graduated or graduated < 1 then return { success = false, error = 'Graduation was not saved' } end
     if ps.auditLog then ps.auditLog(src, 'fto_completed', 'fto', assignmentId, { trainee = a.trainee_name, note = data.note }) end
     return { success = true, completed = true, action = 'complete' }
 end)
