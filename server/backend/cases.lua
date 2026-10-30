@@ -915,7 +915,8 @@ ps.registerCallback(resourceName .. ':server:grantCaseDisclosure', function(sour
         SELECT JSON_UNQUOTE(JSON_EXTRACT(job, '$.name'))
         FROM players WHERE citizenid = ? LIMIT 1
     ]], {recipientCid})
-    if not recipientJob or recipientJob == '' or #recipientJob > 64 or not CheckAuth(src) or not CheckPermission(src, 'cases_edit')
+    if type(recipientJob) ~= 'string' or not recipientJob:find('%S')
+        or #recipientJob > 64 or not CheckAuth(src) or not CheckPermission(src, 'cases_edit')
         or ps.getIdentifier(src) ~= actor or ps.getJobName(src) ~= employer
         or not canAccessCaseId(src, id) then return {success=false,error='Authorization changed'} end
     local ok, newId = pcall(MySQL.insert.await, [[
