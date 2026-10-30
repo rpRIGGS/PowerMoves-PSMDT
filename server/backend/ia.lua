@@ -272,6 +272,9 @@ end)
 -- Get paginated list of IA complaints
 ps.registerCallback(resourceName .. ':server:getIAComplaints', function(source, pageNum, filters)
     local src = source
+    if filters ~= nil and type(filters) ~= 'table' then
+        return { complaints = {}, hasMore = false, error = 'Invalid filters' }
+    end
     filters = filters or {}
 
     if not canViewIA(src) then
