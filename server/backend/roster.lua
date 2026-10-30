@@ -992,6 +992,9 @@ ps.registerCallback('ps-mdt:server:fireOfficer', function(source, payload)
         return { success = false, message = 'Officer session changed; refresh the roster' }
     end
 
+    if payload.deleteData and type(CleanupPersonnelData) ~= 'function' then
+        return { success = false, message = 'Personnel cleanup unavailable' }
+    end
     if not setOfficerJob(targetSrc, 'unemployed', 0) then
         return { success = false, message = 'Failed to terminate officer (framework error)' }
     end
