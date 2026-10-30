@@ -522,7 +522,8 @@ ps.registerCallback(resourceName .. ':server:logEvidenceViewed', function(source
 
     evidenceId = tonumber(evidenceId)
     if not canEditEvidenceRecord(src, evidenceId) then return { success = false, error = 'Evidence not found or inaccessible' } end
-    if not evidenceId then return { success = false } end
+    if not evidenceId or evidenceId ~= evidenceId or evidenceId == math.huge
+        or evidenceId <= 0 or evidenceId % 1 ~= 0 then return { success = false } end
 
     local citizenid = ps.getIdentifier(src)
     if type(citizenid) ~= 'string' or citizenid == '' then
