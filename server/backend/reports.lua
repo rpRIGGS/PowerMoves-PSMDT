@@ -292,8 +292,7 @@ ps.registerCallback(resourceName .. ':server:getReports', function(source, page,
     local jobType = getEffectiveJobType(src)
     if not jobType then return { reports = {}, total = 0 } end
 
-    local pageNumber = tonumber(page) or 1
-    pageNumber = math.max(1, pageNumber)
+    local pageNumber = math.floor(math.max(1, tonumber(page) or 1))
     local limit = math.floor(math.max(1, math.min(tonumber(filters and filters.limit) or 20, 100)))
     local offset = (pageNumber - 1) * limit
 
