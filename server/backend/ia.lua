@@ -624,7 +624,7 @@ ps.registerCallback(resourceName .. ':server:addIANote', function(source, compla
     complaintId = tonumber(complaintId)
     if not complaintId or complaintId ~= complaintId or complaintId == math.huge
         or complaintId <= 0 or complaintId % 1 ~= 0 or type(content) ~= 'string'
-        or not content:find('%S') or #content > 10000 then
+        or not content:find('%S') or #content > 10000 or content:find('%z') then
         return { success = false, error = 'Invalid complaint or empty note' }
     end
     if not ownsIAComplaint(src, complaintId) then return { success = false, error = 'Complaint access denied' } end
