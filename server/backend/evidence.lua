@@ -844,6 +844,9 @@ ps.registerCallback(resourceName .. ':server:createCaseFromEvidence', function(s
     end
 
     local citizenid = ps.getIdentifier(src)
+    if type(citizenid) ~= 'string' or not citizenid:find('%S') or #citizenid > 64 then
+        return { success = false, error = 'Missing case creator identity' }
+    end
     local createdByName = (ps.getMetadata(src, 'callsign') or '') .. ' ' .. (ps.getPlayerName(src) or '')
     createdByName = createdByName:gsub('^%s+', ''):gsub('%s+$', '')
 
