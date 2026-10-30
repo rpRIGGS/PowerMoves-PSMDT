@@ -124,6 +124,9 @@ ps.registerCallback(resourceName .. ':server:setRadio', function(source, payload
  
     local targetSource = targetPlayer.PlayerData.source
  
+    if not targetPlayer.Functions or not targetPlayer.Functions.GetItemByName then
+        return { success = false, message = 'Officer inventory unavailable' }
+    end
     local radio = targetPlayer.Functions.GetItemByName('radio')
     if not radio then
         return { success = false, message = targetPlayer.PlayerData.charinfo.firstname .. ' does not have a radio!' }
