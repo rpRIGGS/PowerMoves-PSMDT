@@ -653,7 +653,10 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
 
     if type(data) ~= 'table' then return { success = false, error = 'Invalid DOR payload' } end
     local assignmentId = tonumber(data.assignment_id)
-    if not assignmentId then return { success = false, error = 'Assignment is required' } end
+    if not assignmentId or assignmentId ~= assignmentId or assignmentId == math.huge
+        or assignmentId <= 0 or assignmentId % 1 ~= 0 then
+        return { success = false, error = 'Invalid assignment identifier' }
+    end
 
     if not canAccessFTORecord(src, assignmentId) then return { success = false, error = 'Unauthorized' } end
 
