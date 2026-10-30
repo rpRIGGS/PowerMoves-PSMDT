@@ -160,6 +160,10 @@ function GetMdtAccess(source)
         jobType = 'civilian', allowedInterfaces = {}, permissions = {}, isBoss = false,
     }
     if not identity then return empty end
+    if identity.primaryInterfaceId and not identity.gradeValid then
+        selectedInterfaces[identity.source] = nil
+        return empty
+    end
     local interfaceConfig = identity.primaryInterfaceId and (Config.Interfaces or {})[identity.primaryInterfaceId]
     if identity.primaryInterfaceId and (not interfaceConfig or interfaceConfig.Enabled ~= true) then
         selectedInterfaces[identity.source] = nil
