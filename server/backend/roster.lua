@@ -905,7 +905,9 @@ ps.registerCallback('ps-mdt:server:fireOfficer', function(source, payload)
         return { success = false, message = 'No permission to manage officers' }
     end
 
-    payload = payload or {}
+    if type(payload) ~= 'table' then
+        return { success = false, message = 'Invalid personnel request' }
+    end
     local citizenid = payload.citizenid
 
     if type(citizenid) ~= 'string' or citizenid == '' then
