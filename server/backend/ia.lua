@@ -423,7 +423,7 @@ ps.registerCallback(resourceName .. ':server:getIAHistoryForOfficer', function(s
                 (officer_citizenid IS NOT NULL AND officer_citizenid = ?)
              OR (officer_citizenid IS NULL AND ? <> '' AND officer_name LIKE ?)
           )
-        ORDER BY created_at DESC
+        ORDER BY created_at DESC, id DESC
         LIMIT 50
     ]], {
         GetMdtDomain(src),
