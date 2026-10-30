@@ -434,8 +434,8 @@ ps.registerCallback(resourceName .. ':server:getIAHistoryForOfficer', function(s
         '%' .. (officerName or '') .. '%',
     })
 
-    if not ok then return {} end
-    return rows or {}
+    if not ok or type(rows) ~= 'table' or not canViewIA(src) then return {} end
+    return rows
 end)
 
 -- Update IA complaint details (officer, badge, date, location)
