@@ -676,6 +676,9 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
     local profile = MySQL.single.await('SELECT fullname FROM mdt_profiles WHERE citizenid = ?', { citizenId })
     local authorName = profile and profile.fullname or 'Unknown'
 
+    if data.notes ~= nil and (type(data.notes) ~= 'string' or #data.notes > 20000) then
+        return { success = false, error = 'Invalid DOR notes' }
+    end
     local dorId = MySQL.insert.await([[
         INSERT INTO mdt_fto_dors (assignment_id, phase_id, author_citizenid, author_name, shift_date, overall_rating, notes)
         VALUES (?, ?, ?, ?, ?, ?, ?)
