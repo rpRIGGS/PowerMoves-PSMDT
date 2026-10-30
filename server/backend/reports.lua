@@ -1248,7 +1248,7 @@ ps.registerCallback(resourceName..':server:getReportAnalytics', function(source,
     end
 
 	local incidentQuery = ([[
-        SELECT COUNT(*) AS total
+        SELECT COUNT(DISTINCT mr.id) AS total
         FROM mdt_reports AS mr
         LEFT JOIN mdt_reports_restrictions AS mrr ON mr.id = mrr.reportid
         WHERE %s%s
