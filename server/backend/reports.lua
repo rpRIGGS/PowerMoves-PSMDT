@@ -1182,6 +1182,7 @@ ps.registerCallback(resourceName..':server:getAvailableTags', function(source, p
         ORDER BY t.name ASC
     ]], { jt })
 
+    if not CheckAuth(src) or not CheckPermission(src, 'reports_view') or getEffectiveJobType(src) ~= jt then return {} end
     return tags or {}
 end)
 
