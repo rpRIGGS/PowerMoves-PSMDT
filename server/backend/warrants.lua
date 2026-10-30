@@ -241,6 +241,10 @@ ps.registerCallback(resourceName .. ':server:closeWarrant', function(source, dat
     if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
     local requesterCitizenId = ps.getIdentifier(src)
     local requesterJob = ps.getJobName(src)
+    if type(requesterCitizenId) ~= 'string' or not requesterCitizenId:find('%S')
+        or type(requesterJob) ~= 'string' or not requesterJob:find('%S') then
+        return { success = false, error = 'Unauthorized' }
+    end
     if IsMdtAttorneyGeneral(src) then return { success = false, error = 'Prosecution access cannot close warrants' } end
     if not CheckPermission(src, 'warrants_close') then
         return { success = false, error = 'Insufficient permissions' }
