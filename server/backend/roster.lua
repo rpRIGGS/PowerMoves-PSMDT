@@ -69,7 +69,8 @@ local function buildRosterFromQbx(jobList, matchFn, defaultDept)
         local data = type(player) == 'table' and player.PlayerData or nil
         if data and data.job then
             local job = data.job
-            if matchFn(job.name, job.type) then
+            if type(data.citizenid) == 'string' and data.citizenid ~= ''
+                and matchFn(job.name, job.type) then
                 members[data.citizenid] = true
             end
         end
