@@ -4,7 +4,8 @@ local function getEffectiveJobType(src)
     -- Match the authenticated MDT interface instead of relying on a QBCore
     -- job type alone. Fire and hospital records remain separate domains.
     local access = GetMdtAccess(src)
-    if not access or not access.authorized or access.isCivilian then return nil end
+    if not access or not access.authorized or access.isCivilian
+        or not CheckAuth(src) then return nil end
     local domain = (Config.Interfaces or {})[access.interfaceId]
     if not domain or domain.Enabled ~= true then return nil end
     if domain.JobType == 'leo' or domain.JobType == 'doj'
