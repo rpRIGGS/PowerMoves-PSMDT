@@ -968,7 +968,8 @@ local function disclosedEvidenceScope(src, id)
         or not id or tonumber(id) == nil then return false end
     local cid,job=ps.getIdentifier(src),ps.getJobName(src)
     if type(cid) ~= 'string' or not cid:find('%S') or #cid > 64
-        or type(job) ~= 'string' or not job:find('%S') or #job > 64 then return false end
+        or cid:find('%z') or type(job) ~= 'string' or not job:find('%S')
+        or #job > 64 or job:find('%z') then return false end
     local ok,record=pcall(MySQL.single.await,[[
         SELECT g.id
         FROM mdt_evidence_disclosures g
