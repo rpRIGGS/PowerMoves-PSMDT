@@ -27,7 +27,9 @@ end
 local function hasCaseDisclosure(source, caseId)
     local actor, employer = ps.getIdentifier(source), ps.getJobName(source)
     local access = GetMdtAccess(source)
-    if not actor or not employer or not access or not access.authorized
+    if type(actor) ~= 'string' or actor == ''
+        or type(employer) ~= 'string' or employer == ''
+        or not access or not access.authorized
         or not CheckAuth(source) or not CheckPermission(source, 'cases_view') then return false end
     local row = MySQL.single.await([[
         SELECT id FROM mdt_case_disclosures
