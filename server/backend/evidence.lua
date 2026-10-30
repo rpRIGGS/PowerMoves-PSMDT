@@ -987,7 +987,8 @@ end
 
 ps.registerCallback(resourceName .. ':server:grantEvidenceDisclosure', function(source, evidenceId, recipientCid, purpose)
     local src,id=source,tonumber(evidenceId)
-    if not id or id ~= id or id == math.huge or id <= 0 or id % 1 ~= 0 or type(recipientCid)~='string' or #recipientCid<2 or #recipientCid>64
+    if not id or id ~= id or id == math.huge or id == -math.huge
+        or id <= 0 or id % 1 ~= 0 or type(recipientCid)~='string' or #recipientCid<2 or #recipientCid>64
         or type(purpose)~='string' or #purpose<10 or #purpose>255 then
         return {success=false,error='Evidence, recipient and purpose required'}
     end
