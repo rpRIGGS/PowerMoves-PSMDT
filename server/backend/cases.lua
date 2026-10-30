@@ -552,6 +552,11 @@ ps.registerCallback(resourceName .. ':server:updateCase', function(source, caseI
         or not canAccessCaseId(src, caseId) then
         return { success = false, error = 'Authorization changed' }
     end
+    local currentScope = getCaseScope(src)
+    if not currentScope or currentScope.agency ~= scope.agency
+        or currentScope.statewide ~= scope.statewide then
+        return { success = false, error = 'Case agency changed' }
+    end
     values[#values + 1] = caseId
     local success = MySQL.update.await(('UPDATE mdt_cases SET %s WHERE id = ?'):format(table.concat(updates, ', ')), values)
 
