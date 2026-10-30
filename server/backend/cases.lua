@@ -154,7 +154,8 @@ ps.registerCallback(resourceName .. ':server:getCases', function(source, page, f
 
     local scope = getCaseScope(src)
     local actorCid = ps.getIdentifier(src)
-    if not scope or not actorCid then return { cases = {}, hasMore = false } end
+    if not scope or type(actorCid) ~= 'string' or not actorCid:find('%S')
+        or #actorCid > 64 then return { cases = {}, hasMore = false } end
     if type(filters) ~= 'table' then filters = {} end
     local clauses = {}
     local values = {}
