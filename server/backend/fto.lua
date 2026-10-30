@@ -209,6 +209,10 @@ ps.registerCallback(resourceName .. ':server:getFTOList', function(source, pageN
     if filters.status ~= nil and type(filters.status) ~= 'string' then
         return { entries = {}, hasMore = false, error = 'Invalid status filter' }
     end
+    if type(filters.status) == 'string' and filters.status ~= '' and filters.status ~= 'all'
+        and not ({active=true, suspended=true, completed=true, failed=true})[filters.status] then
+        return { entries = {}, hasMore = false, error = 'Unknown FTO status' }
+    end
     if type(filters.status) == 'string' and #filters.status <= 40
         and filters.status ~= '' and filters.status ~= 'all' then
         clauses[#clauses + 1] = 'a.status = ?'
