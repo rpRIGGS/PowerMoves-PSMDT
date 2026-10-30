@@ -669,6 +669,7 @@ ps.registerCallback(resourceName .. ':server:searchOfficers', function(source, q
     ]], params)
 
     if not CheckAuth(src) or not CheckPermission(src, 'reports_view')
+        or ps.getIdentifier(src) ~= searchActor or ps.getJobName(src) ~= searchJob
         or type(rows) ~= 'table' then return {} end
     local results = {}
     for _, row in ipairs(rows) do
