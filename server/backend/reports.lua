@@ -109,7 +109,7 @@ local function checkReportAccess(src, reportId)
         GROUP BY mr.id
     ]], {reportId, jobType, jobType, jobType, jobType, identifier, job, jobType, job, identifier, job})
 
-    return hasAccess and hasAccess[1] ~= nil
+    return type(hasAccess) == 'table' and hasAccess[1] ~= nil
         and CheckAuth(src) and ps.getIdentifier(src) == identifier
         and ps.getJobName(src) == job and getEffectiveJobType(src) == jobType
 end
