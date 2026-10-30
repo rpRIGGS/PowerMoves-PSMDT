@@ -736,6 +736,10 @@ ps.registerCallback(resourceName .. ':server:removeCaseAttachment', function(sou
     if not attachment or not canAccessCaseId(src, attachment.case_id) then
         return { success = false, error = 'Case attachment not found or inaccessible' }
     end
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_edit')
+        or not canAccessCaseId(src, attachment.case_id) then
+        return { success = false, error = 'Authorization changed' }
+    end
     local success = MySQL.query.await('DELETE FROM mdt_case_attachments WHERE id = ?', { attachmentId })
 
     if not success then
