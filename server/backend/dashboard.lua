@@ -185,8 +185,14 @@ local function computeTimeStatistics(src)
     ]], { citizenid })
 
     local secondsByDay = {}
-    for _, row in ipairs(rows or {}) do
-        secondsByDay[tostring(row.day)] = tonumber(row.seconds) or 0
+    if type(rows) ~= 'table' then return {} end
+    for _, row in ipairs(rows) do
+        if type(row) ~= 'table' or row.day == nil then return {} end
+        local seconds = tonumber(row.seconds)
+        if seconds and seconds == seconds and seconds >= 0
+            and seconds ~= math.huge then
+            secondsByDay[tostring(row.day)] = seconds
+        end
     end
 
     local result = {}
