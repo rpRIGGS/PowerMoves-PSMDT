@@ -60,6 +60,10 @@ ps.registerCallback(resourceName .. ':server:saveFTOPhases', function(source, ph
         end
     end
 
+    if not CheckAuth(src) or not CheckPermission(src, 'fto_manage')
+        or ps.getJobName(src) ~= job then
+        return { success = false, error = 'Authorization changed' }
+    end
     MySQL.query.await('DELETE FROM mdt_fto_phases WHERE job = ?', { job })
     for i, phase in ipairs(phases) do
         MySQL.insert.await('INSERT INTO mdt_fto_phases (job, name, description, duration_days, sort_order) VALUES (?, ?, ?, ?, ?)', {
