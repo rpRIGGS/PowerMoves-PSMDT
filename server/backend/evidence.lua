@@ -1127,6 +1127,11 @@ ps.registerCallback(resourceName .. ':server:getDisclosedEvidenceDetail', functi
     if type(custody) ~= 'table' then
         return {success=false,error='Custody history unavailable'}
     end
+    for _, record in ipairs(custody) do
+        if type(record) ~= 'table' then
+            return {success=false,error='Invalid disclosed custody history'}
+        end
+    end
     if not (GetMdtAccess(src) or {}).authorized then
         return {success=false,error='Authorization changed'}
     end
