@@ -253,8 +253,8 @@ ps.registerCallback('ps-mdt:server:getRosterList', function(source)
     end
 
     for _, citizen in pairs(MySQL.query.await('SELECT citizenid, charinfo, job, metadata FROM players', {}) or {}) do
-        local citizenid = citizen.citizenid
-        local charinfo = safeRosterDecode(citizen.charinfo)
+        local citizenid = type(citizen) == 'table' and citizen.citizenid or nil
+        local charinfo = safeRosterDecode(type(citizen) == 'table' and citizen.charinfo)
         local job = safeRosterDecode(citizen.job)
         local metadata = safeRosterDecode(citizen.metadata)
         -- The live QBCore job wins over a stale saved players.job value.
