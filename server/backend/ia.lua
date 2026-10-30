@@ -806,7 +806,9 @@ ps.registerCallback(resourceName .. ':server:getIAReferralStatus', function(sour
     if not id or id ~= id or id == math.huge or id <= 0 or id % 1 ~= 0
         or not canViewIA(src) then return {} end
     local job, cid = ps.getJobName(src), ps.getIdentifier(src)
-    if not job or not cid or not ownsIAComplaint(src, id) then return {} end
+    if type(job) ~= 'string' or not job:find('%S') or #job > 64
+        or type(cid) ~= 'string' or not cid:find('%S') or #cid > 64
+        or not ownsIAComplaint(src, id) then return {} end
     if not iaReferralSchemaReady() then return {} end
     local ok, row = pcall(MySQL.single.await, [[
         SELECT r.id, r.status, r.created_at, r.received_at
