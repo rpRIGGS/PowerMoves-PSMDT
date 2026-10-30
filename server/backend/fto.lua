@@ -161,6 +161,9 @@ ps.registerCallback(resourceName .. ':server:getFTOList', function(source, pageN
     if not CheckAuth(src) then return { entries = {}, hasMore = false } end
 
     if type(filters) ~= 'table' then filters = {} end
+    if type(filters.search) == 'string' and #filters.search > 100 then
+        return { entries = {}, hasMore = false, error = 'Search too long' }
+    end
     local citizenId = ps.getIdentifier(src)
     if type(citizenId) ~= 'string' or not citizenId:find('%S') then
         return { entries = {}, hasMore = false }
