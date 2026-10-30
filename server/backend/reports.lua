@@ -1569,7 +1569,7 @@ ps.registerCallback(resourceName .. ':server:grantReportDisclosure', function(so
     local actor,employer=ps.getIdentifier(src),ps.getJobName(src)
     if type(actor) ~= 'string' or not actor:find('%S') or #actor > 64
         or type(employer) ~= 'string' or not employer:find('%S')
-        or #employer > 64 then return {success=false,error='Unauthorized'} end
+        or #employer > 64 or employer:find('%z') or actor:find('%z') then return {success=false,error='Unauthorized'} end
     local owner=MySQL.scalar.await(
         "SELECT identifier FROM mdt_reports_restrictions WHERE reportid = ? AND type = 'owner' LIMIT 1",{id})
     if not owner or owner~=employer then return {success=false,error='Originating employer required'} end
