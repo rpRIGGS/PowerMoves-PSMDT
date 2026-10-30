@@ -603,7 +603,8 @@ ps.registerCallback(resourceName .. ':server:linkEvidenceToCase', function(sourc
 
     if reportId then
         local reportExists = MySQL.single.await('SELECT id FROM mdt_reports WHERE id = ?', { reportId })
-        if reportExists then
+        if reportExists and type(CanReadMdtReport) == 'function'
+            and CanReadMdtReport(src, reportId) then
             linkReportToCase(reportId, caseId, ps.getIdentifier(src))
         end
     end
