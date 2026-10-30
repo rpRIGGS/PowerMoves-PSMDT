@@ -1274,7 +1274,7 @@ ps.registerCallback(resourceName..':server:getReportAnalytics', function(source,
 	local arrestRow = MySQL.single.await(arrestQuery, arrestParams)
 
 	local warrantQuery = ([[
-        SELECT COUNT(*) AS total
+        SELECT COUNT(DISTINCT mw.id) AS total
         FROM mdt_reports_warrants AS mw
         INNER JOIN mdt_reports AS mr ON mr.id = mw.reportid
         LEFT JOIN mdt_reports_restrictions AS mrr ON mr.id = mrr.reportid
