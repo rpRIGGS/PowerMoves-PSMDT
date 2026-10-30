@@ -32,6 +32,9 @@ ps.registerCallback(resourceName .. ':server:setCallsign', function(source, payl
         or type(newCallsign) ~= 'string' or not newCallsign:match('%S') or #newCallsign > 32 then
         return { success = false, message = 'Missing citizen ID or callsign' }
     end
+    if newCallsign:find('%c') then
+        return { success = false, message = 'Invalid callsign characters' }
+    end
     if cid ~= ps.getIdentifier(src) and
         (not CheckPermission(src, 'roster_manage_officers') or not CanManageMdtPersonnel(src, cid)) then
         return { success = false, message = 'Personnel administration is limited to your department' }
