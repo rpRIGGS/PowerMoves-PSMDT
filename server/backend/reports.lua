@@ -765,7 +765,9 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
     local originatingJob = ps.getJobName(src)
     local playerName = ps.getPlayerName(src)
     local callsign = ps.getMetadata(src, 'callsign')
-    if not identifier or not originatingJob then
+    if type(identifier) ~= 'string' or not identifier:find('%S') or #identifier > 64
+        or type(originatingJob) ~= 'string' or not originatingJob:find('%S')
+        or #originatingJob > 64 then
         return { success = false, error = 'Officer identity unavailable' }
     end
 
