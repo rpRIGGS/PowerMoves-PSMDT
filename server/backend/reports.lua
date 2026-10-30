@@ -844,6 +844,7 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
     end
     for _, restriction in ipairs(reportData.restrictions or {}) do
         if type(restriction) ~= 'table' or type(restriction.type) ~= 'string'
+            or not ({owner=true,job=true,citizenid=true,jobtype=true})[restriction.type]
             or type(restriction.identifier) ~= 'string'
             or not restriction.identifier:find('%S') or #restriction.identifier > 64 then
             return { success = false, error = 'Invalid report restriction' }
