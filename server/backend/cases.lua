@@ -141,7 +141,7 @@ ps.registerCallback(resourceName .. ':server:getCases', function(source, page, f
         values[#values + 1] = scope.agency
     end
 
-    if filters.status then
+    if type(filters.status) == 'string' and filters.status ~= '' and #filters.status <= 40 then
         clauses[#clauses + 1] = 'mc.status = ?'
         values[#values + 1] = normalizeStatus(filters.status)
     end
