@@ -776,6 +776,9 @@ ps.registerCallback('ps-mdt:server:updateOfficerCertifications', function(source
     end
 
     local encoded = json.encode(certifications)
+    if type(encoded) ~= 'string' or #encoded > 65535 then
+        return { success = false, message = 'Certification data too large' }
+    end
     local saved = MySQL.update.await('UPDATE mdt_profiles SET certifications = ? WHERE citizenid = ?', { encoded, citizenid })
     if saved == nil then return { success = false, message = 'Failed to save certifications' } end
     return { success = true }
