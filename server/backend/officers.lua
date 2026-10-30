@@ -54,6 +54,9 @@ ps.registerCallback(resourceName .. ':server:setCallsign', function(source, payl
 
     local Player = QBCore.Functions.GetPlayerByCitizenId(cid)
     if Player then
+        if not Player.PlayerData or not Player.PlayerData.source then
+            return { success = false, message = 'Officer session unavailable' }
+        end
         Player.Functions.SetMetaData('callsign', newCallsign)
         TriggerClientEvent(resourceName .. ':client:updateCallsign', Player.PlayerData.source, newCallsign)
  
