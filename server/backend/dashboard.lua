@@ -66,7 +66,8 @@ local function dashboardSnapshot(src)
         if current.jobType == 'ems' and (access.authorized ~= true or access.jobType ~= 'ems') then return nil end
         current.interfaceId = access.interfaceId
         current.permissions, current.permissionKeys = {}, {}
-        for _, permission in ipairs(access.permissions or {}) do
+        if type(access.permissions) ~= 'table' then return nil end
+        for _, permission in ipairs(access.permissions) do
             if type(permission) == 'string' and not current.permissions[permission] then
                 current.permissions[permission] = true
                 current.permissionKeys[#current.permissionKeys + 1] = permission
