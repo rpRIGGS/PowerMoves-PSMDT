@@ -153,6 +153,7 @@ ps.registerCallback(resourceName .. ':server:saveFTOCompetencies', function(sour
     if not MySQL.transaction or not MySQL.transaction.await then
         return { success = false, error = 'Database transactions unavailable' }
     end
+    if not CheckAuth(src) or not CheckPermission(src, 'fto_manage') or ps.getJobName(src) ~= job then return { success = false, error = 'Authorization changed' } end
     local ok, committed = pcall(MySQL.transaction.await, statements)
     if not ok or not committed then
         return { success = false, error = 'Failed to save FTO competencies' }
