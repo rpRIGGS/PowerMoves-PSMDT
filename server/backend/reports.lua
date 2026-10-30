@@ -1554,8 +1554,8 @@ end)
 -- originating employer. Ownerless legacy reports require reconciliation.
 ps.registerCallback(resourceName .. ':server:grantReportDisclosure', function(source, reportId, recipientCid, purpose)
     local src,id=source,tonumber(reportId)
-    if not id or id ~= id or id == math.huge or id <= 0 or id % 1 ~= 0
-        or type(recipientCid)~='string' or #recipientCid<2 or #recipientCid>64
+    if not id or id ~= id or id == math.huge or id == -math.huge
+        or id <= 0 or id % 1 ~= 0 or type(recipientCid)~='string' or #recipientCid<2 or #recipientCid>64
         or type(purpose)~='string' or #purpose<10 or #purpose>255 then
         return {success=false,error='Valid report, recipient and purpose required'}
     end
