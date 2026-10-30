@@ -949,6 +949,9 @@ ps.registerCallback('ps-mdt:server:fireOfficer', function(source, payload)
         return { success = false, message = 'Invalid personnel request' }
     end
     local citizenid = payload.citizenid
+    if payload.deleteData ~= nil and type(payload.deleteData) ~= 'boolean' then
+        return { success = false, message = 'Invalid cleanup option' }
+    end
 
     if type(citizenid) ~= 'string' or not citizenid:find('%S') or #citizenid > 64 then
         return { success = false, message = 'Invalid citizen ID' }
