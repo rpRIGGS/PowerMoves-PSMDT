@@ -251,7 +251,8 @@ ps.registerCallback(resourceName .. ':server:closeWarrant', function(source, dat
     if type(data) ~= 'table' then return { success = false, error = 'Invalid warrant request' } end
     local reportId = tonumber(data.reportId)
     local citizenid = data.citizenid
-    if not reportId or reportId <= 0 or reportId % 1 ~= 0
+    if not reportId or reportId ~= reportId or reportId == math.huge
+        or reportId <= 0 or reportId % 1 ~= 0
         or type(citizenid) ~= 'string' or citizenid == '' or #citizenid > 64 then
         return { success = false, error = 'Missing required fields' }
     end
