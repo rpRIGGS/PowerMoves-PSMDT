@@ -478,7 +478,8 @@ ps.registerCallback(resourceName .. ':server:deleteEvidenceItem', function(sourc
 
     evidenceId = tonumber(evidenceId)
     if not canEditEvidenceRecord(src, evidenceId) then return { success = false, error = 'Evidence not found or inaccessible' } end
-    if not evidenceId then
+    if not evidenceId or evidenceId ~= evidenceId or evidenceId == math.huge
+        or evidenceId <= 0 or evidenceId % 1 ~= 0 then
         return { success = false, error = 'Invalid evidence id' }
     end
 
