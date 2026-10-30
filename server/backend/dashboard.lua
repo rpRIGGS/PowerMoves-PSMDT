@@ -269,7 +269,9 @@ ps.registerCallback(resourceName .. ':server:createBulletin', function(source, p
         or not CheckPermission(src, 'bulletin_create') then
         return { success = false, message = 'Authorization changed' }
     end
-    local inserted = MySQL.insert.await('INSERT INTO mdt_bulletins (content) VALUES (?)', { content })
+    local ok, inserted = pcall(MySQL.insert.await,
+        'INSERT INTO mdt_bulletins (content) VALUES (?)', { content })
+    if not ok then return { success = false, message = 'Failed to create bulletin' } end
     if type(inserted) ~= 'number' or inserted ~= inserted
         or inserted == math.huge or inserted == -math.huge or inserted <= 0 then
         return { success = false, message = 'Failed to create bulletin' }
