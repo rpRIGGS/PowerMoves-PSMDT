@@ -565,6 +565,9 @@ ps.registerCallback(resourceName .. ':server:advanceFTOPhase', function(source, 
         'SELECT id, current_phase_id, status, trainee_name FROM mdt_fto_assignments WHERE id = ?', { assignmentId })
     if not a then return { success = false, error = 'Assignment not found' } end
     if not canAccessFTORecord(src, assignmentId) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'fto_manage') then
+        return { success = false, error = 'Authorization changed' }
+    end
     if a.status ~= 'active' then return { success = false, error = 'Only active assignments can change phase' } end
 
     -- Resolve which job's phase ladder applies: the current phase's job, else the caller's.
