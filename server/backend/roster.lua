@@ -1001,6 +1001,10 @@ ps.registerCallback('ps-mdt:server:fireOfficer', function(source, payload)
         return { success = false, message = 'Personnel cleanup unavailable' }
     end
     if payload.deleteData and CleanupPersonnelData then
+        if not CheckAuth(src) or not CheckPermission(src, 'roster_manage_officers')
+            or not CanManageMdtPersonnel(src, citizenid) then
+            return { success = false, message = 'Personnel cleanup authorization changed' }
+        end
         cleanup = CleanupPersonnelData(citizenid)
     end
 
