@@ -808,6 +808,7 @@ ps.registerCallback(resourceName .. ':server:linkEvidenceToReport', function(sou
     end
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_transfer')
         or not canEditEvidenceRecord(src, evidenceId)
+        or type(CanReadMdtReport) ~= 'function'
         or not CanReadMdtReport(src, reportId) then
         return { success = false, error = 'Authorization changed' }
     end
