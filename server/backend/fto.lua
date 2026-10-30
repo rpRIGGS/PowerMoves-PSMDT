@@ -738,6 +738,11 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
     if type(ratings) ~= 'table' or #ratings > 100 then
         return { success = false, error = 'Invalid ratings' }
     end
+    for key in pairs(ratings) do
+        if type(key) ~= 'number' or key % 1 ~= 0 or key < 1 or key > #ratings then
+            return { success = false, error = 'Invalid rating list' }
+        end
+    end
     for _, ratingRow in ipairs(ratings) do
         if type(ratingRow) ~= 'table' then return { success = false, error = 'Invalid rating entry' } end
         local competencyId, rating = tonumber(ratingRow.competency_id), tonumber(ratingRow.rating)
