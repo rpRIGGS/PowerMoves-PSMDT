@@ -273,7 +273,7 @@ local function canAccessFTORecord(src, assignmentId)
         'SELECT job_type, agency_job FROM mdt_fto_assignments WHERE id = ? LIMIT 1',
         {id}
     )
-    return row ~= nil and row.job_type == getFTODomain(src)
+    return CheckAuth(src) and row ~= nil and row.job_type == getFTODomain(src)
         and type(row.agency_job) == 'string' and row.agency_job:find('%S') and row.agency_job == ps.getJobName(src)
         and CheckAuth(src)
 end
