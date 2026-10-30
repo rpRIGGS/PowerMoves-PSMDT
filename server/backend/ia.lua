@@ -640,6 +640,9 @@ ps.registerCallback(resourceName .. ':server:deleteIANote', function(source, not
     end
     if not ownsIAComplaint(src, complaintId) then return { success = false, error = 'Complaint access denied' } end
 
+    if not canManageIA(src) or not ownsIAComplaint(src, complaintId) then
+        return { success = false, error = 'Authorization changed' }
+    end
     MySQL.query.await('DELETE FROM mdt_ia_notes WHERE id = ? AND complaint_id = ?', { noteId, complaintId })
     return { success = true }
 end)
