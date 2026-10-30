@@ -279,7 +279,9 @@ ps.registerCallback(resourceName .. ':server:linkReportToCase', function(source,
 
     reportId = tonumber(reportId)
     caseId = tonumber(caseId)
-    if not reportId or not caseId then
+    if not reportId or not caseId or reportId ~= reportId or caseId ~= caseId
+        or reportId == math.huge or caseId == math.huge
+        or reportId <= 0 or caseId <= 0 or reportId % 1 ~= 0 or caseId % 1 ~= 0 then
         return { success = false, error = 'Invalid report or case' }
     end
 
