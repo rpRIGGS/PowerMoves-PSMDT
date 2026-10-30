@@ -451,6 +451,9 @@ ps.registerCallback(resourceName .. ':server:transferEvidenceItem', function(sou
     if notes ~= nil and (type(notes) ~= 'string' or #notes > 20000) then
         return { success = false, error = 'Invalid transfer notes' }
     end
+    if toCitizenId == ps.getIdentifier(src) then
+        return { success = false, error = 'Recipient is the current officer' }
+    end
     local fromCitizenId = ps.getIdentifier(src)
     if type(fromCitizenId) ~= 'string' or fromCitizenId == '' then
         return { success = false, error = 'Missing transferring officer identity' }
