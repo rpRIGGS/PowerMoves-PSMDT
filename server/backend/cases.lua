@@ -146,7 +146,7 @@ ps.registerCallback(resourceName .. ':server:getCases', function(source, page, f
         values[#values + 1] = normalizeStatus(filters.status)
     end
 
-    if filters.department then
+    if type(filters.department) == 'string' and filters.department ~= '' and #filters.department <= 64 then
         clauses[#clauses + 1] = 'mc.assigned_department = ?'
         values[#values + 1] = filters.department
     end
