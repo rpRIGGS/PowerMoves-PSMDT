@@ -525,7 +525,9 @@ ps.registerCallback(resourceName .. ':server:updateIAStatus', function(source, c
     if not canManageIA(src) then return { success = false, error = 'Unauthorized' } end
 
     complaintId = tonumber(complaintId)
-    if not complaintId or not status then
+    if not complaintId or complaintId ~= complaintId or complaintId == math.huge
+        or complaintId <= 0 or complaintId % 1 ~= 0 or type(status) ~= 'string'
+        or not STATUS_TEXT[status] then
         return { success = false, error = 'Invalid complaint id or status' }
     end
     if not ownsIAComplaint(src, complaintId) then return { success = false, error = 'Complaint access denied' } end
