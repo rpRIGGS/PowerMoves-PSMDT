@@ -11,7 +11,8 @@ end
 
 local function runtimeIdentity(source)
     local src = tonumber(source)
-    if not src or src <= 0 then return nil end
+    if not src or src ~= src or src == math.huge
+        or src <= 0 or src % 1 ~= 0 then return nil end
     local ok, identity = pcall(function()
         local job = ps.getJobData and ps.getJobData(src) or {}
         local grade = job.grade
