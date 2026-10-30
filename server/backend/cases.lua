@@ -1051,7 +1051,7 @@ ps.registerCallback(resourceName .. ':server:getCaseDisclosures', function(sourc
     if not CheckAuth(src) or not CheckPermission(src,'cases_edit')
         or ps.getJobName(src)~=employer or ps.getIdentifier(src)~=actor
         or not canAccessCaseId(src,id) then return {} end
-    return ok and rows or {}
+    return ok and type(rows) == 'table' and rows or {}
 end)
 
 
