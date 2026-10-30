@@ -544,6 +544,10 @@ ps.registerCallback(resourceName .. ':server:assignCaseOfficer', function(source
         return { success = false, error = 'Invalid officer role' }
     end
 
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_edit')
+        or not canAccessCaseId(src, caseId) then
+        return { success = false, error = 'Authorization changed' }
+    end
     local insertId = MySQL.insert.await([[
         INSERT INTO mdt_case_officers (case_id, citizenid, role, assigned_by)
         VALUES (?, ?, ?, ?)
