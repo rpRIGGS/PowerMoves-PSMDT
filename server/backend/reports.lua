@@ -1237,7 +1237,7 @@ ps.registerCallback(resourceName..':server:updateReportContent', function(source
             { query = "INSERT INTO mdt_reports_restrictions (reportid, type, identifier) VALUES (?, 'jobtype', ?)",
               values = { insertResult, frameworkType } },
         })
-        if not saved then
+        if saved ~= true then
             MySQL.update.await('DELETE FROM mdt_reports WHERE id = ?', { insertResult })
             return { success = false, error = 'Failed to secure new report' }
         end
