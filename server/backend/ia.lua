@@ -787,7 +787,7 @@ ps.registerCallback(resourceName .. ':server:acceptSADLEIAReferral', function(so
             r.received_at = NOW()
         WHERE r.id = ? AND r.status = 'pending' AND c.job_type = 'police'
     ]], {actor, id})
-    if not ok or tonumber(changed) ~= 1 then
+    if not ok or type(changed) ~= 'number' or changed ~= 1 then
         return {success = false, error = 'Pending police referral not found'}
     end
     if ps.auditLog then
