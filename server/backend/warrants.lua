@@ -5,7 +5,7 @@ local resourceName = tostring(GetCurrentResourceName())
 local function canReadWarrantData(src)
     if not CheckAuth(src) then return false end
     local access = GetMdtAccess(src)
-    return access ~= nil and access.authorized == true
+    return access ~= nil and access.authorized == true and access.isCivilian ~= true
         and (access.jobType == 'leo' or access.jobType == 'doj')
 end
 
