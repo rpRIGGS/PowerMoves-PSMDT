@@ -336,6 +336,11 @@ ps.registerCallback(resourceName .. ':server:updateEvidenceItem', function(sourc
     end
 
     if evidence.caseId then
+        local caseId = tonumber(evidence.caseId)
+        if not caseId or caseId ~= caseId or caseId == math.huge or caseId <= 0 or caseId % 1 ~= 0
+            or not CanAccessMdtCase(src, caseId) then
+            return { success = false, error = 'Case not accessible' }
+        end
         updates[#updates + 1] = 'case_id = ?'
         values[#values + 1] = tonumber(evidence.caseId)
     end
