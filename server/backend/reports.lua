@@ -42,7 +42,8 @@ local function collectCitizenIds(reportData)
     if type(reportData.charges) == 'table' then
         for _, charge in ipairs(reportData.charges) do
             if type(charge) == 'table' and type(charge.citizenid) == 'string'
-                and charge.citizenid ~= '' then
+                and charge.citizenid:find('%S') and #charge.citizenid <= 64
+                and not charge.citizenid:find('%z') then
                 citizenids[charge.citizenid] = true
             end
         end
