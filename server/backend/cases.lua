@@ -335,7 +335,8 @@ ps.registerCallback(resourceName .. ':server:getCaseEvidencePage', function(sour
     if not canAccessCaseId(src, caseId) then return { success = false, error = 'Case not found or inaccessible' } end
 
     caseId = tonumber(caseId)
-    if not caseId then
+    if not caseId or caseId ~= caseId or caseId == math.huge
+        or caseId <= 0 or caseId % 1 ~= 0 then
         return { success = false, error = 'Invalid case id' }
     end
 
