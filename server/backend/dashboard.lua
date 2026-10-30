@@ -64,6 +64,7 @@ local function dashboardSnapshot(src)
         current.jobType = getEffectiveJobType(src)
         if current.jobType == nil or access.jobType ~= current.jobType then return nil end
         if current.jobType == 'ems' and (access.authorized ~= true or access.jobType ~= 'ems') then return nil end
+        if type(access.interfaceId) ~= 'string' or not access.interfaceId:find('%S') then return nil end
         current.interfaceId = access.interfaceId
         current.permissions, current.permissionKeys = {}, {}
         if type(access.permissions) ~= 'table' then return nil end
