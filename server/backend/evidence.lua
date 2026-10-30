@@ -578,7 +578,7 @@ ps.registerCallback(resourceName .. ':server:getEvidenceCustody', function(sourc
     evidenceId = tonumber(evidenceId)
     if not evidenceId or evidenceId ~= evidenceId or evidenceId == math.huge
         or evidenceId <= 0 or evidenceId % 1 ~= 0 then return {} end
-    if not canEditEvidenceRecord(src, evidenceId) then return {} end
+    if not canReadEvidenceRecord(src, evidenceId) then return {} end
 
     local custody = MySQL.query.await([[
         SELECT id, evidence_id, from_citizenid, to_citizenid, action, notes, created_at
