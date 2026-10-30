@@ -142,7 +142,7 @@ ps.registerCallback(resourceName .. ':server:getCases', function(source, page, f
     end
 
     if filters.status then
-        clauses[#clauses + 1] = 'status = ?'
+        clauses[#clauses + 1] = 'mc.status = ?'
         values[#values + 1] = normalizeStatus(filters.status)
     end
 
