@@ -651,7 +651,7 @@ ps.registerCallback(resourceName .. ':server:assignCaseOfficer', function(source
         VALUES (?, ?, ?, ?)
     ]], { caseId, officerCitizenId, role, actor })
 
-    if not insertId then
+    if type(insertId) ~= 'number' or insertId <= 0 then
         return { success = false, error = 'Failed to assign officer' }
     end
 
