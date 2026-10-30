@@ -219,6 +219,11 @@ ps.registerCallback(resourceName .. ':server:issueWarrant', function(source, dat
     if existing and existing.reportid then
         return { success = false, error = 'An active warrant already exists for this subject on this report' }
     else
+        if not canReadWarrantData(src) or not CheckPermission(src, 'warrants_issue')
+            or ps.getIdentifier(src) ~= requesterCitizenId or ps.getJobName(src) ~= requesterJob
+            or not CanReadMdtReport(src, reportId) then
+            return { success = false, error = 'Warrant authorization changed' }
+        end
         local inserted = MySQL.insert.await([[
             INSERT INTO mdt_reports_warrants (reportid, citizenid, felonies, misdemeanors, infractions, expirydate)
             SELECT r.id, ?, 0, 0, 0, ?
