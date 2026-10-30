@@ -582,7 +582,7 @@ ps.registerCallback(resourceName .. ':server:assignCaseOfficer', function(source
     local insertId = MySQL.insert.await([[
         INSERT INTO mdt_case_officers (case_id, citizenid, role, assigned_by)
         VALUES (?, ?, ?, ?)
-    ]], { caseId, officerCitizenId, role, ps.getIdentifier(src) })
+    ]], { caseId, officerCitizenId, role, actor })
 
     if not insertId then
         return { success = false, error = 'Failed to assign officer' }
