@@ -78,6 +78,9 @@ ps.registerCallback(resourceName .. ':server:createCase', function(source, paylo
         or type(summary) ~= 'string' or #summary > 20000 then
         return { success = false, error = 'Invalid case title or summary' }
     end
+    if payload.status ~= nil and type(payload.status) ~= 'string' then
+        return { success = false, error = 'Invalid case status' }
+    end
     local status = normalizeStatus(payload.status)
     local priority = payload.priority or 'medium'
     if type(priority) ~= 'string' or not ({ low = true, medium = true, high = true, critical = true })[priority] then
