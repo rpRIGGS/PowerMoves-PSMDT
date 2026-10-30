@@ -132,6 +132,7 @@ function CanReadMdtReport(src, reportId)
 end
 
 local function checkReportWriteAccess(src, reportId, action)
+    if type(action) ~= 'string' or action == '' then return false end
     if not CheckAuth(src) or not CheckPermission(src, action) then return false end
     if reportId == nil then return getEffectiveJobType(src) ~= nil end
     if not checkReportAccess(src, reportId) then return false end
