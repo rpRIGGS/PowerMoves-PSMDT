@@ -1217,7 +1217,7 @@ end)
 
 ps.registerCallback(resourceName..':server:getReportAnalytics', function(source, filters)
     local src = source
-    if not CheckAuth(src) then return { success = false, error = "Unauthorized" } end
+    if not CheckAuth(src) or not CheckPermission(src, 'reports_view') then return { success = false, error = 'Unauthorized' } end
 
     local identifier = ps.getIdentifier(src)
     local job = ps.getJobName(src)
