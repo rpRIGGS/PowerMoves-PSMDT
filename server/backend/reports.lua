@@ -50,7 +50,7 @@ end
 local function hasReportDisclosure(src, reportId)
     if not CheckAuth(src) or not CheckPermission(src, 'reports_view') then return false end
     local cid, job=ps.getIdentifier(src), ps.getJobName(src)
-    if not cid or not job then return false end
+    if type(cid) ~= 'string' or cid == '' or type(job) ~= 'string' or job == '' then return false end
     local ok, row=pcall(MySQL.single.await, [[
         SELECT id FROM mdt_report_disclosures
         WHERE report_id = ? AND recipient_citizenid = ? AND recipient_job = ?
