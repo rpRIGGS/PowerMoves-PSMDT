@@ -670,6 +670,12 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
         phaseId = a and a.current_phase_id or nil
     end
 
+    if phaseId then
+        local phaseJob = MySQL.scalar.await('SELECT job FROM mdt_fto_phases WHERE id = ? LIMIT 1', { phaseId })
+        if phaseJob ~= ps.getJobName(src) then
+            return { success = false, error = 'Invalid training phase' }
+        end
+    end
     if data.notes ~= nil and (type(data.notes) ~= 'string' or #data.notes > 20000) then
         return { success = false, error = 'Invalid DOR notes' }
     end
