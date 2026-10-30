@@ -701,6 +701,9 @@ ps.registerCallback(resourceName .. ':server:searchVehiclesForReport', function(
         vehicleShared = core.Shared.Vehicles
     end
 
+    local vehicleActor, vehicleJob = ps.getIdentifier(src), ps.getJobName(src)
+    if type(vehicleActor) ~= 'string' or not vehicleActor:find('%S')
+        or type(vehicleJob) ~= 'string' or not vehicleJob:find('%S') then return {} end
     -- NOTE: no COLLATE cast on the join key — players.citizenid and
     -- player_vehicles.citizenid share utf8mb4_general_ci, so casting only
     -- defeated the PK index and forced a quadratic nested-loop (the 10s timeout).
