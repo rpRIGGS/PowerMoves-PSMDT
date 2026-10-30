@@ -86,8 +86,9 @@ function GetActiveWarrantsData(src)
         ORDER BY w.expirydate ASC
     ]])
 
+    if type(rows) ~= 'table' then return {} end
     local results = {}
-    for _, row in ipairs(rows or {}) do
+    for _, row in ipairs(rows) do
         if src == nil or (type(CanReadMdtReport) == 'function' and CanReadMdtReport(src, row.reportid)) then
         local name = ((row.firstname or '') .. ' ' .. (row.lastname or '')):gsub('^%s+', ''):gsub('%s+$', '')
         if name == '' then
