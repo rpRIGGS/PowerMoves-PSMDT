@@ -283,6 +283,7 @@ ps.registerCallback(resourceName .. ':server:deleteBulletin', function(source, p
 end)
 
 registerDashboardRead('getRecentReports', function(src, snapshot, page, limit)
+    if not snapshot.permissions.reports_view then return {} end
     local pageNumber = tonumber(page) or 1
     if pageNumber ~= pageNumber or pageNumber == math.huge or pageNumber == -math.huge then pageNumber = 1 end
     pageNumber = math.floor(math.min(10000, math.max(1, pageNumber)))
