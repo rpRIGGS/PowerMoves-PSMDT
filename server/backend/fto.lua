@@ -115,7 +115,8 @@ ps.registerCallback(resourceName .. ':server:getFTOList', function(source, pageN
         values[#values + 1] = citizenId
     end
 
-    if filters.status and filters.status ~= '' and filters.status ~= 'all' then
+    if type(filters.status) == 'string' and #filters.status <= 40
+        and filters.status ~= '' and filters.status ~= 'all' then
         clauses[#clauses + 1] = 'a.status = ?'
         values[#values + 1] = filters.status
     end
