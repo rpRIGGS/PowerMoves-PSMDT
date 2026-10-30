@@ -14,6 +14,9 @@ ps.registerCallback(resourceName .. ':server:GetPlayerSourceId', function(source
         ps.notify(source, 'Citizen seems asleep / missing', 'error')
         return nil
     end
+    if not CheckAuth(source) or (targetCitizenId ~= ps.getIdentifier(source)
+        and (not CheckPermission(source, 'roster_manage_officers')
+            or not CanManageMdtPersonnel(source, targetCitizenId))) then return nil end
     return targetPlayer.source or (targetPlayer.PlayerData and targetPlayer.PlayerData.source)
 end)
  
