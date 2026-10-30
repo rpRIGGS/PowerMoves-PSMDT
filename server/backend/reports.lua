@@ -169,7 +169,7 @@ end
 local function buildReportFilterClause(filters)
     local clauses = {}
     local values = {}
-    if not filters then
+    if type(filters) ~= 'table' then
         return '', values
     end
 
