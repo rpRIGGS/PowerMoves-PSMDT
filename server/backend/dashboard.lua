@@ -361,6 +361,7 @@ local function computeActiveBolos(src)
         if type(v) ~= 'table' then return {} end
         local reportId = tonumber(v.reportId)
         if not reportId or (type(CanReadMdtReport) == 'function'
+            and CheckAuth(src) and CheckPermission(src, 'bolos_view')
             and CanReadMdtReport(src, reportId)) then
         result[#result + 1] = {
             id       = v.id,
