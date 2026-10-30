@@ -529,7 +529,7 @@ ps.registerCallback(resourceName .. ':server:updateFTOAssignment', function(sour
     end
     vals[#vals + 1] = assignmentId
     local saved = MySQL.update.await('UPDATE mdt_fto_assignments SET ' .. table.concat(sets, ', ') .. ' WHERE id = ?', vals)
-    if saved == nil then return { success = false, error = 'Failed to save FTO assignment' } end
+    if saved == nil or saved < 1 then return { success = false, error = 'FTO assignment not updated' } end
     return { success = true }
 end)
 
