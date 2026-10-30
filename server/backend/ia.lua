@@ -571,7 +571,7 @@ ps.registerCallback(resourceName .. ':server:assignIAComplaint', function(source
     if not complaintId or complaintId ~= complaintId or complaintId == math.huge
         or complaintId <= 0 or complaintId % 1 ~= 0
         or type(assigneeCitizenId) ~= 'string' or not assigneeCitizenId:find('%S')
-        or #assigneeCitizenId > 64 then
+        or #assigneeCitizenId > 64 or assigneeCitizenId:find('%z') then
         return { success = false, error = 'Invalid complaint or assignee' }
     end
     if not ownsIAComplaint(src, complaintId) then return { success = false, error = 'Complaint access denied' } end
