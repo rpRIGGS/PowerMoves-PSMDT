@@ -1064,7 +1064,7 @@ ps.registerCallback(resourceName .. ':server:getDisclosedEvidenceDetail', functi
                created_by,created_at,updated_at
         FROM mdt_evidence_items WHERE id = ?
     ]],{id})
-    if not item or not CheckAuth(src) or not CheckPermission(src,'evidence_view')
+    if type(item) ~= 'table' or not CheckAuth(src) or not CheckPermission(src,'evidence_view')
         or not disclosedEvidenceScope(src,id) then
         return {success=false,error='Unauthorized'}
     end
