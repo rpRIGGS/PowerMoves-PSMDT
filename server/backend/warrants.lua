@@ -697,8 +697,12 @@ end)
 )
             year, month, day = tonumber(year), tonumber(month), tonumber(day)
             hour, minute, second = tonumber(hour), tonumber(minute), tonumber(second)
-            if year >= 1970 and year <= 2100 and month >= 1 and month <= 12
-                and day >= 1 and day <= 31 and hour <= 23 and minute <= 59 and second <= 59 then
+            local leap = year % 4 == 0 and (year % 100 ~= 0 or year % 400 == 0)
+            local daysInMonth = ({31, leap and 29 or 28, 31, 30, 31, 30,
+                31, 31, 30, 31, 30, 31})[month]
+            if year >= 1970 and year <= 2100 and daysInMonth
+                and day >= 1 and day <= daysInMonth
+                and hour <= 23 and minute <= 59 and second <= 59 then
                 return trimmed
             end
         end
