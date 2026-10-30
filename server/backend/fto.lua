@@ -717,6 +717,10 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
         data.shift_date or os.date('%Y-%m-%d'), overallRating, data.notes })
     if not dorId then return { success = false, error = 'Failed to create DOR' } end
     for _, ratingRow in ipairs(ratings) do
+        if not CheckAuth(src) or not CheckPermission(src, 'fto_manage')
+            or ps.getIdentifier(src) ~= citizenId or not canAccessFTORecord(src, assignmentId) then
+            return { success = false, error = 'Authorization changed while saving ratings', id = dorId }
+        end
         local saved = MySQL.insert.await([[
             INSERT INTO mdt_fto_dor_ratings (dor_id, competency_id, rating, notes)
             VALUES (?, ?, ?, ?)
