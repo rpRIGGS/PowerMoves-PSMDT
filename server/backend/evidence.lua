@@ -5,7 +5,10 @@ local function canEditEvidenceRecord(source, evidenceId)
     if not id or id ~= id or id == math.huge or id <= 0 or id % 1 ~= 0 then return false end
     local row = MySQL.single.await('SELECT case_id, created_by FROM mdt_evidence_items WHERE id = ?', { id })
     if not row then return false end
-    if row.case_id then return CanAccessMdtCase(source, row.case_id) end
+    if row.case_id then
+        return CheckAuth(source) and CheckPermission(source, 'cases_view')
+            and CanAccessMdtCase(source, row.case_id)
+    end
     -- No reliable historic employer marker exists on unlinked evidence.
     -- Fail closed for another creator rather than expose unknown agency records.
     local cid = ps.getIdentifier(source)
