@@ -91,7 +91,7 @@ ps.registerCallback(resourceName .. ':server:getFTOList', function(source, pageN
     local src = source
     if not CheckAuth(src) then return { entries = {}, hasMore = false } end
 
-    filters = filters or {}
+    if type(filters) ~= 'table' then filters = {} end
     local citizenId = ps.getIdentifier(src)
     local hasFTOView = CheckPermission(src, 'fto_view')
 
