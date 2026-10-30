@@ -1241,6 +1241,9 @@ ps.registerCallback(resourceName..':server:getReportAnalytics', function(source,
 
     local cached = Cache.get(cacheKey)
     if cached then
+        if not CheckAuth(src) or not CheckPermission(src, 'reports_view')
+            or ps.getIdentifier(src) ~= identifier or ps.getJobName(src) ~= job
+            or getEffectiveJobType(src) ~= jobType then return { success = false, error = 'Unauthorized' } end
         return { success = true, data = cached }
     end
 
