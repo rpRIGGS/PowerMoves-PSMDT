@@ -48,7 +48,9 @@ end
 -- source, not proof of where they worked on the incident date. Unknown or
 -- unsupported employers remain unassigned for authorized IA triage.
 local function allegedEmployeeAgency(citizenid)
-    if type(citizenid) ~= 'string' or citizenid == '' then return nil, 'police' end
+    if type(citizenid) ~= 'string' or not citizenid:find('%S') or #citizenid > 64 then
+        return nil, 'police'
+    end
     local encoded = MySQL.scalar.await('SELECT job FROM players WHERE citizenid = ? LIMIT 1', {citizenid})
     if type(encoded) ~= 'string' then return nil, 'police' end
     local ok, job = pcall(json.decode, encoded)
