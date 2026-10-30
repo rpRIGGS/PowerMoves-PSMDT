@@ -950,8 +950,8 @@ ps.registerCallback('ps-mdt:server:fireOfficer', function(source, payload)
     end
     local citizenid = payload.citizenid
 
-    if type(citizenid) ~= 'string' or citizenid == '' then
-        return { success = false, message = 'Missing citizen ID' }
+    if type(citizenid) ~= 'string' or not citizenid:find('%S') or #citizenid > 64 then
+        return { success = false, message = 'Invalid citizen ID' }
     end
 
     if not CanManageMdtPersonnel(src, citizenid) then
