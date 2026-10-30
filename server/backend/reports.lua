@@ -847,7 +847,8 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
     end
 
     if not CheckAuth(src) or not CheckPermission(src, 'reports_create')
-        or ps.getIdentifier(src) ~= identifier or ps.getJobName(src) ~= originatingJob then
+        or ps.getIdentifier(src) ~= identifier or ps.getJobName(src) ~= originatingJob
+        or getEffectiveJobType(src) == nil then
         return { success = false, error = 'Report author authorization changed' }
     end
     if reportId and not checkReportWriteAccess(src, reportId, 'reports_create') then
