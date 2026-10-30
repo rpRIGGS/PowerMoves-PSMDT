@@ -270,7 +270,7 @@ ps.registerCallback(resourceName .. ':server:getCase', function(source, caseId)
         SELECT id, content, author_name, created_at
         FROM mdt_case_notes
         WHERE case_id = ?
-        ORDER BY created_at DESC
+        ORDER BY created_at DESC, id DESC
     ]], { caseId })
 
     -- Each detail section is queried separately; reject stale grants, duty
