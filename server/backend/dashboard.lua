@@ -375,6 +375,10 @@ local function computeActiveBolos(src)
         end
     end
     if not CheckAuth(src) or not CheckPermission(src, 'bolos_view') then return {} end
+    for _, entry in ipairs(result) do
+        if tonumber(entry.reportId) and (type(CanReadMdtReport) ~= 'function'
+            or not CanReadMdtReport(src, tonumber(entry.reportId))) then return {} end
+    end
     return result
 end
 
