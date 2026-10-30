@@ -690,6 +690,9 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
         end
         local compId = tonumber(r.competency_id)
         local rating = tonumber(r.rating)
+        if r.notes ~= nil and (type(r.notes) ~= 'string' or #r.notes > 2000) then
+            return { success = false, error = 'Invalid rating notes' }
+        end
         if compId and rating and compId > 0 and compId % 1 == 0
             and rating >= 1 and rating <= 5 and rating % 1 == 0 then
             MySQL.insert.await([[
