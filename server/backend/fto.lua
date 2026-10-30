@@ -300,6 +300,7 @@ ps.registerCallback(resourceName .. ':server:getFTO', function(source, data)
     end
 
     if not CheckAuth(src) or ps.getIdentifier(src) ~= citizenId
+        or not canAccessFTORecord(src, assignmentId)
         or entry.job_type ~= getFTODomain(src) or entry.agency_job ~= ps.getJobName(src)
         or (not CheckPermission(src, 'fto_view')
             and entry.trainee_citizenid ~= citizenId and entry.trainer_citizenid ~= citizenId) then
