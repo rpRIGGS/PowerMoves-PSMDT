@@ -506,7 +506,8 @@ ps.registerCallback(resourceName..':server:getReport', function(source, reportid
 
             local lookupRows = MySQL.query.await(lookupQuery, cidList)
             local cidInfo = {}
-            for _, row in ipairs(lookupRows) do
+            for _, row in ipairs(type(lookupRows) == 'table' and lookupRows or {}) do
+                if type(row) == 'table' and type(row.citizenid) == 'string' then
                 cidInfo[row.citizenid] = {
                     name = row.fullname,
                     image = row.image,
