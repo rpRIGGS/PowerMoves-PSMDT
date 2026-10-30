@@ -240,7 +240,7 @@ end
 local function buildReportAnalyticsClause(filters)
 	local clauses = {}
 	local values = {}
-	if not filters then
+	if type(filters) ~= 'table' then
 		return '', values
 	end
 
