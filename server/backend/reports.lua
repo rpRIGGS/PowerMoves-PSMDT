@@ -798,7 +798,8 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
     local reportId = reportData.report and tonumber(reportData.report.id) or nil
     local reportType = reportData.report and reportData.report.type or 'Incident Report'
     local creatorEmployer = originatingJob
-    if type(creatorEmployer) ~= 'string' or creatorEmployer == '' then
+    if type(creatorEmployer) ~= 'string' or not creatorEmployer:find('%S')
+        or #creatorEmployer > 64 then
         return { success = false, error = 'Missing employing agency' }
     end
     if reportId and (reportId ~= reportId or reportId == math.huge
