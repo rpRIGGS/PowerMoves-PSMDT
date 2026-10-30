@@ -202,7 +202,8 @@ local function buildReportFilterClause(filters)
         values[#values + 1] = likeQuery
     end
 
-    if hasValue(filters.type) then
+    if hasValue(filters.type) and type(filters.type) == 'string'
+        and #filters.type <= 80 then
         clauses[#clauses + 1] = 'mr.type = ?'
         values[#values + 1] = filters.type
     end
