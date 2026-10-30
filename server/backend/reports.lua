@@ -165,7 +165,8 @@ local function normalizeDateFilter(value)
         return nil
     end
     if type(value) ~= 'string' or #value ~= 10 then return nil end
-    local year, month, day = value:match('^(%d%d%d%d)%-(%d%d)%-(%d%d)    if not year then return nil end
+    local year, month, day = value:match('^(%d%d%d%d)%-(%d%d)%-(%d%d)')
+    if not year then return nil end
     local y, m, d = tonumber(year), tonumber(month), tonumber(day)
     if y < 1970 or y > 2100 or m < 1 or m > 12 or d < 1 or d > 31 then return nil end
     local maxDays = ({31, (y % 4 == 0 and (y % 100 ~= 0 or y % 400 == 0)) and 29 or 28,
