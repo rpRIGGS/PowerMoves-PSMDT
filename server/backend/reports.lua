@@ -775,7 +775,7 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
         return { success = false, error = 'Invalid report data' }
     end
     local title = reportData.report and reportData.report.title
-    if not title or title == "" then
+    if type(title) ~= 'string' or not title:find('%S') or #title > 255 then
         ps.notify(src, 'Failed to save Report: Needs a title', 'error')
         ps.warn('Report with missing/empty title from player: ' .. src .. ' Name: ' .. playerName)
         return { success = false, error = 'Report needs a title' }
