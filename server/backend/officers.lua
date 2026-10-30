@@ -146,6 +146,9 @@ ps.registerCallback(resourceName .. ':server:getUnitLocation', function(source, 
     if not QBCore then return {} end
     local Player = QBCore.Functions.GetPlayerByCitizenId(cid)
     if Player then
+        if not CheckAuth(source) or (cid ~= ps.getIdentifier(source)
+            and (not CheckPermission(source, 'roster_manage_officers')
+                or not CanManageMdtPersonnel(source, cid))) then return {} end
         local coords = GetEntityCoords(GetPlayerPed(Player.PlayerData.source))
         return { x = coords.x, y = coords.y, z = coords.z }
     end
