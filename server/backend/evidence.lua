@@ -203,7 +203,9 @@ ps.registerCallback(resourceName .. ':server:searchEvidenceItems', function(sour
     local offset = (page - 1) * limit
 
     local scopeParams = evidenceReadParams(src)
-    if not scopeParams then return { success = false, error = 'Unauthorized' } end
+    if not scopeParams or not CheckPermission(src, 'evidence_view') then
+        return { success = false, error = 'Unauthorized' }
+    end
     local searchParams = { likeQuery, likeQuery, likeQuery, likeQuery, likeQuery }
     for _, param in ipairs(scopeParams) do searchParams[#searchParams + 1] = param end
     local totalRow = MySQL.single.await(([[
