@@ -43,8 +43,11 @@ ps.registerCallback(resourceName .. ':server:getEvidenceItems', function(source,
     local src = source
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_view') then return { success = false, error = 'Unauthorized' } end
 
-    page = math.floor(math.max(1, math.min(tonumber(page) or 1, 100000)))
-    limit = math.floor(math.max(1, math.min(tonumber(limit) or 20, 100)))
+    page, limit = tonumber(page) or 1, tonumber(limit) or 20
+    if page ~= page or page == math.huge or page == -math.huge then page = 1 end
+    if limit ~= limit or limit == math.huge or limit == -math.huge then limit = 20 end
+    page = math.floor(math.max(1, math.min(page, 100000)))
+    limit = math.floor(math.max(1, math.min(limit, 100)))
     local offset = (page - 1) * limit
 
     if filters ~= nil and type(filters) ~= 'table' then
