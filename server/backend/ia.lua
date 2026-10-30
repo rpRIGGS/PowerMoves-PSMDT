@@ -32,6 +32,7 @@ local function canAccessIARecord(src, record)
     if not record or not canViewIA(src) then return false end
     if record.job_type ~= GetMdtDomain(src) then return false end
     local actorJob = ps.getJobName(src)
+    if type(actorJob) ~= 'string' or not actorJob:find('%S') then return false end
     return (record.agency ~= nil and record.agency == actorJob)
         or (actorJob == 'sadle' and record.job_type == 'police')
 end
