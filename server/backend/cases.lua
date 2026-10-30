@@ -702,6 +702,10 @@ ps.registerCallback(resourceName .. ':server:addCaseAttachmentUpload', function(
         return { success = false, error = 'Upload failed: ' .. tostring(uploadError or 'Invalid URL') }
     end
 
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_edit')
+        or not canAccessCaseId(src, caseId) then
+        return { success = false, error = 'Authorization changed' }
+    end
     local attachmentId = MySQL.insert.await([[
         INSERT INTO mdt_case_attachments (case_id, type, url, label, uploaded_by)
         VALUES (?, ?, ?, ?, ?)
