@@ -806,7 +806,13 @@ local function setOfficerJob(targetSrc, jobName, grade)
         local Player = QBCore.Functions.GetPlayer(targetSrc)
         if Player and Player.Functions and Player.Functions.SetJob then
             local sok, result = pcall(function() return Player.Functions.SetJob(jobName, grade) end)
-            if sok and result ~= false then return true end
+            if sok and result ~= false then
+                local updated = QBCore.Functions.GetPlayer(targetSrc)
+                local data = updated and updated.PlayerData and updated.PlayerData.job
+                local actualGrade = data and data.grade
+                actualGrade = type(actualGrade) == 'table' and actualGrade.level or actualGrade
+                return data ~= nil and data.name == jobName and tonumber(actualGrade) == grade
+            end
         end
     end
 
