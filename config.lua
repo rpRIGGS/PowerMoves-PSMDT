@@ -393,7 +393,7 @@ Config.PublicServices = {
 -- To switch systems you normally ONLY change `Config.Housing.system`.
 Config.Housing = {
     enabled = true,             -- false = hide the properties feature entirely (no housing DB queries are run)
-    system  = 'qbx_properties', -- which preset below to use, or 'custom'
+    system  = 'ps_housing', -- PowerMoves uses ps-housing; change to another preset if needed
 
     -- Presets: ready-made schema mappings for popular housing resources.
     -- `columns` maps the MDT's internal fields to your table's real columns:
