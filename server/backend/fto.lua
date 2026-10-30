@@ -642,6 +642,10 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
     local citizenId = ps.getIdentifier(src)
     local profile = MySQL.single.await('SELECT fullname FROM mdt_profiles WHERE citizenid = ?', { citizenId })
     local authorName = profile and profile.fullname or 'Unknown'
+    if not CheckAuth(src) or not CheckPermission(src, 'fto_manage')
+        or ps.getIdentifier(src) ~= citizenId or not canAccessFTORecord(src, assignmentId) then
+        return { success = false, error = 'Authorization changed' }
+    end
 
     local dorId = MySQL.insert.await([[
         INSERT INTO mdt_fto_dors (assignment_id, phase_id, author_citizenid, author_name, shift_date, overall_rating, notes)
