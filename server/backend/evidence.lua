@@ -61,7 +61,9 @@ ps.registerCallback(resourceName .. ':server:getEvidenceItems', function(source,
         return { success = false, error = 'Invalid evidence filters' }
     end
     local scopeParams = evidenceReadParams(src)
-    if not scopeParams then return { success = false, error = 'Unauthorized' } end
+    if not scopeParams or not CheckAuth(src) or not CheckPermission(src, 'evidence_view') then
+        return { success = false, error = 'Unauthorized' }
+    end
     local queryParts = { evidenceReadScope }
     local values = scopeParams
 
