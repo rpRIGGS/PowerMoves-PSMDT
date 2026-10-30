@@ -182,7 +182,7 @@ local function buildReportFilterClause(filters)
     end
 
     if hasValue(filters.search) and type(filters.search) == 'string'
-        and #filters.search <= 200 then
+        and #filters.search <= 200 and not filters.search:find('%z') then
         local likeQuery = '%' .. tostring(filters.search) .. '%'
         clauses[#clauses + 1] = [[
             (
