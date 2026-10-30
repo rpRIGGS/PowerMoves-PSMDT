@@ -270,6 +270,10 @@ ps.registerCallback(resourceName .. ':server:addEvidenceItem', function(source, 
         or (reportId and (type(CanReadMdtReport) ~= 'function' or not CanReadMdtReport(src, reportId))) then
         return { success = false, error = 'Evidence authorization changed' }
     end
+    local collector = ps.getIdentifier(src)
+    if type(collector) ~= 'string' or collector == '' then
+        return { success = false, error = 'Missing collector identity' }
+    end
     local evidenceId = MySQL.insert.await([[
         INSERT INTO mdt_evidence_items
         (case_id, report_id, title, type, serial, notes, location, stash_id, stored, last_holder, created_by)
