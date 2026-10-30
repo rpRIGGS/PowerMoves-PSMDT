@@ -102,7 +102,10 @@ ps.registerCallback(resourceName .. ':server:createCase', function(source, paylo
     end
 
     local caseNumber = buildCaseNumber(caseId)
-    MySQL.update.await('UPDATE mdt_cases SET case_number = ? WHERE id = ?', { caseNumber, caseId })
+    local numbered = MySQL.update.await('UPDATE mdt_cases SET case_number = ? WHERE id = ?', { caseNumber, caseId })
+    if not numbered or numbered < 1 then
+        return { success = false, error = 'Failed to assign case number' }
+    end
 
     if ps.auditLog then
         ps.auditLog(src, 'case_created', 'case', caseId, {
