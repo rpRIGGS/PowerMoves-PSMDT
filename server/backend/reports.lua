@@ -890,7 +890,7 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
             reportId
         })
 
-        if not updateSuccess or updateSuccess == 0 then
+        if type(updateSuccess) ~= 'number' or updateSuccess < 1 then
             ps.notify(src, 'Failed to save Report', 'error')
             ps.warn(('[Failed to save] Player [%s] %s tried to save a report (%s). Update failed.')
                 :format(src, playerName, reportId))
