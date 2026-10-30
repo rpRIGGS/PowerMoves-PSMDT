@@ -872,7 +872,8 @@ ps.registerCallback(resourceName .. ':server:grantEvidenceDisclosure', function(
         SELECT JSON_UNQUOTE(JSON_EXTRACT(job, '$.name'))
         FROM players WHERE citizenid = ? LIMIT 1
     ]],{recipientCid})
-    if not recipientJob or recipientJob=='' or not CheckAuth(src)
+    if type(recipientJob) ~= 'string' or not recipientJob:find('%S')
+        or #recipientJob > 64 or not CheckAuth(src)
         or not CheckPermission(src,'evidence_transfer')
         or ps.getIdentifier(src)~=actor or ps.getJobName(src)~=employer
         or not canEditEvidenceRecord(src,id) then
