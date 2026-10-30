@@ -497,7 +497,10 @@ ps.registerCallback(resourceName .. ':server:advanceFTOPhase', function(source, 
 
     if type(data) ~= 'table' then return { success = false, error = 'Invalid phase request' } end
     local assignmentId = tonumber(data.assignment_id)
-    local direction = data.direction == 'back' and 'back' or 'next'
+    local direction = data.direction or 'next'
+    if direction ~= 'next' and direction ~= 'back' then
+        return { success = false, error = 'Invalid direction' }
+    end
     if not assignmentId then return { success = false, error = 'Invalid assignment' } end
 
     local a = MySQL.single.await(
