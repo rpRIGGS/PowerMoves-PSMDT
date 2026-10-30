@@ -169,6 +169,9 @@ ps.registerCallback(resourceName .. ':server:issueWarrant', function(source, dat
     if expiryDate and expiryDate <= os.date('%Y-%m-%d %H:%M:%S') then
         return { success = false, error = 'Warrant expiry must be in the future' }
     end
+    if data.expirydate ~= nil and not expiryDate then
+        return { success = false, error = 'Invalid warrant expiry' }
+    end
     if not expiryDate then
         local defaultDays = (Config and Config.Warrants and Config.Warrants.DefaultExpiryDays) or 7
         defaultDays = tonumber(defaultDays)
