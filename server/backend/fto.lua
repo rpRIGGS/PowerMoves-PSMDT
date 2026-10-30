@@ -180,7 +180,10 @@ ps.registerCallback(resourceName .. ':server:getFTO', function(source, data)
     if not CheckAuth(src) then return { success = false } end
 
     local assignmentId = tonumber(data)
-    if not assignmentId then return { success = false, error = 'Invalid ID' } end
+    if not assignmentId or assignmentId ~= assignmentId or assignmentId == math.huge
+        or assignmentId <= 0 or assignmentId % 1 ~= 0 then
+        return { success = false, error = 'Invalid ID' }
+    end
 
     local entry = MySQL.single.await([[
         SELECT a.*, p.name AS current_phase
