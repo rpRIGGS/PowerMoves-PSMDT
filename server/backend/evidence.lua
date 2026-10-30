@@ -134,7 +134,7 @@ ps.registerCallback(resourceName .. ':server:searchEvidenceItems', function(sour
 
     local _, likeQuery = NormalizeSearch(query)
     page = math.floor(math.max(1, math.min(tonumber(page) or 1, 100000)))
-    limit = tonumber(limit) or 20
+    limit = math.floor(math.max(1, math.min(tonumber(limit) or 20, 100)))
     if not likeQuery then
         return { success = true, data = { items = {}, total = 0, page = 1, limit = limit } }
     end
