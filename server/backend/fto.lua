@@ -50,7 +50,15 @@ ps.registerCallback(resourceName .. ':server:saveFTOPhases', function(source, ph
     if not CheckPermission(src, 'fto_manage') then return { success = false, error = 'No permission' } end
     local job = ps.getJobName(src)
     if not job then return { success = false, error = 'Missing agency' } end
-    phases = phases or {}
+    if type(phases) ~= 'table' or #phases > 100 then
+        return { success = false, error = 'Invalid phase list' }
+    end
+    for _, phase in ipairs(phases) do
+        if type(phase) ~= 'table' or type(phase.name) ~= 'string'
+            or phase.name == '' or #phase.name > 255 then
+            return { success = false, error = 'Invalid phase' }
+        end
+    end
 
     MySQL.query.await('DELETE FROM mdt_fto_phases WHERE job = ?', { job })
     for i, phase in ipairs(phases) do
