@@ -382,7 +382,8 @@ ps.registerCallback(resourceName .. ':server:getReports', function(source, page,
         return { reports = {}, total = 0 }
     end
 
-    return { reports = reports or {}, total = total }
+    if type(reports) ~= 'table' then return { reports = {}, total = 0 } end
+    return { reports = reports, total = total }
 end)
 
 ps.registerCallback(resourceName..':server:getReport', function(source, reportid)
