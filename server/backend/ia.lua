@@ -612,7 +612,7 @@ ps.registerCallback(resourceName .. ':server:assignIAComplaint', function(source
         complaintId
     })
 
-    return { success = affected ~= nil }
+    return { success = type(affected) == 'number' and affected > 0 }
 end)
 
 -- Add a note to an IA complaint
