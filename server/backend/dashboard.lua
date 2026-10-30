@@ -236,6 +236,7 @@ local function computeEmsBulletins(snapshot)
 end
 
 registerDashboardRead('getBulletins', function(src, snapshot)
+    if not snapshot.permissions.bulletin_view then return {} end
     -- This legacy management endpoint has no department column. Never mix
     -- exact-job board-post IDs with legacy global create/delete operations.
     if snapshot.jobType ~= 'leo' and snapshot.jobType ~= 'doj' then return {} end
