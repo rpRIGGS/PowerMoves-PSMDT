@@ -656,7 +656,8 @@ ps.registerCallback(resourceName .. ':server:addEvidenceImage', function(source,
         VALUES (?, ?, ?, ?)
     ]], { evidenceId, url, label, uploader })
 
-    if type(imageId) ~= 'number' or imageId <= 0 then
+    if type(imageId) ~= 'number' or imageId ~= imageId
+        or imageId == math.huge or imageId <= 0 or imageId % 1 ~= 0 then
         return { success = false, error = 'Failed to add image' }
     end
 
