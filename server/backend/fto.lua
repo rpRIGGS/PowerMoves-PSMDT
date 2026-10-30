@@ -802,6 +802,9 @@ ps.registerCallback(resourceName .. ':server:deleteFTODor', function(source, dor
 end))) then
         return { success = false, error = 'Invalid start date' }
     end
+    if data.notes ~= nil and (type(data.notes) ~= 'string' or #data.notes > 20000) then
+        return { success = false, error = 'Invalid assignment notes' }
+    end
     -- Only one open (active or suspended) assignment per trainee.
     local existing = MySQL.single.await(
         "SELECT id FROM mdt_fto_assignments WHERE trainee_citizenid = ? AND status IN ('active','suspended') LIMIT 1",
