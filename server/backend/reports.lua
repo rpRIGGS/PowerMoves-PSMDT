@@ -929,7 +929,10 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
         end
     end
 
-    if reportData.charges and #reportData.charges > 0 then
+    if reportData.charges ~= nil and type(reportData.charges) ~= 'table' then
+        return { success = false, error = 'Invalid report charges' }
+    end
+    if type(reportData.charges) == 'table' and #reportData.charges > 0 then
         for _, charge in ipairs(reportData.charges) do
             table.insert(attachmentQueries, {
                 query = "INSERT INTO mdt_reports_charges (reportid, citizenid, charge, count, time, fine) VALUES (?, ?, ?, ?, ?, ?)",
