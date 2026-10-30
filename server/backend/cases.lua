@@ -224,7 +224,8 @@ ps.registerCallback(resourceName .. ':server:getCase', function(source, caseId)
 
     local scope = getCaseScope(src)
     local actorCid = ps.getIdentifier(src)
-    if not scope or not actorCid then return { success = false, error = 'Unauthorized' } end
+    if not scope or type(actorCid) ~= 'string' or not actorCid:find('%S')
+        or #actorCid > 64 then return { success = false, error = 'Unauthorized' } end
     local caseRow = MySQL.single.await('SELECT * FROM mdt_cases WHERE id = ?', { caseId })
     if not caseRow or (not scope.statewide and caseRow.assigned_department ~= scope.agency
         and not hasCaseDisclosure(src, caseId)) then
