@@ -306,6 +306,9 @@ ps.registerCallback(resourceName .. ':server:deleteBulletin', function(source, p
         return { success = false, message = 'Bulletin not found' }
     end
     Cache.invalidate('dashboard:bulletins')
+    if ps.auditLog then
+        ps.auditLog(src, 'bulletin_deleted', 'bulletin', id, {job=snapshot.job})
+    end
     return { success = true }
 end)
 
