@@ -339,7 +339,8 @@ ps.registerCallback(resourceName .. ':server:createFTOAssignment', function(sour
         or #data.trainee_citizenid > 64 then
         return { success = false, error = 'Trainee is required' }
     end
-    if not data.trainer_citizenid or data.trainer_citizenid == '' then
+    if type(data.trainer_citizenid) ~= 'string' or data.trainer_citizenid == ''
+        or #data.trainer_citizenid > 64 then
         return { success = false, error = 'Trainer is required' }
     end
     -- Departmental FTO is not a statewide academy assignment. Both trainee
