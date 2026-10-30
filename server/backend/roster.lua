@@ -796,15 +796,9 @@ end)
 -- QBX first (the roster already uses qbx_core), then fall back to QBCore.
 ---@return boolean ok
 local function setOfficerJob(targetSrc, jobName, grade)
-    grade = tonumber(grade) or 0
-
-    if GetResourceState('qbx_core') == 'started' and exports['qbx_core'] then
-        local ok, res = pcall(function()
-            return exports['qbx_core']:SetJob(targetSrc, jobName, grade)
-        end)
-        -- QBX returns true on success (and may return nil on older builds).
-        if ok and res ~= false then return true end
-    end
+    grade = tonumber(grade)
+    if not grade or grade < 0 or grade % 1 ~= 0 then return false end
+    if GetResourceState('qb-core') ~= 'started' then return false end
 
     local ok, QBCore = pcall(function() return exports['qb-core']:GetCoreObject() end)
     if ok and QBCore and QBCore.Functions then
