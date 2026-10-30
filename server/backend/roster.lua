@@ -754,8 +754,8 @@ ps.registerCallback('ps-mdt:server:updateOfficerCertifications', function(source
     local citizenid = payload.citizenid
     local certifications = payload.certifications
 
-    if type(citizenid) ~= 'string' or citizenid == ''
-        or type(certifications) ~= 'table' then
+    if type(citizenid) ~= 'string' or not citizenid:find('%S')
+        or #citizenid > 64 or type(certifications) ~= 'table' then
         return { success = false, message = 'Invalid payload' }
     end
 
