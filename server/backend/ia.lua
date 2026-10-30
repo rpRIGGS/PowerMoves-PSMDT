@@ -643,8 +643,8 @@ ps.registerCallback(resourceName .. ':server:deleteIANote', function(source, not
     if not canManageIA(src) or not ownsIAComplaint(src, complaintId) then
         return { success = false, error = 'Authorization changed' }
     end
-    MySQL.query.await('DELETE FROM mdt_ia_notes WHERE id = ? AND complaint_id = ?', { noteId, complaintId })
-    return { success = true }
+    local affected = MySQL.update.await('DELETE FROM mdt_ia_notes WHERE id = ? AND complaint_id = ?', { noteId, complaintId })
+    return { success = type(affected) == 'number' and affected > 0 }
 end)
 
 -- Stage 4: local IA referrals to SADLE. This additive queue does not transfer
