@@ -400,6 +400,9 @@ ps.registerCallback(resourceName .. ':server:createFTOAssignment', function(sour
         return { success = false, error = 'Trainee and trainer must belong to your department' }
     end
 
+    if data.notes ~= nil and (type(data.notes) ~= 'string' or #data.notes > 20000) then
+        return { success = false, error = 'Invalid assignment notes' }
+    end
     if data.start_date ~= nil and (type(data.start_date) ~= 'string'
         or not data.start_date:match('^%d%d%d%d%-%d%d%-%d%d$')) then
         return { success = false, error = 'Invalid assignment start date' }
