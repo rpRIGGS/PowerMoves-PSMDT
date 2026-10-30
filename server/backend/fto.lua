@@ -265,6 +265,7 @@ end)
 -- that the FTO list already applies. Agency-specific grants will be a
 -- separate step before cross-agency accreditation access is enabled.
 local function canAccessFTORecord(src, assignmentId)
+    if not CheckAuth(src) then return false end
     local row = MySQL.single.await(
         'SELECT job_type, agency_job FROM mdt_fto_assignments WHERE id = ? LIMIT 1',
         {assignmentId}
