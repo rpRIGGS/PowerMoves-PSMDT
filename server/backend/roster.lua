@@ -774,6 +774,10 @@ ps.registerCallback('ps-mdt:server:getJobGrades', function(source, payload)
     if jobName ~= ps.getJobName(src) then return {} end
 
     local jobData = ps.getSharedJob(jobName)
+    if not jobData or not jobData.grades then
+        local ok, core = pcall(function() return exports['qb-core']:GetCoreObject() end)
+        jobData = ok and core and core.Shared and core.Shared.Jobs and core.Shared.Jobs[jobName]
+    end
     if not jobData or not jobData.grades then return {} end
 
     local grades = {}
