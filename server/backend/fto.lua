@@ -680,6 +680,9 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
         return { success = false, error = 'Invalid ratings list' }
     end
     for _, r in ipairs(ratings) do
+        if type(r) ~= 'table' then
+            return { success = false, error = 'Invalid rating entry' }
+        end
         local compId = tonumber(r.competency_id)
         local rating = tonumber(r.rating)
         if compId and rating then
