@@ -852,7 +852,8 @@ ps.registerCallback('ps-mdt:server:promoteOfficer', function(source, payload)
     local citizenid = payload.citizenid
     local jobName = payload.job
     local newGrade = tonumber(payload.grade)
-    if type(citizenid) ~= 'string' or type(jobName) ~= 'string' then
+    if type(citizenid) ~= 'string' or not citizenid:find('%S') or #citizenid > 64
+        or type(jobName) ~= 'string' or not jobName:find('%S') or #jobName > 64 then
         return { success = false, message = 'Invalid identifiers' }
     end
 
