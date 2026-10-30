@@ -261,7 +261,8 @@ ps.registerCallback(resourceName .. ':server:createBulletin', function(source, p
     end
 
     local inserted = MySQL.insert.await('INSERT INTO mdt_bulletins (content) VALUES (?)', { content })
-    if not inserted then
+    if type(inserted) ~= 'number' or inserted ~= inserted
+        or inserted == math.huge or inserted == -math.huge or inserted <= 0 then
         return { success = false, message = 'Failed to create bulletin' }
     end
 
