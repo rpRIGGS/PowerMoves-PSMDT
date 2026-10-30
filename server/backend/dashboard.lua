@@ -274,6 +274,9 @@ ps.registerCallback(resourceName .. ':server:createBulletin', function(source, p
     end
 
     Cache.invalidate('dashboard:bulletins')
+    if ps.auditLog then
+        ps.auditLog(src, 'bulletin_created', 'bulletin', inserted, {job=snapshot.job})
+    end
     return { success = true, id = inserted }
 end)
 
