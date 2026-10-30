@@ -536,7 +536,7 @@ ps.registerCallback(resourceName .. ':server:updateIAStatus', function(source, c
         return { success = false, error = 'Authorization changed' }
     end
     local ok, err = pcall(MySQL.update.await, 'UPDATE mdt_ia_complaints SET status = ? WHERE id = ?', { status, complaintId })
-    if not ok then
+    if not ok or err == nil then
         ps.warn('[updateIAStatus] Failed: ' .. tostring(err))
         return { success = false, error = 'Failed to update status: ' .. tostring(err) }
     end
