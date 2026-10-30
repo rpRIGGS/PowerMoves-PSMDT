@@ -1232,6 +1232,11 @@ ps.registerCallback(resourceName..':server:updateReportContent', function(source
         -- and original jobtype visibility together, or discard this new draft.
         local employer = ps.getJobName(src)
         local frameworkType = getEffectiveJobType(src)
+        if ps.getIdentifier(src) ~= identifier or not CheckAuth(src)
+            or not CheckPermission(src, 'reports_create') then
+            MySQL.update.await('DELETE FROM mdt_reports WHERE id = ?', { insertResult })
+            return { success = false, error = 'Draft author changed' }
+        end
         if type(employer) ~= 'string' or not employer:find('%S')
             or #employer > 64 or not frameworkType then
             MySQL.update.await('DELETE FROM mdt_reports WHERE id = ?', { insertResult })
