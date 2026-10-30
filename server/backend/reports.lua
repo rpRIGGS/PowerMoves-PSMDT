@@ -1626,7 +1626,7 @@ ps.registerCallback(resourceName .. ':server:getDisclosedReports', function(sour
     ]],{actor,employer})
     if not CheckAuth(src) or not CheckPermission(src,'reports_view')
         or ps.getIdentifier(src)~=actor or ps.getJobName(src)~=employer then return {} end
-    return ok and rows or {}
+    return ok and type(rows) == 'table' and rows or {}
 end)
 
 ps.registerCallback(resourceName .. ':server:getReportDisclosures', function(source, reportId)
