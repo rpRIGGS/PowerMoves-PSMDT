@@ -436,6 +436,9 @@ ps.registerCallback(resourceName .. ':server:transferEvidenceItem', function(sou
         return { success = false, error = 'Invalid evidence transfer' }
     end
 
+    if notes ~= nil and (type(notes) ~= 'string' or #notes > 20000) then
+        return { success = false, error = 'Invalid transfer notes' }
+    end
     local fromCitizenId = ps.getIdentifier(src)
     MySQL.update.await('UPDATE mdt_evidence_items SET last_holder = ? WHERE id = ?', { toCitizenId, evidenceId })
 
