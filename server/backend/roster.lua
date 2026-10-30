@@ -89,7 +89,7 @@ local function buildRosterFromQbx(jobList, matchFn, defaultDept)
             if matchFn(job.name, job.type) then
             local callsign = data.metadata and data.metadata.callsign or 'N/A'
             local fullname = data.charinfo and (data.charinfo.firstname .. ' ' .. data.charinfo.lastname) or 'Unknown'
-            local rank = job.grade and job.grade.name or 'Officer'
+            local rank = job.grade and job.grade.name or (job.name and job.grade and ps.getSharedJobGradeData(job.name, job.grade.level or job.grade.grade or job.grade, 'name')) or 'Unknown Rank'
             local department = job.name or defaultDept
             local departmentLabel = deptLabel(job.name, job) or department
             local certifications = getCertifications(citizenid)
