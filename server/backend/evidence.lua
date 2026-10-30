@@ -732,7 +732,7 @@ ps.registerCallback(resourceName .. ':server:linkEvidenceToCase', function(sourc
     end
 
     local numericCaseId = tonumber(caseId)
-    if not numericCaseId and type(caseId) == 'string' and caseId ~= '' and #caseId <= 64 then
+    if not numericCaseId and type(caseId) == 'string' and caseId:find('%S') and #caseId <= 64 then
         local row = MySQL.single.await('SELECT id FROM mdt_cases WHERE case_number = ? LIMIT 1', { caseId })
         if row then
             numericCaseId = row.id
