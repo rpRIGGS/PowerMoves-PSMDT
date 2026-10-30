@@ -638,6 +638,9 @@ ps.registerCallback(resourceName .. ':server:setFTOStatus', function(source, dat
     local a = MySQL.single.await('SELECT id, trainee_name FROM mdt_fto_assignments WHERE id = ?', { assignmentId })
     if not a then return { success = false, error = 'Assignment not found' } end
     if not canAccessFTORecord(src, assignmentId) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'fto_manage') then
+        return { success = false, error = 'Authorization changed' }
+    end
 
     if status == 'active' then
         -- Reactivating clears the end date.
