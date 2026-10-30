@@ -313,7 +313,9 @@ ps.registerCallback(resourceName .. ':server:getReports', function(source, page,
     local identifier = ps.getIdentifier(src)
     local job = ps.getJobName(src)
     local jobType = getEffectiveJobType(src)
-    if not identifier or not job or not jobType then return { reports = {}, total = 0 } end
+    if type(identifier) ~= 'string' or not identifier:find('%S') or #identifier > 64
+        or type(job) ~= 'string' or not job:find('%S') or #job > 64
+        or not jobType then return { reports = {}, total = 0 } end
 
     if type(filters) ~= 'table' then filters = nil end
     local requestedPage = tonumber(page) or 1
