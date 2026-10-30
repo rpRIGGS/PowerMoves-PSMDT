@@ -247,6 +247,8 @@ function CanViewStatewideLeoRoster(source)
     -- Database queries yield; verify employment still matches the caller.
     local now = runtimeIdentity(source)
     return now ~= nil and now.jobType == 'leo' and now.gradeValid
+        and now.primaryInterfaceId == 'sadle'
+        and contains(((Config.MdtAccess or {}).LeoRosterOversightJobs) or {}, now.job)
         and now.citizenid == identity.citizenid
         and now.job == identity.job and now.grade == identity.grade
         and now.onDuty == identity.onDuty and GetMdtAccess(source).authorized == true
