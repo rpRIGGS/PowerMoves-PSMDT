@@ -626,7 +626,7 @@ ps.registerCallback(resourceName .. ':server:searchOfficers', function(source, q
         jobClauses[#jobClauses + 1] = "JSON_UNQUOTE(JSON_EXTRACT(p.job, '$.type')) = ?"
         jobParams[#jobParams + 1] = tostring(Config.PoliceJobType)
     end
-    if Config and Config.PoliceJobs and #Config.PoliceJobs > 0 then
+    if Config and type(Config.PoliceJobs) == 'table' and #Config.PoliceJobs > 0 then
         local ph = {}
         for _, job in ipairs(Config.PoliceJobs) do
             ph[#ph + 1] = '?'
