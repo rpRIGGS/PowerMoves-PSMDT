@@ -540,6 +540,9 @@ ps.registerCallback(resourceName .. ':server:assignCaseOfficer', function(source
     end
 
     role = role or 'assisting'
+    if type(role) ~= 'string' or #role > 40 or role == '' then
+        return { success = false, error = 'Invalid officer role' }
+    end
 
     local insertId = MySQL.insert.await([[
         INSERT INTO mdt_case_officers (case_id, citizenid, role, assigned_by)
