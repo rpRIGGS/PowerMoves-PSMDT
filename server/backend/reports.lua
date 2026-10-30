@@ -738,9 +738,11 @@ ps.registerCallback(resourceName .. ':server:searchVehiclesForReport', function(
         LIMIT 25
     ]], { plateLike, likePat, likePat })
 
-    if not CheckAuth(src) or not CheckPermission(src, 'reports_view') then return {} end
+    if not CheckAuth(src) or not CheckPermission(src, 'reports_view')
+        or ps.getIdentifier(src) ~= vehicleActor or ps.getJobName(src) ~= vehicleJob
+        or type(rows) ~= 'table' then return {} end
     local results = {}
-    for _, row in ipairs(rows or {}) do
+    for _, row in ipairs(rows) do
         local vehicleData = vehicleShared and vehicleShared[row.vehicle] or nil
         table.insert(results, {
             plate = row.plate and string.upper(row.plate):gsub('%s+', '') or 'UNKNOWN',
