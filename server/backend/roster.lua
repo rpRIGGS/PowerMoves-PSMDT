@@ -790,10 +790,7 @@ ps.registerCallback('ps-mdt:server:getJobGrades', function(source, payload)
 end)
 
 -- Promote/demote an officer (change their job grade)
--- Set a player's job/grade directly through the active framework.
--- The ps bridge's setJob path depends on a setPlayerData export that isn't
--- present on this server, so promote/terminate calls silently failed. We talk to
--- QBX first (the roster already uses qbx_core), then fall back to QBCore.
+-- Use QBCore for personnel changes; PowerMoves does not use QBX.
 ---@return boolean ok
 local function setOfficerJob(targetSrc, jobName, grade)
     grade = tonumber(grade)
