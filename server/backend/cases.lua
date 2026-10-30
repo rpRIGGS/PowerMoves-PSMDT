@@ -322,6 +322,9 @@ ps.registerCallback(resourceName .. ':server:unlinkReportFromCase', function(sou
         return { success = false, error = 'Invalid report or case' }
     end
 
+    if type(CanReadMdtReport) ~= 'function' or not CanReadMdtReport(src, reportId) then
+        return { success = false, error = 'Report not accessible' }
+    end
     MySQL.query.await('DELETE FROM mdt_case_reports WHERE case_id = ? AND report_id = ?', { caseId, reportId })
     return { success = true }
 end)
