@@ -685,7 +685,7 @@ ps.registerCallback(resourceName .. ':server:referIAComplaintToSADLE', function(
     local record = MySQL.single.await(
         'SELECT agency, job_type FROM mdt_ia_complaints WHERE id = ? LIMIT 1', {id})
     if not record or record.agency ~= job or record.job_type ~= 'police'
-        or not canManageIA(src) then
+        or not canManageIA(src) or ps.getIdentifier(src) ~= cid then
         return {success = false, error = 'Complaint not owned by referring agency'}
     end
     if not iaReferralSchemaReady() then return {success = false, error = 'Referral storage unavailable'} end
