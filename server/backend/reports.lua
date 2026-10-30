@@ -641,7 +641,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:searchVehiclesForReport', function(source, query)
     local src = source
-    if not CheckAuth(src) then return {} end
+    if not CheckAuth(src) or not CheckPermission(src, 'reports_view') then return {} end
 
     -- Consistent, case/space-insensitive normalisation (see NormalizeSearch).
     local _, likePat, plateLike = NormalizeSearch(query)
