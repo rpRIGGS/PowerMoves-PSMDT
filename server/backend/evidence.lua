@@ -883,7 +883,8 @@ ps.registerCallback(resourceName .. ':server:createCaseFromEvidence', function(s
     createdByName = createdByName:gsub('^%s+', ''):gsub('%s+$', '')
 
     local creatorJob = ps.getJobName(src)
-    if type(creatorJob) ~= 'string' or not creatorJob:find('%S') then
+    if type(creatorJob) ~= 'string' or not creatorJob:find('%S')
+        or #creatorJob > 64 or creatorJob:find('%z') then
         return { success = false, error = 'Missing case creator agency' }
     end
     if not CheckAuth(src) or not CheckPermission(src, 'cases_create')
