@@ -168,7 +168,8 @@ local function resolveOfficer(name, badge)
     ]], { name }) or {}
 
     if type(rows) ~= 'table' then return nil end
-    if #rows == 1 then return rows[1].citizenid end
+    if #rows == 1 and type(rows[1].citizenid) == 'string'
+        and rows[1].citizenid:find('%S') then return rows[1].citizenid end
     return nil -- no match, or ambiguous: better unassigned than wrong
 end
 
