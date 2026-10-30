@@ -157,6 +157,9 @@ ps.registerCallback(resourceName .. ':server:issueWarrant', function(source, dat
     end
     if not expiryDate then
         local defaultDays = (Config and Config.Warrants and Config.Warrants.DefaultExpiryDays) or 7
+        defaultDays = tonumber(defaultDays)
+        if not defaultDays or defaultDays ~= defaultDays or defaultDays < 1
+            or defaultDays > 3650 then defaultDays = 7 end
         expiryDate = os.date('%Y-%m-%d %H:%M:%S', os.time() + (defaultDays * 24 * 60 * 60))
     end
 
