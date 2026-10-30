@@ -362,7 +362,7 @@ ps.registerCallback(resourceName .. ':server:getOfficerFTOHistory', function(sou
         FROM mdt_fto_assignments a
         LEFT JOIN mdt_fto_phases p ON a.current_phase_id = p.id
         WHERE a.trainee_citizenid = ? AND a.job_type = ? AND a.agency_job = ?
-        ORDER BY a.created_at DESC
+        ORDER BY a.created_at DESC, a.id DESC
         LIMIT 150
     ]], { officerCitizenId, getFTODomain(src), ps.getJobName(src) })
 
