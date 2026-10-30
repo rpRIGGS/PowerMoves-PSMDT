@@ -1008,7 +1008,7 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
         end
     end
 
-    if reportData.restrictions and #reportData.restrictions > 0 then
+    if type(reportData.restrictions) == 'table' and #reportData.restrictions > 0 then
         for _, restriction in ipairs(reportData.restrictions) do
             -- Ownership comes from the server, never an edited client payload.
             if restriction.type ~= 'owner' then
