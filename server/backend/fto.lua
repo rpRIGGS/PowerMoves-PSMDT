@@ -651,7 +651,8 @@ ps.registerCallback(resourceName .. ':server:setFTOStatus', function(source, dat
             { status, os.date('%Y-%m-%d'), assignmentId })
         if not changed or changed < 1 then return { success = false, error = 'Status was not saved' } end
     else -- suspended
-        MySQL.update.await('UPDATE mdt_fto_assignments SET status = ? WHERE id = ?', { status, assignmentId })
+        local changed = MySQL.update.await('UPDATE mdt_fto_assignments SET status = ? WHERE id = ?', { status, assignmentId })
+        if not changed or changed < 1 then return { success = false, error = 'Status was not saved' } end
     end
 
     if ps.auditLog then ps.auditLog(src, 'fto_status_' .. status, 'fto', assignmentId, { trainee = a.trainee_name }) end
