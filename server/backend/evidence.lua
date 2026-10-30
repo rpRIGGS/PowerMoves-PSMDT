@@ -562,7 +562,7 @@ ps.registerCallback(resourceName .. ':server:addEvidenceImage', function(source,
     local imageId = MySQL.insert.await([[
         INSERT INTO mdt_evidence_images (evidence_id, url, label, uploaded_by)
         VALUES (?, ?, ?, ?)
-    ]], { evidenceId, url, label, ps.getIdentifier(src) })
+    ]], { evidenceId, url, label, uploader })
 
     if not imageId then
         return { success = false, error = 'Failed to add image' }
