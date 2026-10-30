@@ -231,6 +231,16 @@ ps.registerCallback(resourceName .. ':server:getCase', function(source, caseId)
         ORDER BY mr.datecreated DESC
     ]], { caseId })
 
+    if type(CanReadMdtReport) ~= 'function' then
+        reports = {}
+    else
+        local readable = {}
+        for _, report in ipairs(reports or {}) do
+            if CanReadMdtReport(src, report.id) then readable[#readable + 1] = report end
+        end
+        reports = readable
+    end
+
     local notes = MySQL.query.await([[
         SELECT id, content, author_name, created_at
         FROM mdt_case_notes
