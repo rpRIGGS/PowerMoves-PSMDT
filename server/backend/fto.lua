@@ -661,12 +661,7 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
         return { success = false, error = 'Authorization changed' }
     end
 
-    if data.shift_date ~= nil and (type(data.shift_date) ~= 'string'
-        or not data.shift_date:match('^%d%d%d%d%-%d%d%-%d%d
-    if not overall or overall ~= overall or overall < 1 or overall > 5 or overall % 1 ~= 0 then
-        return { success = false, error = 'Invalid overall rating' }
-    end
-    local dorId = MySQL.insert.await([[
+    if data.shift_date ~= nil and (type(data.shift_date) ~= 'string' or not data.shift_date:match('^%d%d%d%d%-%d%d%-%d%d
         INSERT INTO mdt_fto_dors (assignment_id, phase_id, author_citizenid, author_name, shift_date, overall_rating, notes)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     ]], {
@@ -680,26 +675,11 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
 
     if not dorId then return { success = false, error = 'Failed to create DOR' } end
 
-    local ratings = data.ratings or {}
-    if type(ratings) ~= 'table' or #ratings > 200 then
-        return { success = false, error = 'Invalid ratings list' }
-    end
     for _, r in ipairs(ratings) do
-        if type(r) ~= 'table' then
-            return { success = false, error = 'Invalid rating entry' }
-        end
-        local compId = tonumber(r.competency_id)
-        local rating = tonumber(r.rating)
-        if r.notes ~= nil and (type(r.notes) ~= 'string' or #r.notes > 2000) then
-            return { success = false, error = 'Invalid rating notes' }
-        end
-        if compId and rating and compId > 0 and compId % 1 == 0
-            and rating >= 1 and rating <= 5 and rating % 1 == 0 then
-            MySQL.insert.await([[
-                INSERT INTO mdt_fto_dor_ratings (dor_id, competency_id, rating, notes)
-                VALUES (?, ?, ?, ?)
-            ]], { dorId, compId, rating, r.notes or nil })
-        end
+        MySQL.insert.await([[
+            INSERT INTO mdt_fto_dor_ratings (dor_id, competency_id, rating, notes)
+            VALUES (?, ?, ?, ?)
+        ]], { dorId, tonumber(r.competency_id), tonumber(r.rating), r.notes or nil })
     end
 
     return { success = true, id = dorId }
@@ -712,15 +692,13 @@ ps.registerCallback(resourceName .. ':server:deleteFTODor', function(source, dor
     if not CheckPermission(src, 'fto_manage') then return { success = false, error = 'No permission' } end
 
     dorId = tonumber(dorId)
-    if not dorId or dorId ~= dorId or dorId == math.huge
-        or dorId <= 0 or dorId % 1 ~= 0 then
+    if not dorId or dorId ~= dorId or dorId == math.huge or dorId <= 0 or dorId % 1 ~= 0 then
         return { success = false, error = 'Invalid ID' }
     end
 
     local owner = MySQL.single.await('SELECT assignment_id FROM mdt_fto_dors WHERE id = ?', { dorId })
     if not owner or not canAccessFTORecord(src, owner.assignment_id) then return { success = false, error = 'Unauthorized' } end
-    if not CheckAuth(src) or not CheckPermission(src, 'fto_manage')
-        or not canAccessFTORecord(src, owner.assignment_id) then
+    if not CheckAuth(src) or not CheckPermission(src, 'fto_manage') or not canAccessFTORecord(src, owner.assignment_id) then
         return { success = false, error = 'Authorization changed' }
     end
     MySQL.query.await('DELETE FROM mdt_fto_dors WHERE id = ?', { dorId })
@@ -732,6 +710,17 @@ end))) then
     if not overall or overall ~= overall or overall < 1 or overall > 5 or overall % 1 ~= 0 then
         return { success = false, error = 'Invalid overall rating' }
     end
+    local ratings = data.ratings or {}
+    if type(ratings) ~= 'table' or #ratings > 200 then return { success = false, error = 'Invalid ratings' } end
+    for _, r in ipairs(ratings) do
+        if type(r) ~= 'table' then return { success = false, error = 'Invalid rating entry' } end
+        local compId, rating = tonumber(r.competency_id), tonumber(r.rating)
+        if not compId or compId ~= compId or compId <= 0 or compId % 1 ~= 0
+            or not rating or rating ~= rating or rating < 1 or rating > 5 or rating % 1 ~= 0
+            or (r.notes ~= nil and (type(r.notes) ~= 'string' or #r.notes > 2000)) then
+            return { success = false, error = 'Invalid competency rating' }
+        end
+    end
     local dorId = MySQL.insert.await([[
         INSERT INTO mdt_fto_dors (assignment_id, phase_id, author_citizenid, author_name, shift_date, overall_rating, notes)
         VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -740,24 +729,17 @@ end))) then
         phaseId,
         citizenId, authorName,
         data.shift_date or os.date('%Y-%m-%d'),
-        overall,
+        tonumber(data.overall_rating) or 3,
         data.notes or nil,
     })
 
     if not dorId then return { success = false, error = 'Failed to create DOR' } end
 
     local ratings = data.ratings or {}
-    if type(ratings) ~= 'table' or #ratings > 200 then
-        return { success = false, error = 'Invalid ratings list' }
-    end
     for _, r in ipairs(ratings) do
-        if type(r) ~= 'table' then
-            return { success = false, error = 'Invalid rating entry' }
-        end
         local compId = tonumber(r.competency_id)
         local rating = tonumber(r.rating)
-        if compId and rating and compId > 0 and compId % 1 == 0
-            and rating >= 1 and rating <= 5 and rating % 1 == 0 then
+        if compId and rating then
             MySQL.insert.await([[
                 INSERT INTO mdt_fto_dor_ratings (dor_id, competency_id, rating, notes)
                 VALUES (?, ?, ?, ?)
@@ -775,17 +757,10 @@ ps.registerCallback(resourceName .. ':server:deleteFTODor', function(source, dor
     if not CheckPermission(src, 'fto_manage') then return { success = false, error = 'No permission' } end
 
     dorId = tonumber(dorId)
-    if not dorId or dorId ~= dorId or dorId == math.huge
-        or dorId <= 0 or dorId % 1 ~= 0 then
-        return { success = false, error = 'Invalid ID' }
-    end
+    if not dorId then return { success = false, error = 'Invalid ID' } end
 
     local owner = MySQL.single.await('SELECT assignment_id FROM mdt_fto_dors WHERE id = ?', { dorId })
     if not owner or not canAccessFTORecord(src, owner.assignment_id) then return { success = false, error = 'Unauthorized' } end
-    if not CheckAuth(src) or not CheckPermission(src, 'fto_manage')
-        or not canAccessFTORecord(src, owner.assignment_id) then
-        return { success = false, error = 'Authorization changed' }
-    end
     MySQL.query.await('DELETE FROM mdt_fto_dors WHERE id = ?', { dorId })
     return { success = true }
 end)
