@@ -255,7 +255,7 @@ ps.registerCallback(resourceName .. ':server:closeWarrant', function(source, dat
         return { success = false, error = 'Missing required fields' }
     end
 
-    if not canReadWarrantData(src) then
+    if not canReadWarrantData(src) or not CheckPermission(src, 'warrants_close') then
         return { success = false, error = 'Unauthorized warrant role' }
     end
     if not warrantReportExists(reportId) then
