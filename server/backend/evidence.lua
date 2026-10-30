@@ -69,6 +69,9 @@ ps.registerCallback(resourceName .. ':server:getEvidenceItems', function(source,
     end
 
     if filters and filters.stored ~= nil and filters.stored ~= '' then
+        if type(filters.stored) ~= 'boolean' then
+            return { success = false, error = 'Invalid stored filter' }
+        end
         queryParts[#queryParts + 1] = 'stored = ?'
         values[#values + 1] = filters.stored and 1 or 0
     end
