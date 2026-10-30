@@ -168,7 +168,7 @@ ps.registerCallback(resourceName .. ':server:issueWarrant', function(source, dat
 
     if not reportId or reportId ~= reportId or reportId == math.huge
         or reportId <= 0 or reportId % 1 ~= 0
-        or type(citizenid) ~= 'string' or citizenid == '' or #citizenid > 64 then
+        or type(citizenid) ~= 'string' or not citizenid:find('%S') or #citizenid > 64 then
         return { success = false, error = 'Missing required fields' }
     end
 
