@@ -82,8 +82,11 @@ function GetActiveWarrantsData(src)
 
     if type(rows) ~= 'table' then return {} end
     for _, row in ipairs(rows) do
-        if type(row) ~= 'table' or not tonumber(row.reportid)
-            or type(row.citizenid) ~= 'string' then return {} end
+        local id = type(row) == 'table' and tonumber(row.reportid) or nil
+        if not id or id ~= id or id == math.huge or id == -math.huge
+            or id <= 0 or id % 1 ~= 0 or type(row.citizenid) ~= 'string'
+            or not row.citizenid:find('%S') or #row.citizenid > 64
+            or row.citizenid:find('%z') then return {} end
     end
     local results = {}
     for _, row in ipairs(rows) do
