@@ -320,6 +320,10 @@ ps.registerCallback(resourceName .. ':server:linkReportToCase', function(source,
         or not canAccessCaseId(src, caseId) or not CanReadMdtReport(src, reportId) then
         return { success = false, error = 'Authorization changed' }
     end
+    local actor = ps.getIdentifier(src)
+    if type(actor) ~= 'string' or actor == '' then
+        return { success = false, error = 'Missing report link author' }
+    end
     local linked = MySQL.insert.await([[
         INSERT IGNORE INTO mdt_case_reports (case_id, report_id, linked_by)
         VALUES (?, ?, ?)
