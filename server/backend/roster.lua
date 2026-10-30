@@ -1011,7 +1011,8 @@ ps.registerCallback('ps-mdt:server:fireOfficer', function(source, payload)
             or not CanManageMdtPersonnel(src, citizenid) then
             return { success = false, message = 'Personnel cleanup authorization changed' }
         end
-        cleanup = CleanupPersonnelData(citizenid)
+        local cleanupOk, cleanupResult = pcall(CleanupPersonnelData, citizenid)
+        cleanup = cleanupOk and cleanupResult or { ok = false, error = tostring(cleanupResult) }
     end
 
     if ps.auditLog then
