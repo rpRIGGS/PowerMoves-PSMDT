@@ -788,6 +788,10 @@ ps.registerCallback(resourceName .. ':server:addCaseNote', function(source, case
     local citizenId = ps.getIdentifier(src)
     local profile = MySQL.single.await('SELECT fullname FROM mdt_profiles WHERE citizenid = ?', { citizenId })
     local authorName = profile and profile.fullname or 'Unknown'
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_edit')
+        or ps.getIdentifier(src) ~= citizenId or not canAccessCaseId(src, caseId) then
+        return { success = false, error = 'Authorization changed' }
+    end
 
     MySQL.insert.await([[
         INSERT INTO mdt_case_notes (case_id, content, author_citizenid, author_name)
