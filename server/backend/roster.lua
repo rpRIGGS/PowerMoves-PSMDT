@@ -1004,9 +1004,6 @@ ps.registerCallback('ps-mdt:server:fireOfficer', function(source, payload)
     -- change so the person is already off the roster; only touches their own
     -- footprint, never investigative/shared data. See personnel_cleanup.lua.
     local cleanup = nil
-    if payload.deleteData and type(CleanupPersonnelData) ~= 'function' then
-        return { success = false, message = 'Personnel cleanup unavailable' }
-    end
     if payload.deleteData and CleanupPersonnelData then
         if not CheckAuth(src) or not CheckPermission(src, 'roster_manage_officers')
             or not CanManageMdtPersonnel(src, citizenid) then
