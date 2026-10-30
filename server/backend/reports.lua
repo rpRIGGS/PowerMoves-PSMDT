@@ -1096,6 +1096,11 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
     end
 
     if reportId and next(warrantCitizenIds) ~= nil then
+        if not CheckAuth(src) or not CheckPermission(src, 'warrants_issue')
+            or ps.getIdentifier(src) ~= identifier or ps.getJobName(src) ~= originatingJob
+            or not CanReadMdtReport(src, reportId) then
+            return { success = false, error = 'Warrant issuance not authorized' }
+        end
         local expiryDate = os.date('%Y-%m-%d %H:%M:%S', os.time() + (7 * 24 * 60 * 60))
         local warrantQueries = {}
         for citizenid, _ in pairs(warrantCitizenIds) do
