@@ -53,6 +53,11 @@ ps.registerCallback(resourceName .. ':server:saveFTOPhases', function(source, ph
     if type(phases) ~= 'table' or #phases > 100 then
         return { success = false, error = 'Invalid phase list' }
     end
+    for key in pairs(phases) do
+        if type(key) ~= 'number' or key % 1 ~= 0 or key < 1 or key > #phases then
+            return { success = false, error = 'Invalid phase list' }
+        end
+    end
     for _, phase in ipairs(phases) do
         if type(phase) ~= 'table' or type(phase.name) ~= 'string'
             or not phase.name:find('%S') or #phase.name > 255
