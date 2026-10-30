@@ -1100,7 +1100,7 @@ ps.registerCallback(resourceName .. ':server:getDisclosedEvidenceDetail', functi
         return {success=false,error='Unauthorized'}
     end
     local custody=MySQL.query.await([[
-        SELECT id,evidence_id,from_citizenid,to_citizenid,action,notes,created_at
+        SELECT id,evidence_id,action,created_at
         FROM mdt_evidence_custody WHERE evidence_id = ? ORDER BY created_at DESC, id DESC
     ]],{id})
     if not CheckAuth(src) or not CheckPermission(src,'evidence_view')
