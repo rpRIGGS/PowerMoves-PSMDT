@@ -613,6 +613,10 @@ ps.registerCallback(resourceName .. ':server:linkEvidenceToCase', function(sourc
         return { success = false, error = 'Case #' .. tostring(caseId) .. ' does not exist' }
     end
 
+    if not CheckAuth(src) or not CheckPermission(src, 'evidence_transfer')
+        or not canEditEvidenceRecord(src, evidenceId) or not CanAccessMdtCase(src, caseId) then
+        return { success = false, error = 'Evidence authorization changed' }
+    end
     MySQL.update.await('UPDATE mdt_evidence_items SET case_id = ? WHERE id = ?', { caseId, evidenceId })
 
     if reportId then
