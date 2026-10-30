@@ -287,6 +287,10 @@ ps.registerCallback(resourceName .. ':server:closeWarrant', function(source, dat
     ]], { reportId, citizenid, reportId, requesterJob })
 
     if updated and updated > 0 then
+        if not canReadWarrantData(src) or not CheckPermission(src, 'warrants_close')
+            or ps.getIdentifier(src) ~= requesterCitizenId or ps.getJobName(src) ~= requesterJob then
+            return { success = false, error = 'Warrant authorization changed' }
+        end
         -- Closing the warrant also removes any hearing it placed on the calendar.
         if RemoveWarrantHearingsForReport then
             RemoveWarrantHearingsForReport(reportId)
