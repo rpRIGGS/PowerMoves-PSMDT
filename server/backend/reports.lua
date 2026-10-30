@@ -825,6 +825,12 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
         or reportId <= 0 or reportId % 1 ~= 0) then
         return { success = false, error = 'Invalid report identifier' }
     end
+    for _, involved in ipairs(reportData.involved or {}) do
+        if type(involved) ~= 'table' or type(involved.citizenid) ~= 'string'
+            or not involved.citizenid:find('%S') or #involved.citizenid > 64 then
+            return { success = false, error = 'Invalid involved person' }
+        end
+    end
     local newReport = reportId == nil
     -- An explicitly shared editor must not transfer the original owner.
     local existingOwner = reportId and MySQL.scalar.await(
