@@ -959,7 +959,7 @@ ps.registerCallback(resourceName .. ':server:deleteCaseNote', function(source, n
         return { success = false, error = 'Authorization changed' }
     end
     local deleted = MySQL.update.await('DELETE FROM mdt_case_notes WHERE id = ? AND case_id = ?', { noteId, caseId })
-    return { success = deleted ~= nil and deleted > 0 }
+    return { success = type(deleted) == 'number' and deleted > 0 }
 end)
 
 
