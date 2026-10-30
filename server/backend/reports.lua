@@ -797,6 +797,10 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
 
     local reportId = reportData.report and tonumber(reportData.report.id) or nil
     local reportType = reportData.report and reportData.report.type or 'Incident Report'
+    if type(reportType) ~= 'string' or not reportType:find('%S')
+        or #reportType > 100 then
+        return { success = false, error = 'Invalid report type' }
+    end
     local creatorEmployer = originatingJob
     if type(creatorEmployer) ~= 'string' or not creatorEmployer:find('%S')
         or #creatorEmployer > 64 then
