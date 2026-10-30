@@ -218,7 +218,10 @@ ps.registerCallback(resourceName .. ':server:searchEvidenceItems', function(sour
         LIMIT ? OFFSET ?
     ]]):format(evidenceReadScope), pagedParams)
 
-    if evidence and #evidence > 0 then
+    if type(evidence) ~= 'table' then
+        return { success = false, error = 'Evidence search failed' }
+    end
+    if #evidence > 0 then
         local ids = {}
         local idLookup = {}
         for _, item in ipairs(evidence) do
