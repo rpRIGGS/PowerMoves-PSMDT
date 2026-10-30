@@ -584,6 +584,10 @@ ps.registerCallback(resourceName .. ':server:advanceFTOPhase', function(source, 
     local phases = MySQL.query.await(
         'SELECT id, name FROM mdt_fto_phases WHERE job = ? ORDER BY sort_order ASC, id ASC', { job }) or {}
     if #phases == 0 then return { success = false, error = 'No phases configured for this program' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'fto_manage')
+        or not canAccessFTORecord(src, assignmentId) then
+        return { success = false, error = 'Authorization changed' }
+    end
 
     -- Locate the current phase in the ladder (0 = not yet placed → next is phase 1).
     local idx = 0
