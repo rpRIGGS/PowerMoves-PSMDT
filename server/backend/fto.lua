@@ -484,6 +484,12 @@ ps.registerCallback(resourceName .. ':server:updateFTOAssignment', function(sour
             return { success = false, error = 'Invalid phase ID' }
         end
     end
+    if updates.current_phase_id ~= nil then
+        local phaseJob = MySQL.scalar.await('SELECT job FROM mdt_fto_phases WHERE id = ? LIMIT 1', { tonumber(updates.current_phase_id) })
+        if phaseJob ~= ps.getJobName(src) then
+            return { success = false, error = 'Phase belongs to another agency' }
+        end
+    end
     if updates.trainer_name ~= nil and (type(updates.trainer_name) ~= 'string'
         or #updates.trainer_name > 255) then
         return { success = false, error = 'Invalid trainer name' }
