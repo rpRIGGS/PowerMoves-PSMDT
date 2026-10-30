@@ -448,7 +448,7 @@ ps.registerCallback(resourceName .. ':server:updateIAComplaintInfo', function(so
         return { success = false, error = 'Invalid complaint updates' }
     end
     updates = updates or {}
-    if not complaintId then
+    if not complaintId or complaintId ~= complaintId or complaintId == math.huge or complaintId <= 0 or complaintId % 1 ~= 0 then
         return { success = false, error = 'Invalid complaint id' }
     end
     if not ownsIAComplaint(src, complaintId) then return { success = false, error = 'Complaint access denied' } end
