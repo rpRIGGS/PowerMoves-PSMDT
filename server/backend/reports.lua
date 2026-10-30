@@ -160,7 +160,7 @@ local function normalizeDateFilter(value)
     if not value then
         return nil
     end
-    if type(value) ~= 'string' then return nil end
+    if type(value) ~= 'string' or #value ~= 10 then return nil end
     local year, month, day = value:match('^(%d%d%d%d)%-(%d%d)%-(%d%d)
     if not year then return nil end
     local y, m, d = tonumber(year), tonumber(month), tonumber(day)
