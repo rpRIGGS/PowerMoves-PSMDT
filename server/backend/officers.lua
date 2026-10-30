@@ -21,7 +21,7 @@ end)
 ps.registerCallback(resourceName .. ':server:setCallsign', function(source, payload)
     local src = source
     if not CheckAuth(src) then return { success = false, message = 'Unauthorized' } end
-    payload = payload or {}
+    if type(payload) ~= 'table' then return { success = false, message = 'Invalid request' } end
     local cid = payload.citizenid or payload.cid
     local newCallsign = payload.callsign or payload.newcallsign
  
