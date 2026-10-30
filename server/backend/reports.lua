@@ -1085,7 +1085,10 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
             end
         end
         if #arrestQueries > 0 then
-            MySQL.transaction.await(arrestQueries)
+            local arrestsSaved = MySQL.transaction.await(arrestQueries)
+            if arrestsSaved ~= true then
+                return { success = false, error = 'Arrest records not saved' }
+            end
             if ps.auditLog then
                 for _, involved in ipairs(reportData.involved) do
                     if involved.type == 'suspect' and involved.citizenid then
