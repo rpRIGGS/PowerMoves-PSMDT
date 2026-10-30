@@ -136,7 +136,10 @@ registerDashboardRead('getJobData', function(src)
 end)
 
 local function computeReportStatistics(src, snapshot)
-    if snapshot and snapshot.jobType == 'ems' then
+    if not snapshot or not snapshot.permissions.reports_view then
+        return { totalThisWeek = 0, changeFromLastWeek = 0 }
+    end
+    if snapshot.jobType == 'ems' then
         if not canReadEmsReports(snapshot) then return { totalThisWeek = 0, changeFromLastWeek = 0 } end
         local ok, response = pcall(MySQL.query.await, ([[
             SELECT
