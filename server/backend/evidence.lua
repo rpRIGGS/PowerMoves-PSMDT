@@ -324,10 +324,14 @@ ps.registerCallback(resourceName .. ':server:addEvidenceItem', function(source, 
         return { success = false, error = 'Failed to add evidence' }
     end
 
-    MySQL.insert.await([[
+    local custodyOk, custodyId = pcall(MySQL.insert.await, [[
         INSERT INTO mdt_evidence_custody (evidence_id, from_citizenid, to_citizenid, action, notes)
         VALUES (?, ?, ?, 'collected', ?)
     ]], { evidenceId, nil, collector, evidence.notes or '' })
+    if not custodyOk or not custodyId then
+        MySQL.update.await('DELETE FROM mdt_evidence_items WHERE id = ? AND created_by = ?', { evidenceId, collector })
+        return { success = false, error = 'Evidence custody record could not be created' }
+    end
 
     if ps.auditLog then
         ps.auditLog(src, 'evidence_added', 'evidence', evidenceId, evidence)
