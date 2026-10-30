@@ -507,7 +507,8 @@ ps.registerCallback(resourceName .. ':server:deleteCase', function(source, caseI
     if not CheckAuth(src) or not CheckPermission(src, 'cases_delete') then return { success = false, error = 'Unauthorized' } end
 
     caseId = tonumber(caseId)
-    if not caseId then
+    if not caseId or caseId ~= caseId or caseId == math.huge
+        or caseId <= 0 or caseId % 1 ~= 0 then
         return { success = false, error = 'Invalid case id' }
     end
 
