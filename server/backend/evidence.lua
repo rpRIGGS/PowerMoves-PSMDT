@@ -850,6 +850,11 @@ ps.registerCallback(resourceName .. ':server:createCaseFromEvidence', function(s
     local createdByName = (ps.getMetadata(src, 'callsign') or '') .. ' ' .. (ps.getPlayerName(src) or '')
     createdByName = createdByName:gsub('^%s+', ''):gsub('%s+$', '')
 
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_create')
+        or ps.getIdentifier(src) ~= citizenid or not canEditEvidenceRecord(src, evidenceId)
+        or (reportId and not CanReadMdtReport(src, reportId)) then
+        return { success = false, error = 'Case creation authorization changed' }
+    end
     local caseId = MySQL.insert.await([[INSERT INTO mdt_cases
         (case_number, title, summary, status, priority, assigned_department, created_by, created_by_name)
         VALUES ('', ?, ?, 'open', 'medium', ?, ?, ?)
