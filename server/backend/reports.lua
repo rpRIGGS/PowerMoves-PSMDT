@@ -1525,7 +1525,7 @@ ps.registerCallback(resourceName .. ':server:getReportsByPlate', function(source
         FROM mdt_report_vehicles mrv
         INNER JOIN mdt_reports mr ON mr.id = mrv.reportid
         WHERE mrv.plate = ?
-        ORDER BY mr.datecreated DESC
+        ORDER BY mr.datecreated DESC, mr.id DESC
         LIMIT 20
     ]], { plate })
 
