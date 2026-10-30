@@ -1215,7 +1215,7 @@ ps.registerCallback(resourceName..':server:updateReportContent', function(source
             json.encode(content),
             type(content) == "string" and content or json.encode(content),
             identifier,
-            callsign .. ' ' .. playerName
+            (callsign or '') .. ' ' .. (playerName or 'Unknown')
         })
 
         if not insertResult then
