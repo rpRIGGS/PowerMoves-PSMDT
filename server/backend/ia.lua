@@ -157,7 +157,7 @@ local function resolveOfficer(name, badge)
         if #matches > 1 then return nil end
     end
 
-    if name == '' then return nil end
+    if name == '' or #name > 255 then return nil end
 
     -- Fall back to the name, but only when it points at exactly one officer.
     local rows = MySQL.query.await([[
