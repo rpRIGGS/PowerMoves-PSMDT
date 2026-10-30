@@ -92,7 +92,8 @@ ps.registerCallback(resourceName .. ':server:getEvidenceItems', function(source,
 
     local whereClause = table.concat(queryParts, ' AND ')
     local totalRow = MySQL.single.await(('SELECT COUNT(id) as total FROM mdt_evidence_items WHERE %s'):format(whereClause), values)
-    local total = totalRow and totalRow.total or 0
+    local total = tonumber(totalRow and totalRow.total) or 0
+    if total ~= total or total < 0 or total == math.huge then total = 0 end
 
     local listValues = { table.unpack(values) }
     listValues[#listValues + 1] = limit
