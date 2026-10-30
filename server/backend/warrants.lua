@@ -244,6 +244,13 @@ ps.registerCallback(resourceName .. ':server:closeWarrant', function(source, dat
         return { success = false, error = 'Report belongs to another agency' }
     end
 
+    -- Do not close a warrant after the requester's authority has changed.
+    if not canReadWarrantData(src) or not CheckPermission(src, 'warrants_close')
+        or not CanReadMdtReport(src, reportId)
+        or (owner and owner ~= ps.getJobName(src)) then
+        return { success = false, error = 'Warrant authorization changed' }
+    end
+
     local updated = MySQL.update.await([[
         UPDATE mdt_reports_warrants
         SET expirydate = NOW()
