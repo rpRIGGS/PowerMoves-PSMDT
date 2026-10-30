@@ -380,7 +380,9 @@ registerDashboardRead('getRecentReports', function(src, snapshot, page, limit)
 end)
 
 local function computeActiveBolos(src)
-    local BOLOS = MySQL.query.await('SELECT id, type, subject_id, subject_name, reportId, notes, status FROM mdt_bolos WHERE status = ? ORDER BY id DESC', { 'active' })
+    local ok, BOLOS = pcall(MySQL.query.await,
+        'SELECT id, type, subject_id, subject_name, reportId, notes, status FROM mdt_bolos WHERE status = ? ORDER BY id DESC', { 'active' })
+    if not ok then return {} end
     if type(BOLOS) ~= 'table' then return {} end
     local result = {}
     for _, v in pairs(BOLOS) do
