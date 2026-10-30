@@ -81,6 +81,10 @@ function GetActiveWarrantsData(src)
     ]])
 
     if type(rows) ~= 'table' then return {} end
+    for _, row in ipairs(rows) do
+        if type(row) ~= 'table' or not tonumber(row.reportid)
+            or type(row.citizenid) ~= 'string' then return {} end
+    end
     local results = {}
     for _, row in ipairs(rows) do
         if type(row) == 'table' and (src == nil or (type(CanReadMdtReport) == 'function' and CanReadMdtReport(src, row.reportid))) then
