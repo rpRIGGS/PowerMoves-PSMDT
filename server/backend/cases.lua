@@ -801,7 +801,8 @@ ps.registerCallback(resourceName .. ':server:removeCaseAttachment', function(sou
     if attachment and type(attachment.url) == 'string'
         and attachment.url:find('^/ps%-mdt%-v3/uploads/') then
         local path = attachment.url:gsub('^/ps%-mdt%-v3/', '')
-        if path ~= '' then
+        if path ~= '' and not path:find('..', 1, true)
+            and not path:find('\\', 1, true) then
             os.remove(path)
         end
     end
