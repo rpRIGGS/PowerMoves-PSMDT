@@ -146,7 +146,7 @@ local function resolveOfficer(name, badge)
     badge = tostring(badge or ''):gsub('^%s+', ''):gsub('%s+$', '')
 
     -- A badge is unique and unambiguous, so trust it first.
-    if badge ~= '' then
+    if badge ~= '' and #badge <= 64 then
         local matches = MySQL.query.await([[
             SELECT citizenid FROM mdt_profiles
             WHERE badge_number = ? OR callsign = ?
