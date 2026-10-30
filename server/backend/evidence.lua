@@ -858,6 +858,9 @@ ps.registerCallback(resourceName .. ':server:grantEvidenceDisclosure', function(
         or type(purpose)~='string' or #purpose<10 or #purpose>255 then
         return {success=false,error='Evidence, recipient and purpose required'}
     end
+    if not recipientCid:find('%S') or not purpose:find('%S') then
+        return {success=false,error='Disclosure recipient and purpose required'}
+    end
     if not CheckAuth(src) or not CheckPermission(src,'evidence_transfer')
         or not canEditEvidenceRecord(src,id) then return {success=false,error='Unauthorized'} end
     local actor,employer=ps.getIdentifier(src),ps.getJobName(src)
