@@ -40,6 +40,7 @@ local function canAccessIARecord(src, record)
 end
 
 local function ownsIAComplaint(src, complaintId)
+    if not CheckAuth(src) then return false end
     local record = MySQL.single.await(
         'SELECT job_type, agency FROM mdt_ia_complaints WHERE id = ? LIMIT 1',
         {complaintId}
