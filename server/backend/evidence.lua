@@ -9,7 +9,8 @@ local function canEditEvidenceRecord(source, evidenceId)
     -- No reliable historic employer marker exists on unlinked evidence.
     -- Fail closed for another creator rather than expose unknown agency records.
     local cid = ps.getIdentifier(source)
-    return cid ~= nil and row.created_by == cid and GetMdtAccess(source).authorized == true
+    local access = GetMdtAccess(source)
+    return cid ~= nil and row.created_by == cid and access ~= nil and access.authorized == true
 end
 
 -- SQL read guard: evidence linked to a case belongs to its assigned
