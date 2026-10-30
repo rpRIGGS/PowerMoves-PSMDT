@@ -753,7 +753,7 @@ ps.registerCallback(resourceName .. ':server:getSADLEIAReferrals', function(sour
     if ps.getJobName(src) ~= 'sadle' or ps.getIdentifier(src) ~= cid or not canViewIA(src) then
         return {}
     end
-    return ok and rows or {}
+    return ok and type(rows) == 'table' and rows or {}
 end)
 
 
