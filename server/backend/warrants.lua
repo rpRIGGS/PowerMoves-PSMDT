@@ -116,7 +116,9 @@ function GetActiveWarrantsData(src)
         or ps.getIdentifier(src) ~= citizenid or ps.getJobName(src) ~= jobName
         or (GetMdtAccess(src) or {}).interfaceId ~= interfaceId) then return {} end
     for _, warrant in ipairs(results) do
-        if src ~= nil and not CanReadMdtReport(src, warrant.reportid) then return {} end
+        if src ~= nil and (not canReadWarrantData(src)
+            or not CheckPermission(src, 'warrants_view')
+            or not CanReadMdtReport(src, warrant.reportid)) then return {} end
     end
     return results
 end
