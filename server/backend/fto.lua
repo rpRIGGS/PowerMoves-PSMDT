@@ -118,11 +118,18 @@ ps.registerCallback(resourceName .. ':server:saveFTOCompetencies', function(sour
         or ps.getJobName(src) ~= job then
         return { success = false, error = 'Authorization changed' }
     end
-    MySQL.query.await('DELETE FROM mdt_fto_competencies WHERE job = ?', { job })
+    local statements = {
+        { query = 'DELETE FROM mdt_fto_competencies WHERE job = ?', values = { job } }
+    }
     for i, comp in ipairs(competencies) do
-        MySQL.insert.await('INSERT INTO mdt_fto_competencies (job, name, category, sort_order) VALUES (?, ?, ?, ?)', {
-            job, comp.name or '', comp.category or 'General', i
-        })
+        statements[#statements + 1] = {
+            query = 'INSERT INTO mdt_fto_competencies (job, name, category, sort_order) VALUES (?, ?, ?, ?)',
+            values = { job, comp.name, comp.category or 'General', i }
+        }
+    end
+    local ok, committed = pcall(MySQL.transaction.await, statements)
+    if not ok or not committed then
+        return { success = false, error = 'Failed to save FTO competencies' }
     end
     return { success = true }
 end)
