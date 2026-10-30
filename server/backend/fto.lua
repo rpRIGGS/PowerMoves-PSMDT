@@ -270,7 +270,7 @@ local function canAccessFTORecord(src, assignmentId)
     if not id or id ~= id or id == math.huge or id <= 0 or id % 1 ~= 0 then return false end
     local row = MySQL.single.await(
         'SELECT job_type, agency_job FROM mdt_fto_assignments WHERE id = ? LIMIT 1',
-        {assignmentId}
+        {id}
     )
     return row ~= nil and row.job_type == getFTODomain(src)
         and type(row.agency_job) == 'string' and row.agency_job:find('%S') and row.agency_job == ps.getJobName(src)
