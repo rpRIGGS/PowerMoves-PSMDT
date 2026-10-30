@@ -220,8 +220,10 @@ end)
 
 local function computeBulletins()
     local rows = MySQL.query.await('SELECT id, content FROM mdt_bulletins ORDER BY id DESC')
-    if not rows or #rows == 0 then
-        return { { content = 'No bulletins found..' } }
+    if type(rows) ~= 'table' then return {} end
+    if #rows == 0 then return { { content = 'No bulletins found..' } } end
+    for _, row in ipairs(rows) do
+        if type(row) ~= 'table' then return {} end
     end
     return rows
 end
