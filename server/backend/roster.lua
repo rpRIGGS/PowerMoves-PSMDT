@@ -968,7 +968,9 @@ ps.registerCallback('ps-mdt:server:fireOfficer', function(source, payload)
         return { success = false, message = 'Could not resolve officer source' }
     end
 
-    -- Don't allow firing yourself
+    if citizenid == ps.getIdentifier(src) then
+        return { success = false, message = 'You cannot fire yourself' }
+    end
     if targetSrc == src then
         return { success = false, message = 'You cannot fire yourself' }
     end
