@@ -101,7 +101,7 @@ local STATUS_TEXT = {
 local function mailComplainantStatus(complaintId, status)
     if not iaCfg().NotifyComplainant then return end
     if type(status) ~= 'string' or not STATUS_TEXT[status] then return end
-    if not SendCitizenMail then return end
+    if type(SendCitizenMail) ~= 'function' then return end
 
     local row = MySQL.single.await([[
         SELECT complaint_number, complainant_citizenid, officer_name
