@@ -746,7 +746,8 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
     for _, ratingRow in ipairs(ratings) do
         if type(ratingRow) ~= 'table' then return { success = false, error = 'Invalid rating entry' } end
         local competencyId, rating = tonumber(ratingRow.competency_id), tonumber(ratingRow.rating)
-        if not competencyId or competencyId ~= competencyId or competencyId <= 0 or competencyId % 1 ~= 0
+        if not competencyId or competencyId ~= competencyId or competencyId == math.huge
+            or competencyId <= 0 or competencyId % 1 ~= 0
             or not rating or rating ~= rating or rating < 1 or rating > 5 or rating % 1 ~= 0
             or (ratingRow.notes ~= nil and (type(ratingRow.notes) ~= 'string' or #ratingRow.notes > 20000)) then
             return { success = false, error = 'Invalid rating entry' }
