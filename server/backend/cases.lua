@@ -507,8 +507,8 @@ ps.registerCallback(resourceName .. ':server:updateCase', function(source, caseI
     values[#values + 1] = caseId
     local success = MySQL.update.await(('UPDATE mdt_cases SET %s WHERE id = ?'):format(table.concat(updates, ', ')), values)
 
-    if not success then
-        return { success = false, error = 'Failed to update case' }
+    if not success or success < 1 then
+        return { success = false, error = 'Case update not saved' }
     end
 
     if ps.auditLog then
