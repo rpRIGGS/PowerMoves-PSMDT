@@ -122,11 +122,8 @@ ps.registerCallback(resourceName .. ':server:getEvidenceItems', function(source,
         LIMIT ? OFFSET ?
     ]]):format(whereClause), listValues)
 
-    if evidence ~= nil and type(evidence) ~= 'table' then
+    if type(evidence) ~= 'table' then
         return { success = false, error = 'Evidence query failed' }
-    end
-    if evidence ~= nil and type(evidence) ~= 'table' then
-        return { success = false, error = 'Evidence search failed' }
     end
     if evidence and #evidence > 0 then
         local ids = {}
