@@ -1050,7 +1050,8 @@ ps.registerCallback('ps-mdt:server:updateOfficerCallsign', function(source, payl
     local resourceName = GetCurrentResourceName()
     TriggerClientEvent(resourceName .. ':client:updateCallsign', Player.PlayerData.source, newCallsign)
 
-    MySQL.update.await('UPDATE mdt_profiles SET callsign = ? WHERE citizenid = ?', { newCallsign, citizenid })
+    local saved = MySQL.update.await('UPDATE mdt_profiles SET callsign = ? WHERE citizenid = ?', { newCallsign, citizenid })
+    if saved == nil then return { success = false, message = 'Failed to save callsign' } end
 
     if ps.auditLog then
         ps.auditLog(src, 'callsign_changed', 'officers', citizenid, { callsign = newCallsign })
