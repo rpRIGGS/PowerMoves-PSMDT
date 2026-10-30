@@ -365,7 +365,8 @@ ps.registerCallback(resourceName .. ':server:addEvidenceItem', function(source, 
         collector
     })
 
-    if type(evidenceId) ~= 'number' or evidenceId <= 0 then
+    if type(evidenceId) ~= 'number' or evidenceId ~= evidenceId
+        or evidenceId == math.huge or evidenceId <= 0 or evidenceId % 1 ~= 0 then
         return { success = false, error = 'Failed to add evidence' }
     end
 
