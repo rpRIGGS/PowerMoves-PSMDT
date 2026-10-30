@@ -1207,7 +1207,7 @@ end)
 
 ps.registerCallback(resourceName..':server:generateReportId', function(source)
     local src = source
-    if not CheckAuth(src) then return end
+    if not CheckAuth(src) or not CheckPermission(src, 'reports_create') then return { success = false, error = 'Unauthorized' } end
 
     return {
         success = true,
