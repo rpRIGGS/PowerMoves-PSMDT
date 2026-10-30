@@ -398,7 +398,8 @@ ps.registerCallback(resourceName .. ':server:createFTOAssignment', function(sour
     end
     -- Departmental FTO is not a statewide academy assignment. Both trainee
     -- and field trainer must be verifiably employed by this manager's agency.
-    if not getFTODomain(src) or not ps.getJobName(src) then
+    if not getFTODomain(src) or type(ps.getJobName(src)) ~= 'string'
+        or not ps.getJobName(src):find('%S') then
         return { success = false, error = 'Missing agency' }
     end
     if not CanManageMdtPersonnel(src, data.trainee_citizenid)
