@@ -171,7 +171,8 @@ end)
 
 local function computeTimeStatistics(src)
     local citizenid = ps.getIdentifier(src)
-    if not citizenid then return {} end
+    if type(citizenid) ~= 'string' or not citizenid:find('%S')
+        or #citizenid > 64 or citizenid:find('%z') then return {} end
 
     local rows = MySQL.query.await([[
         SELECT DATE(login_at) AS day,
