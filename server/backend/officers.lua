@@ -126,6 +126,11 @@ ps.registerCallback(resourceName .. ':server:setRadio', function(source, payload
         return { success = false, message = targetPlayer.PlayerData.charinfo.firstname .. ' does not have a radio!' }
     end
  
+    if not CheckAuth(src) or (cid ~= ps.getIdentifier(src)
+        and (not CheckPermission(src, 'roster_manage_officers')
+            or not CanManageMdtPersonnel(src, cid))) then
+        return { success = false, message = 'Authorization changed' }
+    end
     TriggerClientEvent(resourceName .. ':client:setRadio', targetSource, newRadio)
     return { success = true, message = 'Radio set to ' .. newRadio }
 end)
