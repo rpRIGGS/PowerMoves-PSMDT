@@ -133,7 +133,7 @@ ps.registerCallback(resourceName .. ':server:getCases', function(source, page, f
     local scope = getCaseScope(src)
     local actorCid = ps.getIdentifier(src)
     if not scope or not actorCid then return { cases = {}, hasMore = false } end
-    filters = filters or {}
+    if type(filters) ~= 'table' then filters = {} end
     local clauses = {}
     local values = {}
     if not scope.statewide then
