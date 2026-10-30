@@ -548,6 +548,9 @@ ps.registerCallback(resourceName .. ':server:advanceFTOPhase', function(source, 
         or assignmentId <= 0 or assignmentId % 1 ~= 0 then
         return { success = false, error = 'Invalid assignment' }
     end
+    if data.note ~= nil and (type(data.note) ~= 'string' or #data.note > 20000) then
+        return { success = false, error = 'Invalid phase note' }
+    end
 
     local a = MySQL.single.await(
         'SELECT id, current_phase_id, status, trainee_name FROM mdt_fto_assignments WHERE id = ?', { assignmentId })
