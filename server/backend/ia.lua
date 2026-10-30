@@ -463,6 +463,9 @@ ps.registerCallback(resourceName .. ':server:updateIAComplaintInfo', function(so
         sets[#sets + 1] = 'officer_name = ?'
         vals[#vals + 1] = updates.officer_name
     end
+    if updates.officer_badge ~= nil and (type(updates.officer_badge) ~= 'string' or #updates.officer_badge > 64) then
+        return { success = false, error = 'Invalid officer badge' }
+    end
     if updates.officer_badge ~= nil then
         sets[#sets + 1] = 'officer_badge = ?'
         vals[#vals + 1] = updates.officer_badge
