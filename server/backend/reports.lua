@@ -1277,7 +1277,8 @@ ps.registerCallback(resourceName..':server:deleteReport', function(source, repor
     if not CheckAuth(src) then return end
 
     reportId = tonumber(reportId)
-    if not reportId or reportId < 1 or reportId % 1 ~= 0 then
+    if not reportId or reportId ~= reportId or reportId == math.huge
+        or reportId <= 0 or reportId % 1 ~= 0 then
         return { success = false, error = "Missing/Invalid report ID" }
     end
 
