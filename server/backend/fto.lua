@@ -757,6 +757,12 @@ end))) then
             return { success = false, error = 'Invalid competency rating' }
         end
     end
+    for _, r in ipairs(ratings) do
+        local owner = MySQL.scalar.await('SELECT job FROM mdt_fto_competencies WHERE id = ? LIMIT 1', { tonumber(r.competency_id) })
+        if owner ~= ps.getJobName(src) then
+            return { success = false, error = 'Competency belongs to another agency' }
+        end
+    end
     local dorId = MySQL.insert.await([[
         INSERT INTO mdt_fto_dors (assignment_id, phase_id, author_citizenid, author_name, shift_date, overall_rating, notes)
         VALUES (?, ?, ?, ?, ?, ?, ?)
