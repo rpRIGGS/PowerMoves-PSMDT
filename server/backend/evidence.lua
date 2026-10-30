@@ -56,6 +56,10 @@ ps.registerCallback(resourceName .. ':server:getEvidenceItems', function(source,
     local values = scopeParams
 
     if filters and filters.caseId then
+        local id = tonumber(filters.caseId)
+        if not id or id ~= id or id == math.huge or id <= 0 or id % 1 ~= 0 then
+            return { success = false, error = 'Invalid case filter' }
+        end
         queryParts[#queryParts + 1] = 'case_id = ?'
         values[#values + 1] = tonumber(filters.caseId)
     end
