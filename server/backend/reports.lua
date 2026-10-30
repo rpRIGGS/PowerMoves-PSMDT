@@ -1551,6 +1551,10 @@ ps.registerCallback(resourceName .. ':server:grantReportDisclosure', function(so
         or type(purpose)~='string' or #purpose<10 or #purpose>255 then
         return {success=false,error='Valid report, recipient and purpose required'}
     end
+    if not recipientCid:find('%S') or recipientCid:find('%z')
+        or not purpose:find('%S') then
+        return {success=false,error='Invalid report disclosure recipient or purpose'}
+    end
     if not CheckAuth(src) or not CheckPermission(src,'reports_delete') then
         return {success=false,error='Unauthorized'}
     end
