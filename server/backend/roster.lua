@@ -66,7 +66,7 @@ local function buildRosterFromQbx(jobList, matchFn, defaultDept)
     end
 
     for _, player in ipairs(qbx:GetQBPlayers() or {}) do
-        local data = player.PlayerData or nil
+        local data = type(player) == 'table' and player.PlayerData or nil
         if data and data.job then
             local job = data.job
             if matchFn(job.name, job.type) then
