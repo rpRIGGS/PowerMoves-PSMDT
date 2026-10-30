@@ -439,6 +439,9 @@ ps.registerCallback(resourceName .. ':server:updateCase', function(source, caseI
         values[#values + 1] = payload.title
     end
 
+    if payload.summary ~= nil and (type(payload.summary) ~= 'string' or #payload.summary > 20000) then
+        return { success = false, error = 'Invalid case summary' }
+    end
     if payload.summary then
         updates[#updates + 1] = 'summary = ?'
         values[#values + 1] = payload.summary
