@@ -596,7 +596,13 @@ ps.registerCallback(resourceName .. ':server:deleteCase', function(source, caseI
         or not canAccessCaseId(src, caseId) then
         return { success = false, error = 'Authorization changed' }
     end
-    local success = MySQL.update.await('DELETE FROM mdt_cases WHERE id = ?', { caseId })
+    local deleteSql = 'DELETE FROM mdt_cases WHERE id = ?'
+    local deleteParams = { caseId }
+    if not scope.statewide then
+        deleteSql = deleteSql .. ' AND assigned_department = ?'
+        deleteParams[#deleteParams + 1] = scope.agency
+    end
+    local success = MySQL.update.await(deleteSql, deleteParams)
 
     if not success or success < 1 then
         return { success = false, error = 'Case not found or already deleted' }
