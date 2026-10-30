@@ -444,6 +444,9 @@ ps.registerCallback(resourceName .. ':server:updateIAComplaintInfo', function(so
     if not canManageIA(src) then return { success = false, error = 'Unauthorized' } end
 
     complaintId = tonumber(complaintId)
+    if updates ~= nil and type(updates) ~= 'table' then
+        return { success = false, error = 'Invalid complaint updates' }
+    end
     updates = updates or {}
     if not complaintId then
         return { success = false, error = 'Invalid complaint id' }
