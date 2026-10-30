@@ -874,7 +874,8 @@ ps.registerCallback(resourceName .. ':server:createCaseFromEvidence', function(s
         VALUES ('', ?, ?, 'open', 'medium', ?, ?, ?)
     ]], { 'Evidence Follow-up', 'Case created from evidence link', creatorJob, citizenid, createdByName })
 
-    if type(caseId) ~= 'number' or caseId <= 0 then
+    if type(caseId) ~= 'number' or caseId ~= caseId
+        or caseId == math.huge or caseId <= 0 or caseId % 1 ~= 0 then
         return { success = false, error = 'Failed to create case' }
     end
 
