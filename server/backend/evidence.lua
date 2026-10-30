@@ -440,6 +440,9 @@ ps.registerCallback(resourceName .. ':server:transferEvidenceItem', function(sou
         return { success = false, error = 'Invalid transfer notes' }
     end
     local fromCitizenId = ps.getIdentifier(src)
+    if type(fromCitizenId) ~= 'string' or fromCitizenId == '' then
+        return { success = false, error = 'Missing transferring officer identity' }
+    end
     MySQL.update.await('UPDATE mdt_evidence_items SET last_holder = ? WHERE id = ?', { toCitizenId, evidenceId })
 
     MySQL.insert.await([[
