@@ -855,7 +855,7 @@ ps.registerCallback(resourceName .. ':server:createCaseFromEvidence', function(s
         VALUES ('', ?, ?, 'open', 'medium', ?, ?, ?)
     ]], { 'Evidence Follow-up', 'Case created from evidence link', ps.getJobName(src) or 'police', citizenid, createdByName })
 
-    if not caseId then
+    if type(caseId) ~= 'number' or caseId <= 0 then
         return { success = false, error = 'Failed to create case' }
     end
 
