@@ -352,7 +352,11 @@ ps.registerCallback(resourceName .. ':server:linkReportToCase', function(source,
     ]], { caseId, reportId, actor })
     if linked == nil then return { success = false, error = 'Report link not saved' } end
     local exists = MySQL.scalar.await('SELECT 1 FROM mdt_case_reports WHERE case_id = ? AND report_id = ? LIMIT 1', { caseId, reportId })
-    if not exists then return { success = false, error = 'Report link not saved' } end
+    if not exists then return { success = false, error = 'Report link not saved' }
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_edit')
+        or ps.getIdentifier(src) ~= actor or not canAccessCaseId(src, caseId) then
+        return { success = false, error = 'Report link authorization changed' }
+    end end
     return { success = true }
 end)
 
