@@ -111,12 +111,11 @@ end
 -- Send actual records only to their authorized server-side audience. Client
 -- visibility checks cannot protect a payload already broadcast to everyone.
 function BroadcastActiveWarrants()
-    local data = GetActiveWarrantsData()
     for _, playerSource in pairs(GetPlayers()) do
         local target = tonumber(playerSource)
         if target and target > 0 and canReadWarrantData(target)
             and CheckPermission(target, 'warrants_view') then
-            TriggerClientEvent(resourceName .. ':client:updateActiveWarrants', target, data)
+            TriggerClientEvent(resourceName .. ':client:updateActiveWarrants', target, GetActiveWarrantsData(target))
         end
     end
 end
