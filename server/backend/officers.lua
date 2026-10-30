@@ -128,7 +128,10 @@ ps.registerCallback(resourceName .. ':server:setRadio', function(source, payload
         return { success = false, message = 'Officer must be online' }
     end
  
-    local targetSource = targetPlayer.PlayerData.source
+    local targetSource = targetPlayer.PlayerData and targetPlayer.PlayerData.source
+    if not targetSource then
+        return { success = false, message = 'Officer session unavailable' }
+    end
  
     if not targetPlayer.Functions or not targetPlayer.Functions.GetItemByName then
         return { success = false, message = 'Officer inventory unavailable' }
