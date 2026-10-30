@@ -1578,7 +1578,7 @@ ps.registerCallback(resourceName .. ':server:grantReportDisclosure', function(so
         FROM players WHERE citizenid = ? LIMIT 1
     ]],{recipientCid})
     if type(recipientJob) ~= 'string' or not recipientJob:find('%S')
-        or #recipientJob > 64 or not CheckAuth(src) or not CheckPermission(src,'reports_delete')
+        or #recipientJob > 64 or recipientJob:find('%z') or not CheckAuth(src) or not CheckPermission(src,'reports_delete')
         or ps.getIdentifier(src)~=actor or ps.getJobName(src)~=employer then
         return {success=false,error='Authorization changed'}
     end
