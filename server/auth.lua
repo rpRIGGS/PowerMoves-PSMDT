@@ -220,7 +220,8 @@ function CanViewStatewideLeoRoster(source)
         or identity.primaryInterfaceId ~= 'sadle' then return false end
     -- Statewide roster access must respect the same live duty requirement as
     -- other MDT views, including the Attorney General's special entitlement.
-    if not GetMdtAccess(source).authorized then return false end
+    local initialAccess = GetMdtAccess(source)
+    if not initialAccess.authorized or initialAccess.primaryInterfaceId ~= 'sadle' then return false end
     local allowedJobs = ((Config.MdtAccess or {}).LeoRosterOversightJobs) or {}
     if type(allowedJobs) ~= 'table' or not contains(allowedJobs, identity.job) then return false end
     if isAttorneyGeneral(identity) then
