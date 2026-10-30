@@ -364,7 +364,8 @@ ps.registerCallback(resourceName .. ':server:getIAComplaint', function(source, d
     if not canViewIA(src) then return { success = false, error = 'Unauthorized' } end
 
     local complaintId = tonumber(data)
-    if not complaintId then
+    if not complaintId or complaintId ~= complaintId or complaintId == math.huge
+        or complaintId <= 0 or complaintId % 1 ~= 0 then
         return { success = false, error = 'Invalid complaint id' }
     end
 
