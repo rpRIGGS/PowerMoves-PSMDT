@@ -37,9 +37,10 @@ local function collectCitizenIds(reportData)
         end
     end
 
-    if reportData.charges then
+    if type(reportData.charges) == 'table' then
         for _, charge in ipairs(reportData.charges) do
-            if charge.citizenid then
+            if type(charge) == 'table' and type(charge.citizenid) == 'string'
+                and charge.citizenid ~= '' then
                 citizenids[charge.citizenid] = true
             end
         end
