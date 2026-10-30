@@ -661,6 +661,10 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
         return { success = false, error = 'Authorization changed' }
     end
 
+    local overall = tonumber(data.overall_rating or 3)
+    if not overall or overall ~= overall or overall < 1 or overall > 5 or overall % 1 ~= 0 then
+        return { success = false, error = 'Invalid overall rating' }
+    end
     local dorId = MySQL.insert.await([[
         INSERT INTO mdt_fto_dors (assignment_id, phase_id, author_citizenid, author_name, shift_date, overall_rating, notes)
         VALUES (?, ?, ?, ?, ?, ?, ?)
