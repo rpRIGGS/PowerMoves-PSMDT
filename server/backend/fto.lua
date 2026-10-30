@@ -689,7 +689,8 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
         end
         local compId = tonumber(r.competency_id)
         local rating = tonumber(r.rating)
-        if compId and rating then
+        if compId and rating and compId > 0 and compId % 1 == 0
+            and rating >= 1 and rating <= 5 and rating % 1 == 0 then
             MySQL.insert.await([[
                 INSERT INTO mdt_fto_dor_ratings (dor_id, competency_id, rating, notes)
                 VALUES (?, ?, ?, ?)
