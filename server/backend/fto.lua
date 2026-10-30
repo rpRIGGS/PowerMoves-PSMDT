@@ -307,7 +307,7 @@ ps.registerCallback(resourceName .. ':server:getFTO', function(source, data)
         FROM mdt_fto_dors d
         LEFT JOIN mdt_fto_phases p ON d.phase_id = p.id
         WHERE d.assignment_id = ?
-        ORDER BY d.created_at DESC
+        ORDER BY d.created_at DESC, d.id DESC
     ]], { assignmentId })
 
     if not dOk then return { success = false, error = 'Unable to load FTO observations' } end
