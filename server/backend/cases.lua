@@ -759,8 +759,8 @@ ps.registerCallback(resourceName .. ':server:removeCaseAttachment', function(sou
     end
     local success = MySQL.update.await('DELETE FROM mdt_case_attachments WHERE id = ?', { attachmentId })
 
-    if not success then
-        return { success = false, error = 'Failed to remove attachment' }
+    if not success or success < 1 then
+        return { success = false, error = 'Attachment not found' }
     end
 
     if attachment and attachment.url and attachment.url:find('^/ps%-mdt%-v3/uploads/') then
