@@ -881,10 +881,6 @@ ps.registerCallback(resourceName .. ':server:revokeCaseDisclosure', function(sou
         WHERE g.id = ? AND c.assigned_department = ? AND g.revoked_at IS NULL
     ]],{actor,id,employer})
     if not ok or tonumber(count)~=1 then return {success=false,error='Grant not found or inaccessible'} end
-    if not CheckAuth(src) or not CheckPermission(src,'cases_edit')
-        or ps.getIdentifier(src) ~= actor or ps.getJobName(src) ~= employer then
-        return {success=false,error='Authorization changed'}
-    end
     if ps.auditLog then ps.auditLog(src,'case_disclosure_revoked','case_disclosure',id,{employer=employer}) end
     return {success=true}
 end)
