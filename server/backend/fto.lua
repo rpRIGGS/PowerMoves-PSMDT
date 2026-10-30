@@ -87,7 +87,15 @@ ps.registerCallback(resourceName .. ':server:saveFTOCompetencies', function(sour
     if not CheckPermission(src, 'fto_manage') then return { success = false, error = 'No permission' } end
     local job = ps.getJobName(src)
     if not job then return { success = false, error = 'Missing agency' } end
-    competencies = competencies or {}
+    if type(competencies) ~= 'table' or #competencies > 200 then
+        return { success = false, error = 'Invalid competency list' }
+    end
+    for _, comp in ipairs(competencies) do
+        if type(comp) ~= 'table' or type(comp.name) ~= 'string'
+            or comp.name == '' or #comp.name > 255 then
+            return { success = false, error = 'Invalid competency' }
+        end
+    end
 
     MySQL.query.await('DELETE FROM mdt_fto_competencies WHERE job = ?', { job })
     for i, comp in ipairs(competencies) do
