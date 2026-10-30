@@ -1061,8 +1061,9 @@ ps.registerCallback(resourceName .. ':server:getDisclosedCases', function(source
     local src = source
     if not CheckAuth(src) or not CheckPermission(src, 'cases_view') then return {} end
     local actor, job = ps.getIdentifier(src), ps.getJobName(src)
-    if type(actor) ~= 'string' or actor == ''
-        or type(job) ~= 'string' or job == '' or not getCaseScope(src) then return {} end
+    if type(actor) ~= 'string' or not actor:find('%S') or #actor > 64
+        or type(job) ~= 'string' or not job:find('%S') or #job > 64
+        or not getCaseScope(src) then return {} end
     local ok, rows = pcall(MySQL.query.await, [[
         SELECT c.id, c.case_number, c.title, c.status, c.priority,
                c.assigned_department, g.purpose, g.granted_at
