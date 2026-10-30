@@ -904,7 +904,8 @@ RegisterNetEvent(resourceName .. ':server:openEvidenceStash', function(stashId)
         { stashId }
     )
     if not row or not canEditEvidenceRecord(src, row.id)
-        or not CheckAuth(src) or not CheckPermission(src, 'evidence_view') then return end
+        or not CheckAuth(src) or not CheckPermission(src, 'evidence_view')
+        or not CheckPermission(src, 'evidence_transfer') then return end
 
     -- qb-inventory
     if GetResourceState('qb-inventory') == 'started' then
