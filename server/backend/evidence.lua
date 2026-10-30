@@ -635,6 +635,9 @@ ps.registerCallback(resourceName .. ':server:linkEvidenceToReport', function(sou
         return { success = false, error = 'Report #' .. tostring(reportId) .. ' does not exist' }
     end
 
+    if type(CanReadMdtReport) ~= 'function' or not CanReadMdtReport(src, reportId) then
+        return { success = false, error = 'Report not accessible' }
+    end
     MySQL.update.await('UPDATE mdt_evidence_items SET report_id = ? WHERE id = ?', { reportId, evidenceId })
 
     if ps.auditLog then
