@@ -396,7 +396,8 @@ ps.registerCallback(resourceName .. ':server:getCaseEvidencePage', function(sour
     local offset = (page - 1) * limit
 
     local totalRow = MySQL.single.await('SELECT COUNT(id) as total FROM mdt_evidence_items WHERE case_id = ?', { caseId })
-    local total = totalRow and totalRow.total or 0
+    local total = tonumber(totalRow and totalRow.total) or 0
+    if total ~= total or total == math.huge or total < 0 then total = 0 end
 
     local evidence = MySQL.query.await([[
         SELECT id, title, type, serial, notes, location, stash_id, stored, last_holder, created_by, created_at, updated_at
