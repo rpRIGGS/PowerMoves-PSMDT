@@ -744,7 +744,8 @@ end))) then
     for _, r in ipairs(ratings) do
         if type(r) ~= 'table' then return { success = false, error = 'Invalid rating entry' } end
         local compId, rating = tonumber(r.competency_id), tonumber(r.rating)
-        if not compId or compId ~= compId or compId <= 0 or compId % 1 ~= 0
+        if not compId or compId ~= compId or compId == math.huge
+            or compId <= 0 or compId % 1 ~= 0
             or not rating or rating ~= rating or rating < 1 or rating > 5 or rating % 1 ~= 0
             or (r.notes ~= nil and (type(r.notes) ~= 'string' or #r.notes > 2000)) then
             return { success = false, error = 'Invalid competency rating' }
