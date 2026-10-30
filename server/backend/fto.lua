@@ -48,7 +48,8 @@ ps.registerCallback(resourceName .. ':server:saveFTOPhases', function(source, ph
     local src = source
     if not CheckAuth(src) then return { success = false } end
     if not CheckPermission(src, 'fto_manage') then return { success = false, error = 'No permission' } end
-    local job = ps.getJobName(src) or 'police'
+    local job = ps.getJobName(src)
+    if not job then return { success = false, error = 'Missing agency' } end
     phases = phases or {}
 
     MySQL.query.await('DELETE FROM mdt_fto_phases WHERE job = ?', { job })
