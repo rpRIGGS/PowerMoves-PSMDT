@@ -58,6 +58,10 @@ function GetActiveWarrantsData(src)
     end
     local citizenid = src ~= nil and ps.getIdentifier(src) or nil
     local jobName = src ~= nil and ps.getJobName(src) or nil
+    if src ~= nil and (type(citizenid) ~= 'string' or not citizenid:find('%S')
+        or #citizenid > 64 or citizenid:find('%z')
+        or type(jobName) ~= 'string' or not jobName:find('%S')
+        or #jobName > 64 or jobName:find('%z')) then return {} end
     local access = src ~= nil and GetMdtAccess(src) or nil
     local interfaceId = access and access.interfaceId or nil
     local rows = MySQL.query.await([[
