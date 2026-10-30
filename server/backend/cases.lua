@@ -735,6 +735,10 @@ ps.registerCallback(resourceName .. ':server:addCaseAttachmentUpload', function(
         or not canAccessCaseId(src, caseId) then
         return { success = false, error = 'Authorization changed' }
     end
+    local uploader = ps.getIdentifier(src)
+    if type(uploader) ~= 'string' or uploader == '' then
+        return { success = false, error = 'Missing attachment uploader identity' }
+    end
     local publicUrl, uploadError = FiveManageUpload(data, filename)
     if type(publicUrl) ~= 'string' or publicUrl == '' or #publicUrl > 2048 then
         return { success = false, error = 'Upload failed: ' .. tostring(uploadError or 'Invalid URL') }
