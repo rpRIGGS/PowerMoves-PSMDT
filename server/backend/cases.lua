@@ -97,7 +97,7 @@ ps.registerCallback(resourceName .. ':server:createCase', function(source, paylo
         VALUES ('', ?, ?, ?, ?, ?, ?, ?)
     ]], { title, summary, status, priority, department, citizenid, createdByName })
 
-    if not caseId then
+    if not caseId or tonumber(caseId) <= 0 then
         return { success = false, error = 'Failed to create case' }
     end
 
