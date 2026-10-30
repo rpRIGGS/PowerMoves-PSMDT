@@ -740,7 +740,9 @@ ps.registerCallback(resourceName .. ':server:linkEvidenceToCase', function(sourc
     end
     caseId = numericCaseId
 
-    if not evidenceId or not caseId or caseId ~= caseId or caseId == math.huge
+    if not evidenceId or evidenceId ~= evidenceId or evidenceId == math.huge
+        or evidenceId <= 0 or evidenceId % 1 ~= 0
+        or not caseId or caseId ~= caseId or caseId == math.huge
         or caseId <= 0 or caseId % 1 ~= 0 then
         return { success = false, error = 'Invalid evidence or case' }
     end
