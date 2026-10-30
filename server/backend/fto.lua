@@ -406,6 +406,9 @@ ps.registerCallback(resourceName .. ':server:createFTOAssignment', function(sour
     -- Default a new trainee to the first phase of the program if none was chosen,
     -- so they never sit "phase-less" (which breaks DOR/phase tallies).
     local phaseId = tonumber(data.current_phase_id)
+    if phaseId and (phaseId ~= phaseId or phaseId == math.huge or phaseId <= 0 or phaseId % 1 ~= 0) then
+        return { success = false, error = 'Invalid phase' }
+    end
     if not phaseId then
         local job = ps.getJobName and ps.getJobName(src) or nil
         if job then
