@@ -106,7 +106,8 @@ local function mailComplainantStatus(complaintId, status)
         SELECT complaint_number, complainant_citizenid, officer_name
         FROM mdt_ia_complaints WHERE id = ?
     ]], { complaintId })
-    if not row or not row.complainant_citizenid then return end
+    if not row or type(row.complainant_citizenid) ~= 'string'
+        or not row.complainant_citizenid:find('%S') then return end
 
     local what = STATUS_TEXT[status] or ('is now marked "' .. tostring(status) .. '"')
     local body = ('Your complaint %s %s.'):format(row.complaint_number or '', what)
