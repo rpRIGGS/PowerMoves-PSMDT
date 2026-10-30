@@ -817,7 +817,8 @@ end)
 ---@return boolean ok
 local function setOfficerJob(targetSrc, jobName, grade)
     grade = tonumber(grade)
-    if not grade or grade < 0 or grade % 1 ~= 0 then return false end
+    if not grade or grade ~= grade or grade == math.huge
+        or grade < 0 or grade % 1 ~= 0 then return false end
     if GetResourceState('qb-core') ~= 'started' then return false end
 
     local ok, QBCore = pcall(function() return exports['qb-core']:GetCoreObject() end)
