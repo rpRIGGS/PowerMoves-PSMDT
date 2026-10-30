@@ -309,6 +309,9 @@ ps.registerCallback(resourceName .. ':server:getIAComplaints', function(source, 
         values[#values + 1] = filters.status
     end
 
+    if filters.search ~= nil and (type(filters.search) ~= 'string' or #filters.search > 100) then
+        return { complaints = {}, hasMore = false, error = 'Invalid search filter' }
+    end
     if filters.search and filters.search ~= '' then
         clauses[#clauses + 1] = '(officer_name LIKE ? OR complainant_name LIKE ? OR complaint_number LIKE ?)'
         local searchTerm = '%' .. filters.search .. '%'
