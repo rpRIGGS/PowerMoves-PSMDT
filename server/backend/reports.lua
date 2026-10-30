@@ -500,7 +500,7 @@ ps.registerCallback(resourceName..':server:getReport', function(source, reportid
     -- Report enrichment may yield across permission revocation or job changes.
     if not CheckAuth(src) or ps.getIdentifier(src) ~= identifier
         or ps.getJobName(src) ~= job
-        or not checkReportAccess(src, tonumber(reportid)) then return nil end
+        or not CanReadMdtReport(src, reportid) then return nil end
     if ps.auditLog and hasReportDisclosure(src, tonumber(reportid)) then
         ps.auditLog(src,'report_disclosure_accessed','report',tonumber(reportid),
             {recipient=identifier})
