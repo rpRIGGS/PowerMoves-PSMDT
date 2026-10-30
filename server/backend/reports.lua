@@ -290,7 +290,7 @@ ps.registerCallback(resourceName .. ':server:getReports', function(source, page,
     local identifier = ps.getIdentifier(src)
     local job = ps.getJobName(src)
     local jobType = getEffectiveJobType(src)
-    if not jobType then return { reports = {}, total = 0 } end
+    if not identifier or not job or not jobType then return { reports = {}, total = 0 } end
 
     if type(filters) ~= 'table' then filters = nil end
     local pageNumber = math.floor(math.max(1, tonumber(page) or 1))
