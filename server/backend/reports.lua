@@ -1174,7 +1174,10 @@ ps.registerCallback(resourceName..':server:updateReportContent', function(source
         or reportId == math.huge or reportId <= 0 or reportId % 1 ~= 0) then
         return { success = false, error = 'Invalid report identifier' }
     end
-    local title = (reportData and reportData.title) or "Draft Report"
+    local title = (type(reportData) == 'table' and reportData.title) or 'Draft Report'
+    if type(title) ~= 'string' or not title:find('%S') or #title > 255 then
+        return { success = false, error = 'Invalid report title' }
+    end
     local reportType = (type(reportData) == 'table' and reportData.type) or 'Incident Report'
     if type(reportType) ~= 'string' or not reportType:find('%S') or #reportType > 100 then
         return { success = false, error = 'Invalid report type' }
