@@ -656,6 +656,10 @@ ps.registerCallback(resourceName .. ':server:addCaseAttachment', function(source
         or not canAccessCaseId(src, caseId) then
         return { success = false, error = 'Authorization changed' }
     end
+    local uploader = ps.getIdentifier(src)
+    if type(uploader) ~= 'string' or uploader == '' then
+        return { success = false, error = 'Missing attachment uploader identity' }
+    end
     local attachmentId = MySQL.insert.await([[
         INSERT INTO mdt_case_attachments (case_id, type, url, label, uploaded_by)
         VALUES (?, ?, ?, ?, ?)
