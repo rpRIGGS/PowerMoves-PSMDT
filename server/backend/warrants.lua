@@ -135,7 +135,7 @@ ps.registerCallback(resourceName .. ':server:issueWarrant', function(source, dat
         return { success = false, error = 'Insufficient permissions' }
     end
 
-    data = data or {}
+    if type(data) ~= 'table' then return { success = false, error = 'Invalid warrant request' } end
     local reportId = tonumber(data.reportId)
     local citizenid = data.citizenid
     local expiryValue = validateExpiry(data.expirydate)
@@ -211,7 +211,7 @@ ps.registerCallback(resourceName .. ':server:closeWarrant', function(source, dat
         return { success = false, error = 'Insufficient permissions' }
     end
 
-    data = data or {}
+    if type(data) ~= 'table' then return { success = false, error = 'Invalid warrant request' } end
     local reportId = tonumber(data.reportId)
     local citizenid = data.citizenid
     if not reportId or reportId <= 0 or reportId % 1 ~= 0
