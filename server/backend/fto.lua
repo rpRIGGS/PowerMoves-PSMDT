@@ -55,7 +55,8 @@ ps.registerCallback(resourceName .. ':server:saveFTOPhases', function(source, ph
     end
     for _, phase in ipairs(phases) do
         if type(phase) ~= 'table' or type(phase.name) ~= 'string'
-            or phase.name == '' or #phase.name > 255 then
+            or phase.name == '' or #phase.name > 255
+            or (phase.description ~= nil and (type(phase.description) ~= 'string' or #phase.description > 2000)) then
             return { success = false, error = 'Invalid phase' }
         end
     end
