@@ -81,6 +81,8 @@ function GetActiveWarrantsData(src)
     ]])
 
     if type(rows) ~= 'table' then return {} end
+    if src ~= nil and (not canReadWarrantData(src)
+        or not CheckPermission(src, 'warrants_view')) then return {} end
     for _, row in ipairs(rows) do
         local id = type(row) == 'table' and tonumber(row.reportid) or nil
         if not id or id ~= id or id == math.huge or id == -math.huge
