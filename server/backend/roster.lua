@@ -775,8 +775,8 @@ ps.registerCallback('ps-mdt:server:updateOfficerCertifications', function(source
         return { success = false, message = 'Personnel authorization changed' }
     end
 
-    local encoded = json.encode(certifications)
-    if type(encoded) ~= 'string' or #encoded > 65535 then
+    local encodeOk, encoded = pcall(json.encode, certifications)
+    if not encodeOk or type(encoded) ~= 'string' or #encoded > 65535 then
         return { success = false, message = 'Certification data too large' }
     end
     local saved = MySQL.update.await('UPDATE mdt_profiles SET certifications = ? WHERE citizenid = ?', { encoded, citizenid })
