@@ -864,7 +864,10 @@ ps.registerCallback(resourceName .. ':server:grantEvidenceDisclosure', function(
     if not CheckAuth(src) or not CheckPermission(src,'evidence_transfer')
         or not canEditEvidenceRecord(src,id) then return {success=false,error='Unauthorized'} end
     local actor,employer=ps.getIdentifier(src),ps.getJobName(src)
-    if not actor or not employer then return {success=false,error='Unauthorized'} end
+    if type(actor) ~= 'string' or actor == ''
+        or type(employer) ~= 'string' or employer == '' then
+        return {success=false,error='Unauthorized'}
+    end
     local recipientJob=MySQL.scalar.await([[
         SELECT JSON_UNQUOTE(JSON_EXTRACT(job, '$.name'))
         FROM players WHERE citizenid = ? LIMIT 1
