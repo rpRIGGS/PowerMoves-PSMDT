@@ -587,6 +587,10 @@ ps.registerCallback(resourceName .. ':server:assignCaseOfficer', function(source
     if type(actor) ~= 'string' or actor == '' then
         return { success = false, error = 'Missing assigning officer identity' }
     end
+    if ps.getIdentifier(src) ~= actor or not CheckAuth(src)
+        or not CheckPermission(src, 'cases_edit') or not canAccessCaseId(src, caseId) then
+        return { success = false, error = 'Case assignment authorization changed' }
+    end
     local insertId = MySQL.insert.await([[
         INSERT INTO mdt_case_officers (case_id, citizenid, role, assigned_by)
         VALUES (?, ?, ?, ?)
