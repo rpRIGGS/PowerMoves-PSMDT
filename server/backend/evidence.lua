@@ -99,7 +99,7 @@ ps.registerCallback(resourceName .. ':server:getEvidenceItems', function(source,
         SELECT id, case_id, report_id, title, type, serial, notes, location, stash_id, stored, last_holder, created_by, created_at, updated_at
         FROM mdt_evidence_items
         WHERE %s
-        ORDER BY created_at DESC
+        ORDER BY created_at DESC, id DESC
         LIMIT ? OFFSET ?
     ]]):format(whereClause), listValues)
 
