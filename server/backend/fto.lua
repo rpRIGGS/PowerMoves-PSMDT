@@ -636,6 +636,9 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
         phaseId = a and a.current_phase_id or nil
     end
 
+    if data.notes ~= nil and (type(data.notes) ~= 'string' or #data.notes > 20000) then
+        return { success = false, error = 'Invalid DOR notes' }
+    end
     local citizenId = ps.getIdentifier(src)
     local profile = MySQL.single.await('SELECT fullname FROM mdt_profiles WHERE citizenid = ?', { citizenId })
     local authorName = profile and profile.fullname or 'Unknown'
