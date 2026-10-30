@@ -143,8 +143,8 @@ local function checkReportWriteAccess(src, reportId, action)
 end
 
 local function buildFullName(firstname, lastname, citizenid)
-    local first = firstname and tostring(firstname) or ''
-    local last = lastname and tostring(lastname) or ''
+    local first = type(firstname) == 'string' and firstname or ''
+    local last = type(lastname) == 'string' and lastname or ''
     local full = (first .. ' ' .. last):gsub('^%s+', ''):gsub('%s+$', '')
     if full ~= '' then
         return full
