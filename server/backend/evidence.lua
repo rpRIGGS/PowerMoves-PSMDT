@@ -640,7 +640,7 @@ ps.registerCallback(resourceName .. ':server:addEvidenceImage', function(source,
     end
 
     local uploader = ps.getIdentifier(src)
-    if type(uploader) ~= 'string' or uploader == '' then
+    if type(uploader) ~= 'string' or not uploader:find('%S') or #uploader > 64 then
         return { success = false, error = 'Missing uploader identity' }
     end
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_upload')
