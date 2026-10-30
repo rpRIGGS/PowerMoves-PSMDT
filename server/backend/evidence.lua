@@ -29,7 +29,10 @@ local function canReadEvidenceRecord(source, evidenceId)
         return CheckPermission(source, 'cases_view') and CanAccessMdtCase(source, row.case_id)
     end
     local cid = ps.getIdentifier(source)
-    return type(cid) == 'string' and cid ~= '' and row.created_by == cid
+    local access = GetMdtAccess(source)
+    return type(cid) == 'string' and cid:find('%S') and #cid <= 64
+        and row.created_by == cid and access ~= nil
+        and access.authorized == true and access.isCivilian ~= true
 end
 
 -- SQL read guard: evidence linked to a case belongs to its assigned
