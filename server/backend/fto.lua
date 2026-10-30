@@ -162,7 +162,9 @@ ps.registerCallback(resourceName .. ':server:getFTOList', function(source, pageN
 
     if type(filters) ~= 'table' then filters = {} end
     local citizenId = ps.getIdentifier(src)
-    if not citizenId then return { entries = {}, hasMore = false } end
+    if type(citizenId) ~= 'string' or not citizenId:find('%S') then
+        return { entries = {}, hasMore = false }
+    end
     local hasFTOView = CheckPermission(src, 'fto_view')
 
     local page = tonumber(pageNum) or 1
