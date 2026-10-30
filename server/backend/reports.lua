@@ -1569,7 +1569,8 @@ ps.registerCallback(resourceName .. ':server:grantReportDisclosure', function(so
         SELECT JSON_UNQUOTE(JSON_EXTRACT(job, '$.name'))
         FROM players WHERE citizenid = ? LIMIT 1
     ]],{recipientCid})
-    if not recipientJob or recipientJob=='' or not CheckAuth(src) or not CheckPermission(src,'reports_delete')
+    if type(recipientJob) ~= 'string' or not recipientJob:find('%S')
+        or #recipientJob > 64 or not CheckAuth(src) or not CheckPermission(src,'reports_delete')
         or ps.getIdentifier(src)~=actor or ps.getJobName(src)~=employer then
         return {success=false,error='Authorization changed'}
     end
