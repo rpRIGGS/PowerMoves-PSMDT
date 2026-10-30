@@ -190,7 +190,7 @@ local function computeTimeStatistics(src)
     if not ok then return {} end
 
     local secondsByDay = {}
-    if type(rows) ~= 'table' then return {} end
+    if type(rows) ~= 'table' or #rows > 7 then return {} end
     for _, row in ipairs(rows) do
         if type(row) ~= 'table' or row.day == nil then return {} end
         local seconds = tonumber(row.seconds)
