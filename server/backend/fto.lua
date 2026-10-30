@@ -679,6 +679,11 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
     local profile = MySQL.single.await('SELECT fullname FROM mdt_profiles WHERE citizenid = ?', { citizenId })
     local authorName = profile and profile.fullname or 'Unknown'
 
+    local overallRating = tonumber(data.overall_rating) or 3
+    if overallRating ~= overallRating or overallRating == math.huge
+        or overallRating < 1 or overallRating > 5 or overallRating % 1 ~= 0 then
+        return { success = false, error = 'Invalid overall rating' }
+    end
     local dorId = MySQL.insert.await([[
         INSERT INTO mdt_fto_dors (assignment_id, phase_id, author_citizenid, author_name, shift_date, overall_rating, notes)
         VALUES (?, ?, ?, ?, ?, ?, ?)
