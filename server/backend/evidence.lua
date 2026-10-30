@@ -513,7 +513,7 @@ ps.registerCallback(resourceName .. ':server:transferEvidenceItem', function(sou
         return { success = false, error = 'Recipient is the current officer' }
     end
     local fromCitizenId = ps.getIdentifier(src)
-    if type(fromCitizenId) ~= 'string' or fromCitizenId == '' then
+    if type(fromCitizenId) ~= 'string' or not fromCitizenId:find('%S') or #fromCitizenId > 64 then
         return { success = false, error = 'Missing transferring officer identity' }
     end
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_transfer')
