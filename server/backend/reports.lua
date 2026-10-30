@@ -689,6 +689,7 @@ ps.registerCallback(resourceName .. ':server:searchVehiclesForReport', function(
         LIMIT 25
     ]], { plateLike, likePat, likePat })
 
+    if not CheckAuth(src) or not CheckPermission(src, 'reports_view') then return {} end
     local results = {}
     for _, row in ipairs(rows or {}) do
         local vehicleData = vehicleShared and vehicleShared[row.vehicle] or nil
