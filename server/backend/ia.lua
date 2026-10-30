@@ -695,7 +695,7 @@ ps.registerCallback(resourceName .. ':server:referIAComplaintToSADLE', function(
     local id = tonumber(complaintId)
     if not id or id ~= id or id == math.huge or id <= 0 or id % 1 ~= 0
         or type(reason) ~= 'string' or #reason < 10 or #reason > 1000
-        or not reason:find('%S') then
+        or not reason:find('%S') or reason:find('%z') then
         return {success = false, error = 'Valid complaint and referral reason required'}
     end
     if not canManageIA(src) then return {success = false, error = 'Unauthorized'} end
