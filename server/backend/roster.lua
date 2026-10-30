@@ -56,6 +56,7 @@ local function buildRosterFromQbx(jobList, matchFn, defaultDept)
 
     for _, jobName in ipairs(jobList) do
         local groupMembers = qbx:GetGroupMembers(jobName, 'job') or {}
+        if type(groupMembers) ~= 'table' then groupMembers = {} end
         for _, member in ipairs(groupMembers) do
             if type(member.citizenid) == 'string' and member.citizenid ~= '' then
                 members[member.citizenid] = true
