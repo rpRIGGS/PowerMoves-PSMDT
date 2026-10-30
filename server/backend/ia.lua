@@ -532,6 +532,9 @@ ps.registerCallback(resourceName .. ':server:updateIAStatus', function(source, c
     end
     if not ownsIAComplaint(src, complaintId) then return { success = false, error = 'Complaint access denied' } end
 
+    if not canManageIA(src) or not ownsIAComplaint(src, complaintId) then
+        return { success = false, error = 'Authorization changed' }
+    end
     local ok, err = pcall(MySQL.update.await, 'UPDATE mdt_ia_complaints SET status = ? WHERE id = ?', { status, complaintId })
     if not ok then
         ps.warn('[updateIAStatus] Failed: ' .. tostring(err))
