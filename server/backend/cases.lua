@@ -6,7 +6,9 @@ local function getCaseScope(source)
         or access.agency == '' then return nil end
     -- Court staff may read statewide case files; ordinary departmental MDT
     -- access does not imply visibility into another employer's cases.
-    if access.interfaceId == 'sadoj' then return { statewide = true, agency = access.agency } end
+    if access.interfaceId == 'sadoj' and access.jobType == 'doj' then
+        return { statewide = true, agency = access.agency }
+    end
     return { statewide = false, agency = access.agency }
 end
 
