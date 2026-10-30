@@ -803,7 +803,8 @@ end)
 ps.registerCallback(resourceName .. ':server:getIAReferralStatus', function(source, complaintId)
     local src = source
     local id = tonumber(complaintId)
-    if not id or not canViewIA(src) then return {} end
+    if not id or id ~= id or id == math.huge or id <= 0 or id % 1 ~= 0
+        or not canViewIA(src) then return {} end
     local job, cid = ps.getJobName(src), ps.getIdentifier(src)
     if not job or not cid or not ownsIAComplaint(src, id) then return {} end
     if not iaReferralSchemaReady() then return {} end
