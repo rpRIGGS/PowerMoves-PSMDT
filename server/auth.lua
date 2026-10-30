@@ -222,7 +222,7 @@ function CanViewStatewideLeoRoster(source)
     -- other MDT views, including the Attorney General's special entitlement.
     if not GetMdtAccess(source).authorized then return false end
     local allowedJobs = ((Config.MdtAccess or {}).LeoRosterOversightJobs) or {}
-    if not contains(allowedJobs, identity.job) then return false end
+    if type(allowedJobs) ~= 'table' or not contains(allowedJobs, identity.job) then return false end
     if isAttorneyGeneral(identity) then
         -- Reconfirm the AG's live job, grade, character and duty after the
         -- authorization lookup, rather than trusting a pre-yield identity.
