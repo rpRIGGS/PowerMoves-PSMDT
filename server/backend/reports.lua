@@ -115,7 +115,7 @@ end
 -- Keep report-specific disclosure and owner restrictions in one place.
 function CanReadMdtReport(src, reportId)
     local id = tonumber(reportId)
-    if not id or id <= 0 or id % 1 ~= 0 then return false end
+    if not id or id ~= id or id == math.huge or id <= 0 or id % 1 ~= 0 then return false end
     if not CheckAuth(src) or not CheckPermission(src, 'reports_view') then return false end
     return checkReportAccess(src, id)
         and CheckAuth(src) and CheckPermission(src, 'reports_view')
