@@ -63,7 +63,8 @@ end
 -- Exposed as a global so the dashboard aggregate (server/backend/dashboard.lua)
 -- can reuse it without a second round-trip.
 function GetActiveWarrantsData(src)
-    if src ~= nil and (not canReadWarrantData(src) or not CheckPermission(src, 'warrants_view')) then
+    if src ~= nil and (not canReadWarrantData(src) or not CheckPermission(src, 'warrants_view')
+        or type(CanReadMdtReport) ~= 'function') then
         return {}
     end
     local citizenid = src ~= nil and ps.getIdentifier(src) or nil
