@@ -74,7 +74,7 @@ ps.registerCallback(resourceName .. ':server:saveFTOPhases', function(source, ph
     end
 
     if not CheckAuth(src) or not CheckPermission(src, 'fto_manage')
-        or ps.getJobName(src) ~= job then
+        or ps.getJobName(src) ~= job or not getFTODomain(src) then
         return { success = false, error = 'Authorization changed' }
     end
     local statements = {
