@@ -61,6 +61,9 @@ ps.registerCallback(resourceName .. ':server:getEvidenceItems', function(source,
     end
 
     if filters and filters.type and filters.type ~= '' then
+        if type(filters.type) ~= 'string' or #filters.type > 100 then
+            return { success = false, error = 'Invalid evidence type filter' }
+        end
         queryParts[#queryParts + 1] = 'type = ?'
         values[#values + 1] = tostring(filters.type)
     end
