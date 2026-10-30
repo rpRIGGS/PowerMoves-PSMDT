@@ -14,8 +14,9 @@ local function canEditEvidenceRecord(source, evidenceId)
     -- Fail closed for another creator rather than expose unknown agency records.
     local cid = ps.getIdentifier(source)
     local access = GetMdtAccess(source)
-    return type(cid) == 'string' and cid ~= '' and row.created_by == cid
-        and access ~= nil and access.authorized == true and CheckAuth(source)
+    return type(cid) == 'string' and cid:find('%S') and #cid <= 64
+        and row.created_by == cid and access ~= nil and access.authorized == true
+        and access.isCivilian ~= true and CheckAuth(source)
         and CheckPermission(source, 'evidence_transfer')
 end
 
