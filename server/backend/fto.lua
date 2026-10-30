@@ -649,6 +649,7 @@ ps.registerCallback(resourceName .. ':server:setFTOStatus', function(source, dat
     elseif status == 'completed' or status == 'failed' then
         local changed = MySQL.update.await('UPDATE mdt_fto_assignments SET status = ?, end_date = ? WHERE id = ?',
             { status, os.date('%Y-%m-%d'), assignmentId })
+        if not changed or changed < 1 then return { success = false, error = 'Status was not saved' } end
     else -- suspended
         MySQL.update.await('UPDATE mdt_fto_assignments SET status = ? WHERE id = ?', { status, assignmentId })
     end
