@@ -597,7 +597,7 @@ ps.registerCallback(resourceName .. ':server:assignIAComplaint', function(source
         return { success = false, error = 'Investigator must belong to your authorized department' }
     end
     local profile = MySQL.single.await('SELECT fullname FROM mdt_profiles WHERE citizenid = ?', { assigneeCitizenId })
-    local assigneeName = profile and profile.fullname or 'Unknown'
+    local assigneeName = type(profile) == 'table' and profile.fullname or nil
     if type(assigneeName) ~= 'string' or not assigneeName:find('%S') then
         return { success = false, error = 'Investigator profile unavailable' }
     end
