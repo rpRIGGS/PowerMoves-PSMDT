@@ -520,8 +520,8 @@ ps.registerCallback(resourceName .. ':server:deleteCase', function(source, caseI
     end
     local success = MySQL.update.await('DELETE FROM mdt_cases WHERE id = ?', { caseId })
 
-    if not success then
-        return { success = false, error = 'Failed to delete case' }
+    if not success or success < 1 then
+        return { success = false, error = 'Case not found or already deleted' }
     end
 
     if ps.auditLog then
