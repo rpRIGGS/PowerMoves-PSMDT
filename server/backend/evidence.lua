@@ -184,6 +184,9 @@ ps.registerCallback(resourceName .. ':server:searchEvidenceItems', function(sour
     local src = source
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_view') then return { success = false, error = 'Unauthorized' } end
 
+    if type(query) ~= 'string' or #query > 200 or query:find('%z') then
+        return { success = false, error = 'Invalid evidence search' }
+    end
     local _, likeQuery = NormalizeSearch(query)
     page, limit = tonumber(page) or 1, tonumber(limit) or 20
     if page ~= page or page == math.huge or page == -math.huge then page = 1 end
