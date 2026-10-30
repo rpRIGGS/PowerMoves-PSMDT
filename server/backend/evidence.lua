@@ -945,7 +945,10 @@ end)
 
 ps.registerCallback(resourceName .. ':server:getDisclosedEvidenceDetail', function(source, evidenceId)
     local src,id=source,tonumber(evidenceId)
-    if not id or not disclosedEvidenceScope(src,id) then return {success=false,error='Unauthorized'} end
+    if not id or id ~= id or id == math.huge or id <= 0 or id % 1 ~= 0
+        or not disclosedEvidenceScope(src,id) then
+        return {success=false,error='Unauthorized'}
+    end
     local item=MySQL.single.await([[
         SELECT id,case_id,report_id,title,type,serial,notes,location,stored,last_holder,
                created_by,created_at,updated_at
