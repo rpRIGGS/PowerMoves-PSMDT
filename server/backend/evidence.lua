@@ -61,7 +61,7 @@ ps.registerCallback(resourceName .. ':server:getEvidenceItems', function(source,
             return { success = false, error = 'Invalid case filter' }
         end
         queryParts[#queryParts + 1] = 'case_id = ?'
-        values[#values + 1] = tonumber(filters.caseId)
+        values[#values + 1] = id
     end
 
     if filters and filters.type and filters.type ~= '' then
