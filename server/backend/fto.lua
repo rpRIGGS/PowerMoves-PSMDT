@@ -39,6 +39,7 @@ ps.registerCallback(resourceName .. ':server:getFTOPhases', function(source)
     local job = ps.getJobName(src)
     if not job then return {} end
     local ok, rows = pcall(MySQL.query.await, 'SELECT * FROM mdt_fto_phases WHERE job = ? ORDER BY sort_order ASC', { job })
+    if not CheckAuth(src) or ps.getJobName(src) ~= job then return {} end
     return (ok and rows) or {}
 end)
 
