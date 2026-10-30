@@ -623,7 +623,7 @@ ps.registerCallback(resourceName .. ':server:addIANote', function(source, compla
         VALUES (?, ?, ?, ?)
     ]], { complaintId, content, citizenId, authorName })
 
-    return { success = true }
+    return { success = inserted ~= nil and inserted ~= false }
 end)
 
 -- Delete a note from an IA complaint
