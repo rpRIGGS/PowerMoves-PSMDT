@@ -562,8 +562,11 @@ ps.registerCallback(resourceName .. ':server:assignIAComplaint', function(source
 
     -- Handle unassign
     if assigneeCitizenId == '__unassign__' then
-        MySQL.update.await('UPDATE mdt_ia_complaints SET assigned_to = NULL, assigned_to_name = NULL WHERE id = ?', { complaintId })
-        return { success = true }
+        if not canManageIA(src) or not ownsIAComplaint(src, complaintId) then
+            return { success = false, error = 'Authorization changed' }
+        end
+        local affected = MySQL.update.await('UPDATE mdt_ia_complaints SET assigned_to = NULL, assigned_to_name = NULL WHERE id = ?', { complaintId })
+        return { success = affected ~= nil }
     end
 
     -- A department investigator cannot be assigned to another employer's
