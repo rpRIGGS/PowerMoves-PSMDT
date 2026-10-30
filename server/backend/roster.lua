@@ -256,7 +256,7 @@ ps.registerCallback('ps-mdt:server:getRosterList', function(source)
         local citizenid = type(citizen) == 'table' and citizen.citizenid or nil
         local charinfo = safeRosterDecode(type(citizen) == 'table' and citizen.charinfo)
         local job = safeRosterDecode(citizen.job)
-        local metadata = safeRosterDecode(citizen.metadata)
+        local metadata = safeRosterDecode(type(citizen) == 'table' and citizen.metadata)
         -- The live QBCore job wins over a stale saved players.job value.
         local onlinePlayer = type(citizenid) == 'string' and citizenid ~= ''
             and ps.getPlayerByIdentifier(citizenid) or nil
