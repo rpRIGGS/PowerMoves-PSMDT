@@ -408,6 +408,8 @@ ps.registerCallback(resourceName .. ':server:getIAHistoryForOfficer', function(s
     local src = source
     if not canViewIA(src) then return {} end
 
+    if officerName ~= nil and (type(officerName) ~= 'string' or #officerName > 255) then return {} end
+    if officerCid ~= nil and (type(officerCid) ~= 'string' or #officerCid > 64) then return {} end
     if (not officerName or officerName == '') and (not officerCid or officerCid == '') then
         return {}
     end
