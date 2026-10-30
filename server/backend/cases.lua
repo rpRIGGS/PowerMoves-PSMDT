@@ -408,6 +408,9 @@ ps.registerCallback(resourceName .. ':server:getCaseEvidencePage', function(sour
     ]], { caseId, limit, offset })
 
     -- Batch-load all images for returned evidence items (avoids N+1)
+    if evidence ~= nil and type(evidence) ~= 'table' then
+        return { success = false, error = 'Case evidence query failed' }
+    end
     if evidence and #evidence > 0 then
         local ids = {}
         local idLookup = {}
