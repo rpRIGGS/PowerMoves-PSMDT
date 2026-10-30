@@ -245,7 +245,7 @@ ps.registerCallback(resourceName .. ':server:getCase', function(source, caseId)
         SELECT id, type, url, label, uploaded_by, uploaded_at
         FROM mdt_case_attachments
         WHERE case_id = ?
-        ORDER BY uploaded_at DESC
+        ORDER BY uploaded_at DESC, id DESC
     ]], { caseId })
 
     local reports = MySQL.query.await([[
