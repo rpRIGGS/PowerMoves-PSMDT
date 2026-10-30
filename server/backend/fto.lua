@@ -468,6 +468,10 @@ ps.registerCallback(resourceName .. ':server:updateFTOAssignment', function(sour
         end
     end
 
+    if updates.status ~= nil and (type(updates.status) ~= 'string'
+        or not ({ active=true, completed=true, failed=true, suspended=true })[updates.status]) then
+        return { success = false, error = 'Invalid assignment status' }
+    end
     if updates.notes ~= nil and (type(updates.notes) ~= 'string' or #updates.notes > 20000) then
         return { success = false, error = 'Invalid notes' }
     end
