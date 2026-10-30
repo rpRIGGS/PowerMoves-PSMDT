@@ -1046,7 +1046,7 @@ ps.registerCallback(resourceName .. ':server:getCaseDisclosures', function(sourc
     if not record or record.assigned_department~=employer then return {} end
     local ok,rows=pcall(MySQL.query.await,[[
         SELECT id,recipient_citizenid,purpose,granted_at,expires_at,revoked_at
-        FROM mdt_case_disclosures WHERE case_id = ? ORDER BY granted_at DESC LIMIT 100
+        FROM mdt_case_disclosures WHERE case_id = ? ORDER BY granted_at DESC, id DESC LIMIT 100
     ]],{id})
     if not CheckAuth(src) or not CheckPermission(src,'cases_edit')
         or ps.getJobName(src)~=employer or ps.getIdentifier(src)~=actor
