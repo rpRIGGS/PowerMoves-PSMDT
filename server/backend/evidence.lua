@@ -403,7 +403,8 @@ ps.registerCallback(resourceName .. ':server:updateEvidenceItem', function(sourc
     end
 
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_transfer')
-        or not canEditEvidenceRecord(src, evidenceId) then
+        or not canEditEvidenceRecord(src, evidenceId)
+        or (evidence.caseId and not CanAccessMdtCase(src, tonumber(evidence.caseId))) then
         return { success = false, error = 'Evidence authorization changed' }
     end
     values[#values + 1] = evidenceId
