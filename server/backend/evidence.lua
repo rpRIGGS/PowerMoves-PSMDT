@@ -244,6 +244,9 @@ ps.registerCallback(resourceName .. ':server:addEvidenceItem', function(source, 
     local reportId = nil
     if payload.reportId and tostring(payload.reportId) ~= '' then
         local n = tonumber(payload.reportId)
+        if not n or n ~= n or n == math.huge or n <= 0 or n % 1 ~= 0 then
+            return { success = false, error = 'Invalid report reference' }
+        end
         if n then
             local row = MySQL.single.await('SELECT id FROM mdt_reports WHERE id = ?', { n })
             if not row then
