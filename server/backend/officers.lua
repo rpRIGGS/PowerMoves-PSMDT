@@ -143,7 +143,7 @@ ps.registerCallback(resourceName .. ':server:setRadio', function(source, payload
             or not CanManageMdtPersonnel(src, cid))) then
         return { success = false, message = 'Authorization changed' }
     end
-    TriggerClientEvent(resourceName .. ':client:setRadio', targetSource, newRadio)
+    TriggerClientEvent(resourceName .. ':client:setRadio', targetSource, tonumber(newRadio))
     return { success = true, message = 'Radio set to ' .. newRadio }
 end)
  
