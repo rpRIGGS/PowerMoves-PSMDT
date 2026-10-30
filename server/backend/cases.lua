@@ -916,7 +916,7 @@ ps.registerCallback(resourceName .. ':server:addCaseNote', function(source, case
     end
 
     local citizenId = ps.getIdentifier(src)
-    if type(citizenId) ~= 'string' or citizenId == '' then
+    if type(citizenId) ~= 'string' or not citizenId:find('%S') or #citizenId > 64 then
         return { success = false, error = 'Missing author identity' }
     end
     local profile = MySQL.single.await('SELECT fullname FROM mdt_profiles WHERE citizenid = ?', { citizenId })
