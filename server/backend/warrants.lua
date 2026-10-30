@@ -95,7 +95,8 @@ function GetActiveWarrantsData(src)
         local last = type(row.lastname) == 'string' and row.lastname or ''
         local name = (first .. ' ' .. last):gsub('^%s+', ''):gsub('%s+
         if name == '' then
-            name = ps.getPlayerNameByIdentifier(row.citizenid) or 'Unknown'
+            local fallback = ps.getPlayerNameByIdentifier(row.citizenid)
+            name = type(fallback) == 'string' and fallback ~= '' and fallback or 'Unknown'
         end
         results[#results + 1] = {
             reportid = row.reportid,
