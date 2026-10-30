@@ -687,6 +687,10 @@ ps.registerCallback(resourceName .. ':server:removeEvidenceImage', function(sour
         or not canEditEvidenceRecord(src, image.evidence_id) then
         return { success = false, error = 'Authorization changed' }
     end
+    if not canEditEvidenceRecord(src, image.evidence_id)
+        or not CheckPermission(src, 'evidence_transfer') then
+        return { success = false, error = 'Evidence authorization changed' }
+    end
     local success = MySQL.update.await('DELETE FROM mdt_evidence_images WHERE id = ?', { imageId })
     if not success or success < 1 then
         return { success = false, error = 'Evidence image not found' }
