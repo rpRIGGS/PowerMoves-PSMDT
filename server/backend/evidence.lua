@@ -329,6 +329,7 @@ ps.registerCallback(resourceName .. ':server:addEvidenceItem', function(source, 
     end
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_create')
         or ps.getIdentifier(src) ~= collector
+        or (caseId and not CheckPermission(src, 'cases_edit'))
         or (caseId and not CanAccessMdtCase(src, caseId))
         or (reportId and not CanReadMdtReport(src, reportId)) then
         return { success = false, error = 'Evidence authorization changed' }
