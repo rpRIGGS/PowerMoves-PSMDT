@@ -679,6 +679,9 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
     local profile = MySQL.single.await('SELECT fullname FROM mdt_profiles WHERE citizenid = ?', { citizenId })
     local authorName = profile and profile.fullname or 'Unknown'
 
+    if data.notes ~= nil and (type(data.notes) ~= 'string' or #data.notes > 20000) then
+        return { success = false, error = 'Invalid DOR notes' }
+    end
     local overallRating = tonumber(data.overall_rating) or 3
     if overallRating ~= overallRating or overallRating == math.huge
         or overallRating < 1 or overallRating > 5 or overallRating % 1 ~= 0 then
