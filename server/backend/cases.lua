@@ -428,6 +428,9 @@ ps.registerCallback(resourceName .. ':server:getCaseEvidencePage', function(sour
             ORDER BY uploaded_at DESC, id DESC
         ]]):format(placeholders), ids)
 
+        if images ~= nil and type(images) ~= 'table' then
+            return { success = false, error = 'Case evidence attachments unavailable' }
+        end
         for _, img in ipairs(images or {}) do
             local parent = idLookup[img.evidence_id]
             if parent then
