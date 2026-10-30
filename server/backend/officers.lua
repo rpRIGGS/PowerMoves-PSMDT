@@ -5,7 +5,7 @@ if not ok then QBCore = nil end
 -- Get player source ID by citizenId
 ps.registerCallback(resourceName .. ':server:GetPlayerSourceId', function(source, targetCitizenId)
     if not CheckAuth(source) then return nil end
-    if not targetCitizenId then return nil end
+    if type(targetCitizenId) ~= 'string' or targetCitizenId == '' then return nil end
     if targetCitizenId ~= ps.getIdentifier(source)
         and (not CheckPermission(source, 'roster_manage_officers')
             or not CanManageMdtPersonnel(source, targetCitizenId)) then return nil end
