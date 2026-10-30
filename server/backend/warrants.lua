@@ -224,6 +224,7 @@ ps.registerCallback(resourceName .. ':server:issueWarrant', function(source, dat
     -- (non-expired) warrant, regardless of which subject it targets.
     if not canReadWarrantData(src) or not CheckPermission(src, 'warrants_issue')
         or ps.getIdentifier(src) ~= requesterCitizenId or ps.getJobName(src) ~= requesterJob
+        or type(CanReadMdtReport) ~= 'function'
         or not CanReadMdtReport(src, reportId) then
         return { success = false, error = 'Warrant authorization changed' }
     end
