@@ -1048,7 +1048,7 @@ ps.registerCallback(resourceName .. ':server:getDisclosedEvidence', function(sou
     ]],{cid,job})
     if not CheckAuth(src) or not CheckPermission(src,'evidence_view')
         or ps.getIdentifier(src)~=cid or ps.getJobName(src)~=job
-        or not GetMdtAccess(src).authorized then return {} end
+        or not (GetMdtAccess(src) or {}).authorized then return {} end
     return ok and type(rows) == 'table' and rows or {}
 end)
 
