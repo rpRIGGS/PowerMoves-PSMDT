@@ -516,7 +516,8 @@ ps.registerCallback(resourceName .. ':server:updateIAComplaintInfo', function(so
         sets[#sets + 1] = 'incident_date = ?'
         vals[#vals + 1] = updates.incident_date
     end
-    if updates.incident_location ~= nil and (type(updates.incident_location) ~= 'string' or #updates.incident_location > 255) then
+    if updates.incident_location ~= nil and (type(updates.incident_location) ~= 'string'
+        or #updates.incident_location > 255 or updates.incident_location:find('%z')) then
         return { success = false, error = 'Invalid incident location' }
     end
     if updates.incident_location ~= nil then
