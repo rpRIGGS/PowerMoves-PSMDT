@@ -215,7 +215,7 @@ ps.registerCallback(resourceName .. ':server:addEvidenceItem', function(source, 
     local src = source
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_create') then return { success = false, error = 'Unauthorized' } end
 
-    payload = payload or {}
+    if type(payload) ~= 'table' then return { success = false, error = 'Invalid evidence request' } end
     local evidence = payload.evidence or payload
 
     if not evidence or not evidence.title then
