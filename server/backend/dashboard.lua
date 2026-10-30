@@ -358,7 +358,7 @@ local function computeActiveBolos(src)
     if type(BOLOS) ~= 'table' then return {} end
     local result = {}
     for _, v in pairs(BOLOS) do
-        if type(v) ~= 'table' then return {} end
+        if type(v) ~= 'table' or not tonumber(v.id) then return {} end
         local reportId = tonumber(v.reportId)
         if not reportId or (type(CanReadMdtReport) == 'function'
             and CheckAuth(src) and CheckPermission(src, 'bolos_view')
