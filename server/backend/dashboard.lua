@@ -335,7 +335,11 @@ registerDashboardRead('getRecentReports', function(src, snapshot, page, limit)
         LIMIT ?
         OFFSET ?
     ]], { jobType, jobType, jobType, identifier, job, jobType, job, identifier, job, pageSize, offset })
-    return rows or {}
+    if type(rows) ~= 'table' then return {} end
+    for _, row in ipairs(rows) do
+        if type(row) ~= 'table' then return {} end
+    end
+    return rows
 end)
 
 local function computeActiveBolos(src)
