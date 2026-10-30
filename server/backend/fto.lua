@@ -495,7 +495,7 @@ ps.registerCallback(resourceName .. ':server:advanceFTOPhase', function(source, 
     if not CheckAuth(src) then return { success = false } end
     if not CheckPermission(src, 'fto_manage') then return { success = false, error = 'No permission' } end
 
-    data = data or {}
+    if type(data) ~= 'table' then return { success = false, error = 'Invalid phase request' } end
     local assignmentId = tonumber(data.assignment_id)
     local direction = data.direction == 'back' and 'back' or 'next'
     if not assignmentId then return { success = false, error = 'Invalid assignment' } end
