@@ -318,7 +318,7 @@ ps.registerCallback(resourceName .. ':server:getFTO', function(source, data)
             FROM mdt_fto_dor_ratings r
             LEFT JOIN mdt_fto_competencies c ON r.competency_id = c.id
             WHERE r.dor_id = ?
-            ORDER BY c.sort_order ASC
+            ORDER BY c.sort_order ASC, r.id ASC
         ]], { dor.id })
         if not rOk then return { success = false, error = 'Unable to load FTO ratings' } end
         dor.ratings = ratings or {}
