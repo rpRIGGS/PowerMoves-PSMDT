@@ -895,7 +895,7 @@ end)
 RegisterNetEvent(resourceName .. ':server:openEvidenceStash', function(stashId)
     local src = source
     if not CheckAuth(src) then return end
-    if not CheckPermission(src, 'evidence_view') then return end
+    if not CheckPermission(src, 'evidence_view') or not CheckPermission(src, 'evidence_transfer') then return end
 
     if type(stashId) ~= 'string' or not stashId:find('%S') or #stashId > 128 then return end
     -- A client may request only a stash referenced by evidence they can access.
