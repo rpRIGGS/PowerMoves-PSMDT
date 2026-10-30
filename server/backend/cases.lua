@@ -431,6 +431,9 @@ ps.registerCallback(resourceName .. ':server:updateCase', function(source, caseI
     local updates = {}
     local values = {}
 
+    if payload.title ~= nil and (type(payload.title) ~= 'string' or #payload.title < 1 or #payload.title > 255) then
+        return { success = false, error = 'Invalid case title' }
+    end
     if payload.title then
         updates[#updates + 1] = 'title = ?'
         values[#values + 1] = payload.title
