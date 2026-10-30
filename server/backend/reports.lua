@@ -81,7 +81,8 @@ local function checkReportAccess(src, reportId)
     local jobType = getEffectiveJobType(src)
 
     if type(identifier) ~= 'string' or not identifier:find('%S') or #identifier > 64
-        or type(job) ~= 'string' or not job:find('%S') or #job > 64
+        or identifier:find('%z') or type(job) ~= 'string' or not job:find('%S')
+        or #job > 64 or job:find('%z')
         or not jobType then
         return false
     end
