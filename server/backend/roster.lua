@@ -856,6 +856,7 @@ ps.registerCallback('ps-mdt:server:promoteOfficer', function(source, payload)
     end
 
     if not citizenid or not jobName or not newGrade
+        or newGrade ~= newGrade or newGrade == math.huge
         or newGrade < 0 or newGrade % 1 ~= 0 then
         return { success = false, message = 'Missing or invalid required fields' }
     end
