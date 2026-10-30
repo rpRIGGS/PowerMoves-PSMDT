@@ -1613,7 +1613,9 @@ ps.registerCallback(resourceName .. ':server:getDisclosedReports', function(sour
     local src=source
     if not CheckAuth(src) or not CheckPermission(src,'reports_view') then return {} end
     local actor,employer=ps.getIdentifier(src),ps.getJobName(src)
-    if not actor or not employer then return {} end
+    if type(actor) ~= 'string' or not actor:find('%S') or #actor > 64
+        or type(employer) ~= 'string' or not employer:find('%S')
+        or #employer > 64 then return {} end
     local ok,rows=pcall(MySQL.query.await,[[
         SELECT r.id,r.title,r.type,r.datecreated,g.purpose,g.granted_at
         FROM mdt_report_disclosures g
