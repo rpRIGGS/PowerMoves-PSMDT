@@ -387,11 +387,14 @@ ps.registerCallback(resourceName .. ':server:getIAComplaint', function(source, d
         or ps.getJobName(src) ~= actorJob or not canAccessIARecord(src, complaint) then
         return { success = false, error = 'Authorization changed' }
     end
+    if not nOk or type(notes) ~= 'table' then
+        return { success = false, error = 'Unable to load investigation notes' }
+    end
     return {
         success = true,
         data = {
             complaint = complaint,
-            notes = (nOk and notes) or {}
+            notes = notes
         }
     }
 end)
