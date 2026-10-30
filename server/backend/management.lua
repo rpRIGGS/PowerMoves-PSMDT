@@ -34,9 +34,13 @@ local function getPoliceJobDefinition(source)
     local jobName = resolvePoliceJobName(source)
     if not jobName then return nil, nil end
 
-    if exports['qb-core'] then
-        local QBCore = exports['qb-core']:GetCoreObject()
-        local jobs = QBCore and QBCore.Shared and QBCore.Shared.Jobs
+    -- Use the running QBCore job registry as the authoritative source of
+    -- employer grades. A missing export/resource must not break MDT callbacks.
+    if GetResourceState('qb-core') == 'started' then
+        local ok, core = pcall(function()
+            return exports['qb-core']:GetCoreObject()
+        end)
+        local jobs = ok and core and core.Shared and core.Shared.Jobs
         if jobs and jobs[jobName] then
             return jobName, jobs[jobName]
         end
