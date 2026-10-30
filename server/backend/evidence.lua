@@ -288,8 +288,8 @@ ps.registerCallback(resourceName .. ':server:addEvidenceItem', function(source, 
         evidence.location or '',
         evidence.stashId or '',
         evidence.stored and 1 or 0,
-        ps.getIdentifier(src),
-        ps.getIdentifier(src)
+        collector,
+        collector
     })
 
     if not evidenceId then
