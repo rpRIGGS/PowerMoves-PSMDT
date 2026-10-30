@@ -959,7 +959,10 @@ ps.registerCallback(resourceName .. ':server:getDisclosedEvidenceDetail', functi
         SELECT id,evidence_id,from_citizenid,to_citizenid,action,notes,created_at
         FROM mdt_evidence_custody WHERE evidence_id = ? ORDER BY created_at DESC
     ]],{id})
-    if not disclosedEvidenceScope(src,id) then return {success=false,error='Authorization changed'} end
+    if not CheckAuth(src) or not CheckPermission(src,'evidence_view')
+        or not disclosedEvidenceScope(src,id) then
+        return {success=false,error='Authorization changed'}
+    end
     if ps.auditLog then ps.auditLog(src,'evidence_disclosure_accessed','evidence',id,
         {recipient=ps.getIdentifier(src)}) end
     return {success=true,data={item=item,custody=custody or {}}}
