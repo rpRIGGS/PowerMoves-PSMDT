@@ -1076,5 +1076,5 @@ ps.registerCallback(resourceName .. ':server:getDisclosedCases', function(source
     if not CheckAuth(src) or not CheckPermission(src, 'cases_view')
         or ps.getIdentifier(src) ~= actor or ps.getJobName(src) ~= job
         or not getCaseScope(src) then return {} end
-    return ok and rows or {}
+    return ok and type(rows) == 'table' and rows or {}
 end)
