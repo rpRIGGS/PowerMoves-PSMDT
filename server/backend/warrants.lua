@@ -282,7 +282,7 @@ ps.registerCallback(resourceName .. ':server:closeWarrant', function(source, dat
         WHERE reportid = ? AND citizenid = ? AND expirydate > NOW()
           AND NOT EXISTS (SELECT 1 FROM mdt_reports_restrictions o
               WHERE o.reportid = ? AND o.type = 'owner' AND o.identifier <> ?)
-    ]], { reportId, citizenid, reportId, ps.getJobName(src) })
+    ]], { reportId, citizenid, reportId, requesterJob })
 
     if updated and updated > 0 then
         -- Closing the warrant also removes any hearing it placed on the calendar.
