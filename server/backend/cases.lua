@@ -331,8 +331,8 @@ ps.registerCallback(resourceName .. ':server:unlinkReportFromCase', function(sou
     if type(CanReadMdtReport) ~= 'function' or not CanReadMdtReport(src, reportId) then
         return { success = false, error = 'Report not accessible' }
     end
-    MySQL.query.await('DELETE FROM mdt_case_reports WHERE case_id = ? AND report_id = ?', { caseId, reportId })
-    return { success = true }
+    local deleted = MySQL.update.await('DELETE FROM mdt_case_reports WHERE case_id = ? AND report_id = ?', { caseId, reportId })
+    return { success = deleted ~= nil and deleted > 0 }
 end)
 
 ps.registerCallback(resourceName .. ':server:getCaseEvidencePage', function(source, caseId, page, limit)
