@@ -218,6 +218,9 @@ ps.registerCallback(resourceName .. ':server:searchEvidenceItems', function(sour
           AND %s
     ]]):format(evidenceReadScope), searchParams)
 
+    if not totalRow or tonumber(totalRow.total) == nil then
+        return { success = false, error = 'Evidence search count query failed' }
+    end
     local total = tonumber(totalRow and totalRow.total) or 0
     if total ~= total or total == math.huge or total < 0 then total = 0 end
 
