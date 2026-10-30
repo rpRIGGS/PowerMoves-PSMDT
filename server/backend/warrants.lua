@@ -147,6 +147,9 @@ ps.registerCallback(resourceName .. ':server:issueWarrant', function(source, dat
     local reportId = tonumber(data.reportId)
     local citizenid = data.citizenid
     local expiryValue = validateExpiry(data.expirydate)
+    if data.expirydate ~= nil and expiryValue == nil then
+        return { success = false, error = 'Invalid expiry date' }
+    end
     local expiryDate = getExpiryDate(expiryValue)
     if not expiryDate then
         local defaultDays = tonumber((Config and Config.Warrants and Config.Warrants.DefaultExpiryDays) or 7)
