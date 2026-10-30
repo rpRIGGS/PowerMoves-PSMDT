@@ -595,8 +595,8 @@ ps.registerCallback(resourceName .. ':server:removeCaseOfficer', function(source
         DELETE FROM mdt_case_officers WHERE case_id = ? AND citizenid = ?
     ]], { caseId, officerCitizenId })
 
-    if not success then
-        return { success = false, error = 'Failed to remove officer' }
+    if not success or success < 1 then
+        return { success = false, error = 'Officer not assigned to case' }
     end
 
     if ps.auditLog then
