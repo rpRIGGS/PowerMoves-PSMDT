@@ -177,7 +177,8 @@ ps.registerCallback(resourceName .. ':server:getFTOList', function(source, pageN
     local values = {}
 
     -- Domain scope: each side only sees its own FTO assignments.
-    if not ps.getJobName(src) or not getFTODomain(src) then
+    if type(ps.getJobName(src)) ~= 'string' or not ps.getJobName(src):find('%S')
+        or not getFTODomain(src) then
         return { entries = {}, hasMore = false }
     end
     clauses[#clauses + 1] = 'a.job_type = ? AND a.agency_job = ?'
