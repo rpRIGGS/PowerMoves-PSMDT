@@ -454,7 +454,7 @@ ps.registerCallback(resourceName .. ':server:createFTOAssignment', function(sour
         ps.getJobName(src),
     })
 
-    if not assignmentId then return { success = false, error = 'Failed to create assignment' } end
+    if not assignmentId or assignmentId <= 0 then return { success = false, error = 'Failed to create assignment' } end
 
     local ftoNumber = buildFTONumber(assignmentId)
     MySQL.update.await('UPDATE mdt_fto_assignments SET fto_number = ? WHERE id = ?', { ftoNumber, assignmentId })
