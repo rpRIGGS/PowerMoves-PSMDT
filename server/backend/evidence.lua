@@ -268,6 +268,9 @@ ps.registerCallback(resourceName .. ':server:addEvidenceItem', function(source, 
         end
     end
 
+    if evidence.stored ~= nil and type(evidence.stored) ~= 'boolean' then
+        return { success = false, error = 'Invalid stored flag' }
+    end
     for _, field in ipairs({ 'type', 'serial', 'notes', 'location', 'stashId' }) do
         local value = evidence[field]
         if value ~= nil and (type(value) ~= 'string' or #value > (field == 'notes' and 20000 or 255)) then
