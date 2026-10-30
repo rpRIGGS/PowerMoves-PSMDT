@@ -810,7 +810,7 @@ ps.registerCallback(resourceName .. ':server:addCaseAttachmentUpload', function(
         return { success = false, error = 'Authorization changed' }
     end
     local uploader = ps.getIdentifier(src)
-    if type(uploader) ~= 'string' or uploader == '' then
+    if type(uploader) ~= 'string' or not uploader:find('%S') or #uploader > 64 then
         return { success = false, error = 'Missing attachment uploader identity' }
     end
     local publicUrl, uploadError = FiveManageUpload(data, filename)
