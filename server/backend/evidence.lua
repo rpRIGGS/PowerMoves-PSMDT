@@ -544,8 +544,9 @@ ps.registerCallback(resourceName .. ':server:addEvidenceImage', function(source,
     local url = image.url or image.data or ''
     local label = image.label or ''
 
-    if not url or url == '' then
-        return { success = false, error = 'Missing image URL' }
+    if type(url) ~= 'string' or url == '' or #url > 4096
+        or type(label) ~= 'string' or #label > 255 then
+        return { success = false, error = 'Invalid image metadata' }
     end
 
     local imageId = MySQL.insert.await([[
