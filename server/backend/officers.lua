@@ -108,7 +108,7 @@ ps.registerCallback(resourceName .. ':server:setRadio', function(source, payload
     local cid = payload.citizenid or payload.cid
     local newRadio = payload.radio or payload.newradio
  
-    if type(cid) ~= 'string' or cid == ''
+    if type(cid) ~= 'string' or not cid:find('%S') or #cid > 64
         or (type(newRadio) ~= 'number' and type(newRadio) ~= 'string')
         or not tonumber(newRadio) or tonumber(newRadio) <= 0
         or tonumber(newRadio) == math.huge or tonumber(newRadio) ~= tonumber(newRadio) then
