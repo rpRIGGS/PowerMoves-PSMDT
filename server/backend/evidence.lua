@@ -447,7 +447,10 @@ ps.registerCallback(resourceName .. ':server:transferEvidenceItem', function(sou
         or not canEditEvidenceRecord(src, evidenceId) then
         return { success = false, error = 'Evidence authorization changed' }
     end
-    MySQL.update.await('UPDATE mdt_evidence_items SET last_holder = ? WHERE id = ?', { toCitizenId, evidenceId })
+    local moved = MySQL.update.await('UPDATE mdt_evidence_items SET last_holder = ? WHERE id = ?', { toCitizenId, evidenceId })
+    if not moved or moved < 1 then
+        return { success = false, error = 'Evidence transfer not saved' }
+    end
 
     MySQL.insert.await([[
         INSERT INTO mdt_evidence_custody (evidence_id, from_citizenid, to_citizenid, action, notes)
