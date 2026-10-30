@@ -216,7 +216,8 @@ end
 -- stored role grant limited to approved oversight jobs, or the configured AG.
 function CanViewStatewideLeoRoster(source)
     local identity = runtimeIdentity(source)
-    if not identity or identity.jobType ~= 'leo' or not identity.gradeValid then return false end
+    if not identity or identity.jobType ~= 'leo' or not identity.gradeValid
+        or identity.primaryInterfaceId ~= 'sadle' then return false end
     -- Statewide roster access must respect the same live duty requirement as
     -- other MDT views, including the Attorney General's special entitlement.
     if not GetMdtAccess(source).authorized then return false end
