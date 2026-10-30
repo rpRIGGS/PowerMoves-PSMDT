@@ -189,7 +189,8 @@ ps.registerCallback(resourceName .. ':server:searchEvidenceItems', function(sour
           AND %s
     ]]):format(evidenceReadScope), searchParams)
 
-    local total = totalRow and totalRow.total or 0
+    local total = tonumber(totalRow and totalRow.total) or 0
+    if total ~= total or total == math.huge or total < 0 then total = 0 end
 
     local pagedParams = { table.unpack(searchParams) }
     pagedParams[#pagedParams + 1], pagedParams[#pagedParams + 2] = limit, offset
