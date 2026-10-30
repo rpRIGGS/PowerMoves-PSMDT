@@ -333,7 +333,7 @@ ps.registerCallback(resourceName .. ':server:getIAComplaints', function(source, 
                category, status, assigned_to_name, created_at
         FROM mdt_ia_complaints
         %s
-        ORDER BY created_at DESC
+        ORDER BY created_at DESC, id DESC
         LIMIT ? OFFSET ?
     ]]):format(whereClause)
 
