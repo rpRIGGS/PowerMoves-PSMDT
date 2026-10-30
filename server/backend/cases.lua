@@ -591,7 +591,7 @@ ps.registerCallback(resourceName .. ':server:removeCaseOfficer', function(source
         or not canAccessCaseId(src, caseId) then
         return { success = false, error = 'Authorization changed' }
     end
-    local success = MySQL.query.await([[
+    local success = MySQL.update.await([[
         DELETE FROM mdt_case_officers WHERE case_id = ? AND citizenid = ?
     ]], { caseId, officerCitizenId })
 
