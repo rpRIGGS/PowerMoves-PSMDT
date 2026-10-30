@@ -771,8 +771,8 @@ ps.registerCallback('ps-mdt:server:updateOfficerCertifications', function(source
     end
 
     local encoded = json.encode(certifications)
-    MySQL.update.await('UPDATE mdt_profiles SET certifications = ? WHERE citizenid = ?', { encoded, citizenid })
-
+    local saved = MySQL.update.await('UPDATE mdt_profiles SET certifications = ? WHERE citizenid = ?', { encoded, citizenid })
+    if saved == nil then return { success = false, message = 'Failed to save certifications' } end
     return { success = true }
 end)
 
