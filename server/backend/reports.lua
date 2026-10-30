@@ -1624,7 +1624,9 @@ ps.registerCallback(resourceName .. ':server:revokeReportDisclosure', function(s
         SET g.revoked_at = NOW(), g.revoked_by_citizenid = ?
         WHERE g.id = ? AND o.identifier = ? AND g.revoked_at IS NULL
     ]],{actor,id,employer})
-    if not ok or tonumber(count)~=1 then return {success=false,error='Grant not found or inaccessible'} end
+    if not ok or type(count) ~= 'number' or count ~= 1 then
+        return {success=false,error='Grant not found or inaccessible'}
+    end
     if ps.auditLog then ps.auditLog(src,'report_disclosure_revoked','report_disclosure',id,{employer=employer}) end
     return {success=true}
 end)
