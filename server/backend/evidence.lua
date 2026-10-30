@@ -879,6 +879,11 @@ ps.registerCallback(resourceName .. ':server:grantEvidenceDisclosure', function(
         or not canEditEvidenceRecord(src,id) then
         return {success=false,error='Authorization changed'}
     end
+    if not CheckAuth(src) or not CheckPermission(src,'evidence_transfer')
+        or ps.getIdentifier(src) ~= actor or ps.getJobName(src) ~= employer
+        or not canEditEvidenceRecord(src,id) then
+        return {success=false,error='Authorization changed'}
+    end
     local ok,grantId=pcall(MySQL.insert.await,[[
         INSERT INTO mdt_evidence_disclosures
             (evidence_id,recipient_citizenid,recipient_job,purpose,granted_by_citizenid,granted_by_job)
