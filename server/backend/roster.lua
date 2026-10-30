@@ -782,11 +782,16 @@ ps.registerCallback('ps-mdt:server:getJobGrades', function(source, payload)
 
     local grades = {}
     for gradeKey, gradeValue in pairs(jobData.grades) do
-        grades[#grades + 1] = {
-            grade = tonumber(gradeValue.level or gradeValue.grade or gradeKey),
-            name = gradeValue.name or gradeValue.label or ('Grade ' .. tostring(gradeKey)),
-            isBoss = gradeValue.isboss == true or gradeValue.isBoss == true or gradeValue.boss == true,
-        }
+        if type(gradeValue) == 'table' then
+            local level = tonumber(gradeValue.level or gradeValue.grade or gradeKey)
+            if level and level >= 0 and level % 1 == 0 then
+                grades[#grades + 1] = {
+                    grade = level,
+                    name = gradeValue.name or gradeValue.label or ('Grade ' .. tostring(level)),
+                    isBoss = gradeValue.isboss == true or gradeValue.isBoss == true or gradeValue.boss == true,
+                }
+            end
+        end
     end
 
     table.sort(grades, function(a, b) return a.grade < b.grade end)
