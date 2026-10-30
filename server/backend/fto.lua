@@ -615,7 +615,7 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
     if not CheckAuth(src) then return { success = false } end
     if not CheckPermission(src, 'fto_manage') then return { success = false, error = 'No permission' } end
 
-    data = data or {}
+    if type(data) ~= 'table' then return { success = false, error = 'Invalid DOR request' } end
     local assignmentId = tonumber(data.assignment_id)
     if not assignmentId or assignmentId ~= assignmentId or assignmentId == math.huge
         or assignmentId <= 0 or assignmentId % 1 ~= 0 then
