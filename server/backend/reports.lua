@@ -790,7 +790,7 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
 
     -- Tags are required
     local tags = reportData.tags
-    if not tags or type(tags) ~= 'table' or #tags == 0 then
+    if type(tags) ~= 'table' or #tags == 0 or #tags > 50 then
         ps.notify(src, 'Failed to save Report: At least one tag is required', 'error')
         return { success = false, message = 'At least one tag is required' }
     end
