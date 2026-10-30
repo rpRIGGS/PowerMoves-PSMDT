@@ -302,6 +302,11 @@ ps.registerCallback(resourceName .. ':server:closeWarrant', function(source, dat
         return { success = false, error = 'Warrant authorization changed' }
     end
 
+    if not canReadWarrantData(src) or not CheckPermission(src, 'warrants_close')
+        or ps.getIdentifier(src) ~= requesterCitizenId or ps.getJobName(src) ~= requesterJob
+        or not CanReadMdtReport(src, reportId) then
+        return { success = false, error = 'Warrant authorization changed' }
+    end
     local updated = MySQL.update.await([[
         UPDATE mdt_reports_warrants
         SET expirydate = NOW()
