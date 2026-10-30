@@ -211,7 +211,8 @@ ps.registerCallback(resourceName .. ':server:searchEvidenceItems', function(sour
     end
 
     -- Never return another employer's results after a yielding query.
-    if not unchangedEvidenceReadScope(src, scopeParams) then
+    if not CheckAuth(src) or not CheckPermission(src, 'evidence_view')
+        or not unchangedEvidenceReadScope(src, scopeParams) then
         return { success = false, error = 'Authorization changed' }
     end
     return {
