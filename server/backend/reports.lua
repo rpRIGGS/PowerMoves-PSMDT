@@ -908,7 +908,7 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
         local cleanupOk, cleanupErr = pcall(function()
             return MySQL.transaction.await(cleanupQueries)
         end)
-        if not cleanupOk then
+        if not cleanupOk or cleanupErr ~= true then
             ps.warn(('[Cleanup Transaction Error] Report %s: %s'):format(reportId, tostring(cleanupErr)))
             return { success = false, error = "Failed to clean up old report data: " .. tostring(cleanupErr) }
         end
