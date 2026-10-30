@@ -147,7 +147,7 @@ ps.registerCallback(resourceName .. ':server:getCases', function(source, page, f
     end
 
     if filters.department then
-        clauses[#clauses + 1] = 'assigned_department = ?'
+        clauses[#clauses + 1] = 'mc.assigned_department = ?'
         values[#values + 1] = filters.department
     end
 
