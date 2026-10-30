@@ -383,7 +383,8 @@ ps.registerCallback(resourceName .. ':server:getIAComplaint', function(source, d
         ORDER BY created_at DESC, id DESC
     ]], { complaintId })
 
-    if not canAccessIARecord(src, complaint) then
+    if not canViewIA(src) or ps.getIdentifier(src) ~= actorCitizenid
+        or ps.getJobName(src) ~= actorJob or not canAccessIARecord(src, complaint) then
         return { success = false, error = 'Authorization changed' }
     end
     return {
