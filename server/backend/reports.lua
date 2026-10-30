@@ -895,6 +895,13 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
         or getEffectiveJobType(src) == nil then
         return { success = false, error = 'Report author authorization changed' }
     end
+    if next(reportData.charges or {}) ~= nil then
+        for _, charge in ipairs(reportData.charges) do
+            if charge.warrant == true and not CheckPermission(src, 'warrants_issue') then
+                return { success = false, error = 'Warrant issuance permission required' }
+            end
+        end
+    end
     if reportId and not checkReportWriteAccess(src, reportId, 'reports_create') then
         return { success = false, error = 'Report edit authorization changed' }
     end
