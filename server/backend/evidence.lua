@@ -259,6 +259,12 @@ ps.registerCallback(resourceName .. ':server:addEvidenceItem', function(source, 
         end
     end
 
+    for _, field in ipairs({ 'type', 'serial', 'notes', 'location', 'stashId' }) do
+        local value = evidence[field]
+        if value ~= nil and (type(value) ~= 'string' or #value > (field == 'notes' and 20000 or 255)) then
+            return { success = false, error = 'Invalid evidence ' .. field }
+        end
+    end
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_create')
         or (caseId and not CanAccessMdtCase(src, caseId))
         or (reportId and (type(CanReadMdtReport) ~= 'function' or not CanReadMdtReport(src, reportId))) then
