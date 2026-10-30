@@ -468,6 +468,9 @@ ps.registerCallback(resourceName .. ':server:updateFTOAssignment', function(sour
         end
     end
 
+    if updates.notes ~= nil and (type(updates.notes) ~= 'string' or #updates.notes > 20000) then
+        return { success = false, error = 'Invalid notes' }
+    end
     if #sets == 0 then return { success = false, error = 'No fields to update' } end
 
     if not canAccessFTORecord(src, assignmentId) then return { success = false, error = 'Unauthorized' } end
