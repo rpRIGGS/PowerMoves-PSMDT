@@ -1432,6 +1432,8 @@ ps.registerCallback(resourceName..':server:getReportAnalytics', function(source,
         filters and tostring(filters.startDate) or '',
         filters and tostring(filters.endDate) or '',
         filters and tostring(filters.author) or '',
+        filters and tostring(filters.search) or '',
+        filters and tostring(filters.type) or '',
     }
     local cacheKey = 'reports:analytics:' .. table.concat(cacheKeyParts, '|')
 
