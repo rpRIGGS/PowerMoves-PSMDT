@@ -408,6 +408,7 @@ ps.registerCallback(resourceName .. ':server:getCaseEvidencePage', function(sour
     end
 
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_view')
+        or not CheckPermission(src, 'cases_view')
         or not canAccessCaseId(src, caseId) then
         return { success = false, error = 'Authorization changed' }
     end
