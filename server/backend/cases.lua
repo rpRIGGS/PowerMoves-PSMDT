@@ -752,7 +752,7 @@ ps.registerCallback(resourceName .. ':server:addCaseAttachmentUpload', function(
     end
 
     if not CheckAuth(src) or not CheckPermission(src, 'cases_edit')
-        or not canAccessCaseId(src, caseId) then
+        or not canAccessCaseId(src, caseId) or ps.getIdentifier(src) ~= uploader then
         return { success = false, error = 'Authorization changed' }
     end
     local attachmentId = MySQL.insert.await([[
