@@ -809,7 +809,8 @@ ps.registerCallback('ps-mdt:server:getJobGrades', function(source, payload)
     for gradeKey, gradeValue in pairs(jobData.grades) do
         if type(gradeValue) == 'table' then
             local level = tonumber(gradeValue.level or gradeValue.grade or gradeKey)
-            if level and level >= 0 and level % 1 == 0 then
+            if level and level == level and level ~= math.huge
+                and level >= 0 and level % 1 == 0 then
                 grades[#grades + 1] = {
                     grade = level,
                     name = gradeValue.name or gradeValue.label or ('Grade ' .. tostring(level)),
