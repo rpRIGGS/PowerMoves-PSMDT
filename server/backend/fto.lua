@@ -101,7 +101,8 @@ ps.registerCallback(resourceName .. ':server:saveFTOCompetencies', function(sour
     for _, comp in ipairs(competencies) do
         if type(comp) ~= 'table' or type(comp.name) ~= 'string'
             or not comp.name:find('%S') or #comp.name > 255
-            or (comp.category ~= nil and (type(comp.category) ~= 'string' or #comp.category > 100)) then
+            or (comp.category ~= nil and (type(comp.category) ~= 'string' or #comp.category > 100
+                or not comp.category:find('%S'))) then
             return { success = false, error = 'Invalid competency' }
         end
     end
