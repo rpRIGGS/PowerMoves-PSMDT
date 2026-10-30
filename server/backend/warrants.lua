@@ -27,7 +27,7 @@ local function validateExpiry(expiry)
     end
     if type(expiry) == 'string' then
         local trimmed = expiry:match('^%s*(.-)%s*$')
-        if trimmed and trimmed ~= '' then
+        if trimmed and trimmed ~= '' and #trimmed <= 32 then
             return trimmed
         end
     end
