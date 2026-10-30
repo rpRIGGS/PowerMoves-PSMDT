@@ -1011,8 +1011,8 @@ ps.registerCallback(resourceName .. ':server:revokeEvidenceDisclosure', function
         return {success=false,error='Unauthorized'}
     end
     local actor,employer=ps.getIdentifier(src),ps.getJobName(src)
-    if type(actor) ~= 'string' or actor == ''
-        or type(employer) ~= 'string' or employer == '' then
+    if type(actor) ~= 'string' or not actor:find('%S') or #actor > 64
+        or type(employer) ~= 'string' or not employer:find('%S') or #employer > 64 then
         return {success=false,error='Unauthorized'}
     end
     if not CheckAuth(src) or not CheckPermission(src,'evidence_transfer')
