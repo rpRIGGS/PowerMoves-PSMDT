@@ -758,7 +758,7 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
         VALUES (?, ?, ?, ?, ?, ?, ?)
     ]], { assignmentId, phaseId, citizenId, authorName,
         data.shift_date or os.date('%Y-%m-%d'), overallRating, data.notes })
-    if not dorId then return { success = false, error = 'Failed to create DOR' } end
+    if not dorId or dorId <= 0 then return { success = false, error = 'Failed to create DOR' } end
     for _, ratingRow in ipairs(ratings) do
         if not CheckAuth(src) or not CheckPermission(src, 'fto_manage')
             or ps.getIdentifier(src) ~= citizenId or not canAccessFTORecord(src, assignmentId) then
