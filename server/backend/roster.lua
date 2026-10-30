@@ -248,6 +248,14 @@ ps.registerCallback('ps-mdt:server:getRosterList', function(source)
         local charinfo = safeRosterDecode(citizen.charinfo)
         local job = safeRosterDecode(citizen.job)
         local metadata = safeRosterDecode(citizen.metadata)
+        -- The live QBCore job wins over a stale saved players.job value.
+        local onlinePlayer = ps.getPlayerByIdentifier(citizenid)
+        local liveData = onlinePlayer and onlinePlayer.PlayerData
+        if type(liveData) == 'table' and type(liveData.job) == 'table' then
+            job = liveData.job
+            if type(liveData.metadata) == 'table' then metadata = liveData.metadata end
+            if type(liveData.charinfo) == 'table' then charinfo = liveData.charinfo end
+        end
         local jobName = job.name and tostring(job.name) or nil
         local inDomain = jobName ~= nil and jobLookup[jobName] == true
         if inDomain then
@@ -257,7 +265,6 @@ ps.registerCallback('ps-mdt:server:getRosterList', function(source)
             local lastName = charinfo.lastname or 'N/A'
             local rank = job.grade and job.grade.name or (employee.grade and ps.getSharedJobGradeData(jobName or defaultDept, employee.grade, 'name')) or 'Unknown Rank'
             local status = checkDuty(citizenid, matchFn)
-            local onlinePlayer = ps.getPlayerByIdentifier(citizenid)
             local onlineSrc = onlinePlayer and (onlinePlayer.source or (onlinePlayer.PlayerData and onlinePlayer.PlayerData.source)) or nil
             rosterList[#rosterList + 1] = {
                 id = #rosterList + 1,
