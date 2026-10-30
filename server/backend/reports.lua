@@ -1261,6 +1261,10 @@ ps.registerCallback(resourceName..':server:updateReportContent', function(source
         }
     end
 
+    if not checkReportWriteAccess(src, reportId, 'reports_create')
+        or ps.getIdentifier(src) ~= identifier then
+        return { success = false, error = 'Draft edit authorization changed' }
+    end
     local updateSuccess = MySQL.update.await([[
         UPDATE mdt_reports
         SET contentyjs = ?, contentplaintext = ?, dateupdated = CURRENT_TIMESTAMP
