@@ -42,7 +42,7 @@ ps.registerCallback(resourceName .. ':server:getEvidenceItems', function(source,
     local src = source
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_view') then return { success = false, error = 'Unauthorized' } end
 
-    page = tonumber(page) or 1
+    page = math.floor(math.max(1, math.min(tonumber(page) or 1, 100000)))
     limit = tonumber(limit) or 20
     local offset = (page - 1) * limit
 
