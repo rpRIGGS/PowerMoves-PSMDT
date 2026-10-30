@@ -590,8 +590,8 @@ ps.registerCallback(resourceName .. ':server:removeEvidenceImage', function(sour
         return { success = false, error = 'Evidence image not found or inaccessible' }
     end
     local success = MySQL.update.await('DELETE FROM mdt_evidence_images WHERE id = ?', { imageId })
-    if not success then
-        return { success = false, error = 'Failed to remove image' }
+    if not success or success < 1 then
+        return { success = false, error = 'Evidence image not found' }
     end
 
     if image and image.url and image.url:find('^/ps%-mdt%-v3/uploads/') then
