@@ -137,6 +137,7 @@ local function checkReportWriteAccess(src, reportId, action)
     if owner ~= nil and owner ~= ps.getJobName(src) then return false end
     if not CheckAuth(src) or not CheckPermission(src, action) then return false end
     return CheckAuth(src) and CheckPermission(src, action)
+        and getEffectiveJobType(src) ~= nil
 end
 
 local function buildFullName(firstname, lastname, citizenid)
