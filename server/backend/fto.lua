@@ -63,7 +63,8 @@ end)
 ps.registerCallback(resourceName .. ':server:getFTOCompetencies', function(source)
     local src = source
     if not CheckAuth(src) then return {} end
-    local job = ps.getJobName(src) or 'police'
+    local job = ps.getJobName(src)
+    if not job then return {} end
     local ok, rows = pcall(MySQL.query.await, 'SELECT * FROM mdt_fto_competencies WHERE job = ? ORDER BY sort_order ASC', { job })
     return (ok and rows) or {}
 end)
