@@ -252,6 +252,9 @@ ps.registerCallback(resourceName .. ':server:addEvidenceItem', function(source, 
             if not row then
                 return { success = false, error = 'Report #' .. tostring(n) .. ' doesnt exist' }
             end
+            if type(CanReadMdtReport) ~= 'function' or not CanReadMdtReport(src, n) then
+                return { success = false, error = 'Report not accessible' }
+            end
             reportId = n
         end
     end
