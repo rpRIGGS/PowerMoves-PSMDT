@@ -210,7 +210,7 @@ local function buildReportFilterClause(filters)
     end
 
     if hasValue(filters.author) and type(filters.author) == 'string'
-        and #filters.author <= 200 then
+        and #filters.author <= 200 and not filters.author:find('%z') then
         local likeQuery = '%' .. tostring(filters.author) .. '%'
         clauses[#clauses + 1] = '(mr.authorplaintext LIKE ? OR mr.author LIKE ?)'
         values[#values + 1] = likeQuery
