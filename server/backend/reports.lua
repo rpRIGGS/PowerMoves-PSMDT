@@ -293,8 +293,12 @@ ps.registerCallback(resourceName .. ':server:getReports', function(source, page,
     if not identifier or not job or not jobType then return { reports = {}, total = 0 } end
 
     if type(filters) ~= 'table' then filters = nil end
-    local pageNumber = math.floor(math.max(1, math.min(tonumber(page) or 1, 10000)))
-    local limit = math.floor(math.max(1, math.min(tonumber(filters and filters.limit) or 20, 100)))
+    local requestedPage = tonumber(page) or 1
+    if requestedPage ~= requestedPage or requestedPage == math.huge or requestedPage == -math.huge then requestedPage = 1 end
+    local requestedLimit = tonumber(filters and filters.limit) or 20
+    if requestedLimit ~= requestedLimit or requestedLimit == math.huge or requestedLimit == -math.huge then requestedLimit = 20 end
+    local pageNumber = math.floor(math.max(1, math.min(requestedPage, 10000)))
+    local limit = math.floor(math.max(1, math.min(requestedLimit, 100)))
     local offset = (pageNumber - 1) * limit
 
     local filterClause, filterValues = buildReportFilterClause(filters)
