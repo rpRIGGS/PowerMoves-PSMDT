@@ -160,7 +160,7 @@ ps.registerCallback(resourceName .. ':server:getFTOList', function(source, pageN
 
     if type(filters.search) == 'string' and filters.search ~= '' and #filters.search <= 100 then
         clauses[#clauses + 1] = '(a.trainee_name LIKE ? OR a.trainer_name LIKE ? OR a.fto_number LIKE ?)'
-        local s = '%' .. filters.search .. '%'
+        local s = '%' .. filters.search:gsub('%%', '\\%%'):gsub('_', '\\_') .. '%'
         values[#values + 1] = s
         values[#values + 1] = s
         values[#values + 1] = s
