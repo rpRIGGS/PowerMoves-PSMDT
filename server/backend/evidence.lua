@@ -259,6 +259,11 @@ ps.registerCallback(resourceName .. ':server:addEvidenceItem', function(source, 
         end
     end
 
+    if not CheckAuth(src) or not CheckPermission(src, 'evidence_create')
+        or (caseId and not CanAccessMdtCase(src, caseId))
+        or (reportId and (type(CanReadMdtReport) ~= 'function' or not CanReadMdtReport(src, reportId))) then
+        return { success = false, error = 'Evidence authorization changed' }
+    end
     local evidenceId = MySQL.insert.await([[
         INSERT INTO mdt_evidence_items
         (case_id, report_id, title, type, serial, notes, location, stash_id, stored, last_holder, created_by)
