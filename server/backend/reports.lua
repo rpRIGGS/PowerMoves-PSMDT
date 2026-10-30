@@ -558,6 +558,9 @@ ps.registerCallback(resourceName .. ':server:searchPlayers', function(source, qu
         })
     end
 
+    local searchActor, searchJob = ps.getIdentifier(src), ps.getJobName(src)
+    if type(searchActor) ~= 'string' or not searchActor:find('%S')
+        or type(searchJob) ~= 'string' or not searchJob:find('%S') then return {} end
     -- No COLLATE cast on the join key (shared utf8mb4_general_ci) so the
     -- mdt_profiles index stays usable instead of degrading to a full scan.
     local rows = MySQL.query.await([[
