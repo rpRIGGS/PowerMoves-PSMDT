@@ -299,7 +299,7 @@ ps.registerCallback(resourceName .. ':server:addEvidenceItem', function(source, 
     MySQL.insert.await([[
         INSERT INTO mdt_evidence_custody (evidence_id, from_citizenid, to_citizenid, action, notes)
         VALUES (?, ?, ?, 'collected', ?)
-    ]], { evidenceId, nil, ps.getIdentifier(src), evidence.notes or '' })
+    ]], { evidenceId, nil, collector, evidence.notes or '' })
 
     if ps.auditLog then
         ps.auditLog(src, 'evidence_added', 'evidence', evidenceId, evidence)
