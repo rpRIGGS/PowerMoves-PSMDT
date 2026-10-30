@@ -618,7 +618,7 @@ ps.registerCallback(resourceName .. ':server:addIANote', function(source, compla
         or not ownsIAComplaint(src, complaintId) then
         return { success = false, error = 'Authorization changed' }
     end
-    MySQL.insert.await([[
+    local inserted = MySQL.insert.await([[
         INSERT INTO mdt_ia_notes (complaint_id, content, author_citizenid, author_name)
         VALUES (?, ?, ?, ?)
     ]], { complaintId, content, citizenId, authorName })
