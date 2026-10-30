@@ -1309,7 +1309,12 @@ ps.registerCallback(resourceName..':server:deleteReport', function(source, repor
     local reportInfo = MySQL.query.await("SELECT title FROM mdt_reports WHERE id = ?", { reportId })
     local reportTitle = reportInfo and reportInfo[1] and reportInfo[1].title or "Unknown"
 
-    if not checkReportWriteAccess(src, reportId, 'reports_delete') then return { success = false, error = 'Authorization changed' } end
+    local deleteActor, deleteJob = ps.getIdentifier(src), ps.getJobName(src)
+    if type(deleteActor) ~= 'string' or not deleteActor:find('%S')
+        or type(deleteJob) ~= 'string' or not deleteJob:find('%S')
+        or not checkReportWriteAccess(src, reportId, 'reports_delete') then
+        return { success = false, error = 'Authorization changed' }
+    end
     local deleted = MySQL.update.await("DELETE FROM mdt_reports WHERE id = ?", { reportId })
 
     if type(deleted) == 'number' and deleted > 0 then
