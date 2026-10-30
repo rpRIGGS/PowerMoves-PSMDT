@@ -47,7 +47,7 @@ local function ownsIAComplaint(src, complaintId)
         'SELECT job_type, agency FROM mdt_ia_complaints WHERE id = ? LIMIT 1',
         {id}
     )
-    return canAccessIARecord(src, record)
+    return CheckAuth(src) and canAccessIARecord(src, record)
 end
 
 -- The alleged employee's configured current employer is a provisional routing
