@@ -783,8 +783,8 @@ ps.registerCallback('ps-mdt:server:getJobGrades', function(source, payload)
     local grades = {}
     for gradeKey, gradeValue in pairs(jobData.grades) do
         grades[#grades + 1] = {
-            grade = tonumber(gradeKey) or 0,
-            name = gradeValue.name or ('Grade ' .. gradeKey),
+            grade = tonumber(gradeValue.level or gradeValue.grade or gradeKey),
+            name = gradeValue.name or gradeValue.label or ('Grade ' .. tostring(gradeKey)),
             isBoss = gradeValue.isboss == true or gradeValue.isBoss == true or gradeValue.boss == true,
         }
     end
