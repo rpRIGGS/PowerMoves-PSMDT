@@ -875,7 +875,8 @@ end)
 
 ps.registerCallback(resourceName .. ':server:getCaseDisclosures', function(source, caseId)
     local src,id=source,tonumber(caseId)
-    if not id or not CheckAuth(src) or not CheckPermission(src,'cases_edit') then return {} end
+    if not id or id ~= id or id == math.huge or id <= 0 or id % 1 ~= 0
+        or not CheckAuth(src) or not CheckPermission(src,'cases_edit') then return {} end
     local actor, employer=ps.getIdentifier(src),ps.getJobName(src)
     local record=MySQL.single.await('SELECT assigned_department FROM mdt_cases WHERE id = ?', {id})
     if not record or record.assigned_department~=employer then return {} end
