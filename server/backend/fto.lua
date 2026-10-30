@@ -390,7 +390,7 @@ ps.registerCallback(resourceName .. ':server:createFTOAssignment', function(sour
         return { success = false, error = 'Trainer is required' }
     end
     if (data.trainee_name ~= nil and (type(data.trainee_name) ~= 'string' or not data.trainee_name:find('%S') or #data.trainee_name > 255))
-        or (data.trainer_name ~= nil and (type(data.trainer_name) ~= 'string' or #data.trainer_name > 255)) then
+        or (data.trainer_name ~= nil and (type(data.trainer_name) ~= 'string' or not data.trainer_name:find('%S') or #data.trainer_name > 255)) then
         return { success = false, error = 'Invalid participant name' }
     end
     if data.trainee_citizenid == data.trainer_citizenid then
