@@ -200,6 +200,11 @@ ps.registerCallback(resourceName .. ':server:issueWarrant', function(source, dat
 
     -- One warrant per report: refuse if this report already has any active
     -- (non-expired) warrant, regardless of which subject it targets.
+    if not canReadWarrantData(src) or not CheckPermission(src, 'warrants_issue')
+        or ps.getIdentifier(src) ~= requesterCitizenId or ps.getJobName(src) ~= requesterJob
+        or not CanReadMdtReport(src, reportId) then
+        return { success = false, error = 'Warrant authorization changed' }
+    end
     local activeForReport = MySQL.single.await('SELECT 1 AS x FROM mdt_reports_warrants WHERE reportid = ? AND expirydate >= NOW() LIMIT 1', { reportId })
     if activeForReport then
         return { success = false, error = 'This report already has an active warrant' }
