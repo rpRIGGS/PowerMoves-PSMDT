@@ -569,7 +569,7 @@ ps.registerCallback(resourceName .. ':server:assignCaseOfficer', function(source
     end
 
     role = role or 'assisting'
-    if type(role) ~= 'string' or #role > 40 or role == '' then
+    if type(role) ~= 'string' or #role > 40 or not role:find('%S') then
         return { success = false, error = 'Invalid officer role' }
     end
 
