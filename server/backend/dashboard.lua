@@ -285,7 +285,8 @@ ps.registerCallback(resourceName .. ':server:deleteBulletin', function(source, p
     end
 
     local deleted = MySQL.update.await('DELETE FROM mdt_bulletins WHERE id = ?', { id })
-    if type(deleted) ~= 'number' or deleted <= 0 then
+    if type(deleted) ~= 'number' or deleted ~= deleted
+        or deleted == math.huge or deleted == -math.huge or deleted <= 0 then
         return { success = false, message = 'Bulletin not found' }
     end
     Cache.invalidate('dashboard:bulletins')
