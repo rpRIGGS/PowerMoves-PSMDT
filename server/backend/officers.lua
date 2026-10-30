@@ -121,7 +121,7 @@ end)
 -- Get Unit Location (GPS to officer)
 ps.registerCallback(resourceName .. ':server:getUnitLocation', function(source, cid)
     if not CheckAuth(source) then return {} end
-    if not cid then return {} end
+    if type(cid) ~= 'string' or cid == '' then return {} end
     if cid ~= ps.getIdentifier(source)
         and (not CheckPermission(source, 'roster_manage_officers')
             or not CanManageMdtPersonnel(source, cid)) then return {} end
