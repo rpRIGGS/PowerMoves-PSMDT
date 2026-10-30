@@ -160,7 +160,10 @@ ps.registerCallback(resourceName .. ':server:getFTOList', function(source, pageN
     local src = source
     if not CheckAuth(src) then return { entries = {}, hasMore = false } end
 
-    if type(filters) ~= 'table' then filters = {} end
+    if filters ~= nil and type(filters) ~= 'table' then
+        return { entries = {}, hasMore = false, error = 'Invalid filters' }
+    end
+    filters = filters or {}
     if type(filters.status) == 'string' and #filters.status > 40 then
         return { entries = {}, hasMore = false, error = 'Invalid status filter' }
     end
