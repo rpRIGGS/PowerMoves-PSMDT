@@ -373,6 +373,7 @@ local function computeActiveBolos(src)
         }
         end
     end
+    if not CheckAuth(src) or not CheckPermission(src, 'bolos_view') then return {} end
     return result
 end
 
