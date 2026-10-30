@@ -53,7 +53,8 @@ local function dashboardSnapshot(src)
     local ok, snapshot = pcall(function()
         if not CheckAuth(src) then return nil end
         local before = dashboardIdentity(src)
-        if not before.citizenid or not before.job then return nil end
+        if type(before.citizenid) ~= 'string' or not before.citizenid:find('%S')
+            or type(before.job) ~= 'string' or not before.job:find('%S') then return nil end
         local access = GetMdtAccess(src)
         local current = dashboardIdentity(src)
         if not sameDashboardIdentity(before, current) or type(access) ~= 'table'
