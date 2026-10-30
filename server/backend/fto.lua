@@ -320,7 +320,9 @@ ps.registerCallback(resourceName .. ':server:getFTO', function(source, data)
         ORDER BY d.created_at DESC, d.id DESC
     ]], { assignmentId })
 
-    if not dOk then return { success = false, error = 'Unable to load FTO observations' } end
+    if not dOk or type(dors) ~= 'table' then
+        return { success = false, error = 'Unable to load FTO observations' }
+    end
     local dorList = dors or {}
     for _, dor in ipairs(dorList) do
         local rOk, ratings = pcall(MySQL.query.await, [[
