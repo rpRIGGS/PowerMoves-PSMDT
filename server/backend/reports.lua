@@ -751,6 +751,10 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
         "SELECT identifier FROM mdt_reports_restrictions WHERE reportid = ? AND type = 'owner' LIMIT 1",
         { reportId }) or nil
 
+    if not CheckAuth(src) or not CheckPermission(src, 'reports_create')
+        or ps.getIdentifier(src) ~= identifier or ps.getJobName(src) ~= originatingJob then
+        return { success = false, error = 'Report author authorization changed' }
+    end
     local citizenids = collectCitizenIds(reportData)
 
     for citizenid, _ in pairs(citizenids) do
