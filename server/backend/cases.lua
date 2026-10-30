@@ -421,7 +421,7 @@ ps.registerCallback(resourceName .. ':server:updateCase', function(source, caseI
     if not existing or (not scope.statewide and existing.assigned_department ~= scope.agency) then
         return { success = false, error = 'Case not found or inaccessible' }
     end
-    payload = payload or {}
+    if type(payload) ~= 'table' then return { success = false, error = 'Invalid case payload' } end
     if payload.department and not scope.statewide and payload.department ~= scope.agency then
         return { success = false, error = 'Cross-department reassignment denied' }
     end
