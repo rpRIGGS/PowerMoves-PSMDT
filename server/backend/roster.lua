@@ -78,7 +78,8 @@ local function buildRosterFromQbx(jobList, matchFn, defaultDept)
 
     for _, row in ipairs(MySQL.query.await('SELECT citizenid, job FROM players', {}) or {}) do
         local job = safeRosterDecode(row.job)
-        if matchFn(job.name, job.type) then
+        if type(row.citizenid) == 'string' and row.citizenid ~= ''
+            and matchFn(job.name, job.type) then
             members[row.citizenid] = true
         end
     end
