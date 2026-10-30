@@ -938,7 +938,10 @@ ps.registerCallback(resourceName .. ':server:revokeCaseDisclosure', function(sou
         return {success=false,error='Unauthorized'}
     end
     local actor, employer=ps.getIdentifier(src),ps.getJobName(src)
-    if not actor or not employer then return {success=false,error='Unauthorized'} end
+    if type(actor) ~= 'string' or actor == ''
+        or type(employer) ~= 'string' or employer == '' then
+        return {success=false,error='Unauthorized'}
+    end
     local ok,count=pcall(MySQL.update.await,[[
         UPDATE mdt_case_disclosures g
         INNER JOIN mdt_cases c ON c.id = g.case_id
