@@ -59,6 +59,7 @@ local function dashboardSnapshot(src)
         if not sameDashboardIdentity(before, current) or type(access) ~= 'table'
             or access.authorized ~= true or access.isCivilian == true then return nil end
         current.jobType = getEffectiveJobType(src)
+        if current.jobType == nil or access.jobType ~= current.jobType then return nil end
         if current.jobType == 'ems' and (access.authorized ~= true or access.jobType ~= 'ems') then return nil end
         current.interfaceId = access.interfaceId
         current.permissions, current.permissionKeys = {}, {}
