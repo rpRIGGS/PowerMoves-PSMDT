@@ -366,7 +366,8 @@ local function computeActiveBolos(src)
         result[#result + 1] = {
             id       = v.id,
             reportId = v.reportId and tostring(v.reportId) or 'N/A',
-            name     = v.subject_name or ps.getPlayerNameByIdentifier(v.subject_id) or 'Unknown',
+            name     = type(v.subject_name) == 'string' and v.subject_name
+                or (v.subject_id and ps.getPlayerNameByIdentifier(v.subject_id)) or 'Unknown',
             type     = v.type,
             notes    = v.notes or '',
             status   = v.status,
