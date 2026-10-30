@@ -876,7 +876,7 @@ ps.registerCallback('ps-mdt:server:promoteOfficer', function(source, payload)
         return { success = false, message = 'Failed to update rank (framework error)' }
     end
 
-    local gradeName = gradeData.name or ('Grade ' .. newGrade)
+    local gradeName = gradeData.name or gradeData.label or ('Grade ' .. newGrade)
 
     if ps.auditLog then
         ps.auditLog(src, 'officer_promoted', 'officers', citizenid, {
