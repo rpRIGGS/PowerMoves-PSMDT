@@ -626,7 +626,8 @@ ps.registerCallback(resourceName .. ':server:linkEvidenceToReport', function(sou
     if not canEditEvidenceRecord(src, evidenceId) then return { success = false, error = 'Evidence not found or inaccessible' } end
     reportId = tonumber(reportId)
 
-    if not evidenceId or not reportId then
+    if not evidenceId or not reportId or reportId ~= reportId or reportId == math.huge
+        or reportId <= 0 or reportId % 1 ~= 0 then
         return { success = false, error = 'Invalid evidence or report' }
     end
 
