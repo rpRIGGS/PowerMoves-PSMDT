@@ -1034,6 +1034,9 @@ ps.registerCallback('ps-mdt:server:updateOfficerCallsign', function(source, payl
         return { success = false, message = 'Invalid citizen ID or callsign' }
     end
 
+    if citizenid == ps.getIdentifier(src) then
+        return { success = false, message = 'Use your own callsign settings' }
+    end
     if not CanManageMdtPersonnel(src, citizenid) then
         return { success = false, message = 'Personnel administration is limited to your department' }
     end
