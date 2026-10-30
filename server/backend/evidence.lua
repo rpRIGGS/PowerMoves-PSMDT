@@ -658,7 +658,7 @@ ps.registerCallback(resourceName .. ':server:addEvidenceImage', function(source,
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_upload') then return { success = false, error = 'Unauthorized' } end
 
     evidenceId = tonumber(evidenceId)
-    if not canReadEvidenceRecord(src, evidenceId) then return { success = false, error = 'Evidence not found or inaccessible' } end
+    if not canEditEvidenceRecord(src, evidenceId) then return { success = false, error = 'Evidence not found or inaccessible' } end
     if not evidenceId or evidenceId ~= evidenceId or evidenceId == math.huge
         or evidenceId <= 0 or evidenceId % 1 ~= 0 or type(image) ~= 'table' then
         return { success = false, error = 'Invalid image' }
@@ -680,7 +680,7 @@ ps.registerCallback(resourceName .. ':server:addEvidenceImage', function(source,
     end
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_upload')
         or ps.getIdentifier(src) ~= uploader
-        or not canReadEvidenceRecord(src, evidenceId) then
+        or not canEditEvidenceRecord(src, evidenceId) then
         return { success = false, error = 'Authorization changed' }
     end
     local imageId = MySQL.insert.await([[
