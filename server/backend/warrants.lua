@@ -49,7 +49,7 @@ end
 
 local function getExpiryDate(value)
     local ts = toTimestamp(value)
-    if ts then
+    if ts and ts >= 0 and ts <= 253402300799 then
         return os.date('%Y-%m-%d %H:%M:%S', ts)
     end
     if type(value) == 'string' and value ~= '' then
