@@ -513,6 +513,7 @@ ps.registerCallback(resourceName..':server:getReport', function(source, reportid
                     image = row.image,
                     fingerprint = (row.fingerprint and row.fingerprint ~= 'null') and row.fingerprint or nil
                 }
+                end
             end
 
             for _, entry in ipairs(involved) do
