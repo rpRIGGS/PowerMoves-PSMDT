@@ -564,7 +564,7 @@ ps.registerCallback(resourceName .. ':server:assignCaseOfficer', function(source
     caseId = tonumber(caseId)
     if not caseId or caseId ~= caseId or caseId == math.huge
         or caseId <= 0 or caseId % 1 ~= 0 or type(officerCitizenId) ~= 'string'
-        or officerCitizenId == '' or #officerCitizenId > 64 then
+        or not officerCitizenId:find('%S') or #officerCitizenId > 64 then
         return { success = false, error = 'Invalid case or officer' }
     end
 
