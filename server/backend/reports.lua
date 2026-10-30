@@ -665,9 +665,10 @@ ps.registerCallback(resourceName .. ':server:searchOfficers', function(source, q
         LIMIT 50
     ]], params)
 
-    if not CheckAuth(src) or not CheckPermission(src, 'reports_view') then return {} end
+    if not CheckAuth(src) or not CheckPermission(src, 'reports_view')
+        or type(rows) ~= 'table' then return {} end
     local results = {}
-    for _, row in ipairs(rows or {}) do
+    for _, row in ipairs(rows) do
         local fullName = buildFullName(row.firstname, row.lastname, row.citizenid)
         table.insert(results, {
             id = row.citizenid,
