@@ -409,6 +409,10 @@ ps.registerCallback(resourceName .. ':server:deleteEvidenceItem', function(sourc
         return { success = false, error = 'Invalid evidence id' }
     end
 
+    if not CheckAuth(src) or not CheckPermission(src, 'evidence_transfer')
+        or not canEditEvidenceRecord(src, evidenceId) then
+        return { success = false, error = 'Evidence authorization changed' }
+    end
     local success = MySQL.update.await('DELETE FROM mdt_evidence_items WHERE id = ?', { evidenceId })
     if not success or success < 1 then
         return { success = false, error = 'Evidence not found' }
