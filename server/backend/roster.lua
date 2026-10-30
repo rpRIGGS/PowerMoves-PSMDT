@@ -269,7 +269,7 @@ ps.registerCallback('ps-mdt:server:getRosterList', function(source)
         local inDomain = jobName ~= nil and jobLookup[jobName] == true
         if inDomain then
             local employee = employees[citizenid] or {}
-            local callsign = metadata.callsign or 'N/A'
+            local callsign = type(metadata.callsign) == 'string' and metadata.callsign or 'N/A'
             local firstName = charinfo.firstname or 'N/A'
             local lastName = charinfo.lastname or 'N/A'
             local grade = job.grade
