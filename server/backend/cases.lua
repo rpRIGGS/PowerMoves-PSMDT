@@ -317,10 +317,11 @@ ps.registerCallback(resourceName .. ':server:linkReportToCase', function(source,
         or not canAccessCaseId(src, caseId) or not CanReadMdtReport(src, reportId) then
         return { success = false, error = 'Authorization changed' }
     end
-    MySQL.insert.await([[
+    local linked = MySQL.insert.await([[
         INSERT IGNORE INTO mdt_case_reports (case_id, report_id, linked_by)
         VALUES (?, ?, ?)
     ]], { caseId, reportId, ps.getIdentifier(src) })
+    if linked == nil then return { success = false, error = 'Report link not saved' } end
     return { success = true }
 end)
 
