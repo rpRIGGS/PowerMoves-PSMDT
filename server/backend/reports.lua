@@ -512,7 +512,7 @@ ps.registerCallback(resourceName .. ':server:searchPlayers', function(source, qu
     if not CheckAuth(src) or not CheckPermission(src, 'reports_view') then return {} end
 
     local norm, likeQuery = NormalizeSearch(query)
-    if not likeQuery then return {} end
+    if not likeQuery or not norm or #norm < 2 then return {} end
 
     if ps.auditLog then
         ps.auditLog(src, 'search_players', 'search', nil, {
