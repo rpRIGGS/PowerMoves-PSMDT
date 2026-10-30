@@ -683,6 +683,10 @@ ps.registerCallback(resourceName .. ':server:addCaseAttachmentUpload', function(
         return { success = false, error = 'FiveManage upload not available' }
     end
 
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_edit')
+        or not canAccessCaseId(src, caseId) then
+        return { success = false, error = 'Authorization changed' }
+    end
     local publicUrl, uploadError = FiveManageUpload(data, filename)
     if not publicUrl then
         return { success = false, error = 'Upload failed: ' .. (uploadError or 'Unknown error') }
