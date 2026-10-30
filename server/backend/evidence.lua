@@ -218,7 +218,8 @@ ps.registerCallback(resourceName .. ':server:addEvidenceItem', function(source, 
     if type(payload) ~= 'table' then return { success = false, error = 'Invalid evidence request' } end
     local evidence = payload.evidence or payload
 
-    if not evidence or not evidence.title then
+    if type(evidence) ~= 'table' or type(evidence.title) ~= 'string'
+        or not evidence.title:find('%S') or #evidence.title > 255 then
         return { success = false, error = 'Invalid evidence: title is required' }
     end
 
