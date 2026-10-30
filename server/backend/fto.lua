@@ -332,7 +332,9 @@ ps.registerCallback(resourceName .. ':server:getFTO', function(source, data)
             WHERE r.dor_id = ?
             ORDER BY c.sort_order ASC, r.id ASC
         ]], { dor.id })
-        if not rOk then return { success = false, error = 'Unable to load FTO ratings' } end
+        if not rOk or type(ratings) ~= 'table' then
+            return { success = false, error = 'Unable to load FTO ratings' }
+        end
         dor.ratings = ratings or {}
     end
 
