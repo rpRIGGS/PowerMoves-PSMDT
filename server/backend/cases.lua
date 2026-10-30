@@ -727,7 +727,8 @@ ps.registerCallback(resourceName .. ':server:removeCaseAttachment', function(sou
     if not CheckAuth(src) or not CheckPermission(src, 'cases_edit') then return { success = false, error = 'Unauthorized' } end
 
     attachmentId = tonumber(attachmentId)
-    if not attachmentId then
+    if not attachmentId or attachmentId ~= attachmentId or attachmentId == math.huge
+        or attachmentId <= 0 or attachmentId % 1 ~= 0 then
         return { success = false, error = 'Invalid attachment id' }
     end
 
