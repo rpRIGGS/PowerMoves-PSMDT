@@ -286,7 +286,9 @@ registerDashboardRead('getRecentReports', function(src, snapshot, page, limit)
     local pageNumber = tonumber(page) or 1
     if pageNumber ~= pageNumber or pageNumber == math.huge or pageNumber == -math.huge then pageNumber = 1 end
     pageNumber = math.floor(math.min(10000, math.max(1, pageNumber)))
-    local pageSize   = math.min(50, math.max(1, tonumber(limit) or 10))
+    local pageSize = tonumber(limit) or 10
+    if pageSize ~= pageSize or pageSize == math.huge or pageSize == -math.huge then pageSize = 10 end
+    pageSize = math.floor(math.min(50, math.max(1, pageSize)))
 
     local identifier = snapshot.citizenid
     local job        = snapshot.job
