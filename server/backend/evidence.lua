@@ -635,7 +635,7 @@ ps.registerCallback(resourceName .. ':server:addEvidenceImage', function(source,
     local url = image.url or image.data or ''
     local label = image.label or ''
 
-    if type(url) ~= 'string' or url == '' or #url > 4096
+    if type(url) ~= 'string' or not url:find('%S') or #url > 4096
         or type(label) ~= 'string' or #label > 255 then
         return { success = false, error = 'Invalid image metadata' }
     end
