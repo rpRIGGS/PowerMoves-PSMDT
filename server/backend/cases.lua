@@ -1000,7 +1000,10 @@ ps.registerCallback(resourceName .. ':server:grantCaseDisclosure', function(sour
         SELECT id, ?, ?, ?, ?, assigned_department FROM mdt_cases
         WHERE id = ? AND assigned_department = ?
     ]], {recipientCid, recipientJob, purpose, actor, id, employer})
-    if not ok or not tonumber(newId) or tonumber(newId) <= 0 then return {success=false,error='Disclosure storage unavailable'} end
+    if not ok or not tonumber(newId) or tonumber(newId) ~= tonumber(newId)
+        or tonumber(newId) == math.huge or tonumber(newId) <= 0 then
+        return {success=false,error='Disclosure storage unavailable'}
+    end
     if ps.auditLog then ps.auditLog(src,'case_disclosure_granted','case',id,
         {grant_id=newId, recipient=recipientCid, purpose=purpose}) end
     return {success=true,grantId=newId}
