@@ -438,6 +438,7 @@ ps.registerCallback(resourceName .. ':server:createFTOAssignment', function(sour
     -- Both phase lookup and active-assignment checks may yield. Verify the
     -- manager and both employees again before creating an employer-owned DOR.
     if not CheckAuth(src) or not CheckPermission(src, 'fto_manage')
+        or not getFTODomain(src) or not ps.getJobName(src)
         or not CanManageMdtPersonnel(src, data.trainee_citizenid)
         or not CanManageMdtPersonnel(src, data.trainer_citizenid) then
         return { success = false, error = 'Authorization changed' }
