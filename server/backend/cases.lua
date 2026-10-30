@@ -612,6 +612,12 @@ ps.registerCallback(resourceName .. ':server:addCaseAttachment', function(source
         return { success = false, error = 'Invalid attachment' }
     end
 
+    if attachment.type ~= nil and (type(attachment.type) ~= 'string' or #attachment.type > 40) then
+        return { success = false, error = 'Invalid attachment type' }
+    end
+    if attachment.label ~= nil and (type(attachment.label) ~= 'string' or #attachment.label > 255) then
+        return { success = false, error = 'Invalid attachment label' }
+    end
     local attachmentId = MySQL.insert.await([[
         INSERT INTO mdt_case_attachments (case_id, type, url, label, uploaded_by)
         VALUES (?, ?, ?, ?, ?)
