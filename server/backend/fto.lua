@@ -577,7 +577,9 @@ ps.registerCallback(resourceName .. ':server:advanceFTOPhase', function(source, 
         job = cp and cp.job or nil
     end
     if not job then job = ps.getJobName and ps.getJobName(src) or nil end
-    if not job then return { success = false, error = 'Could not resolve the training program' } end
+    if not job or job ~= ps.getJobName(src) then
+        return { success = false, error = 'Training program does not match agency' }
+    end
 
     local phases = MySQL.query.await(
         'SELECT id, name FROM mdt_fto_phases WHERE job = ? ORDER BY sort_order ASC, id ASC', { job }) or {}
