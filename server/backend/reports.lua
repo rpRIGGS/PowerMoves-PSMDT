@@ -1582,6 +1582,10 @@ ps.registerCallback(resourceName .. ':server:grantReportDisclosure', function(so
         or ps.getIdentifier(src)~=actor or ps.getJobName(src)~=employer then
         return {success=false,error='Authorization changed'}
     end
+    if not CheckAuth(src) or not CheckPermission(src,'reports_delete')
+        or ps.getIdentifier(src) ~= actor or ps.getJobName(src) ~= employer then
+        return {success=false,error='Authorization changed'}
+    end
     local ok,grantId=pcall(MySQL.insert.await,[[
         INSERT INTO mdt_report_disclosures
             (report_id,recipient_citizenid,recipient_job,purpose,granted_by_citizenid,granted_by_job)
