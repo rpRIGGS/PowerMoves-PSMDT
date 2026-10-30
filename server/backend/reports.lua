@@ -1167,9 +1167,10 @@ end)
 
 ps.registerCallback(resourceName..':server:getAvailableTags', function(source, playerJobType)
     local src = source
-    if not CheckAuth(src) then return end
+    if not CheckAuth(src) or not CheckPermission(src, 'reports_view') then return {} end
 
-    local jt = playerJobType or 'leo'
+    local jt = getEffectiveJobType(src)
+    if not jt then return {} end
 
     -- Pull from master mdt_tags table (report tags) filtered by job_type
     local tags = MySQL.query.await([[
