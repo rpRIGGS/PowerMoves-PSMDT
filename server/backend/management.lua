@@ -36,7 +36,7 @@ local function getPoliceJobDefinition(source)
 
     -- Use the running QBCore job registry as the authoritative source of
     -- employer grades. A missing export/resource must not break MDT callbacks.
-    if GetResourceState('qb-core') == 'started' then
+    if type(GetResourceState) == 'function' and GetResourceState('qb-core') == 'started' then
         local ok, core = pcall(function()
             return exports['qb-core']:GetCoreObject()
         end)
