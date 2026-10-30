@@ -510,6 +510,9 @@ ps.registerCallback(resourceName .. ':server:updateIAComplaintInfo', function(so
         return { success = false, error = 'No fields to update' }
     end
 
+    if not canManageIA(src) or not ownsIAComplaint(src, complaintId) then
+        return { success = false, error = 'Authorization changed' }
+    end
     vals[#vals + 1] = complaintId
     MySQL.update.await('UPDATE mdt_ia_complaints SET ' .. table.concat(sets, ', ') .. ' WHERE id = ?', vals)
     return { success = true }
