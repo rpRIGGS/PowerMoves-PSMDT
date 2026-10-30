@@ -577,6 +577,9 @@ ps.registerCallback(resourceName .. ':server:assignIAComplaint', function(source
     end
     local profile = MySQL.single.await('SELECT fullname FROM mdt_profiles WHERE citizenid = ?', { assigneeCitizenId })
     local assigneeName = profile and profile.fullname or 'Unknown'
+    if type(assigneeName) ~= 'string' or not assigneeName:find('%S') then
+        return { success = false, error = 'Investigator profile unavailable' }
+    end
     if not CanManageMdtPersonnel(src, assigneeCitizenId)
         or not canManageIA(src) or not ownsIAComplaint(src, complaintId) then
         return { success = false, error = 'Authorization changed' }
