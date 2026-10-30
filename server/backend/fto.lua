@@ -372,7 +372,7 @@ ps.registerCallback(resourceName .. ':server:getMyTrainingTranscript', function(
     local src = source
     if not CheckAuth(src) then return {} end
     local citizenid = ps.getIdentifier(src)
-    if type(citizenid) ~= 'string' or not citizenid:find('%S') then return {} end
+    if type(citizenid) ~= 'string' or not citizenid:find('%S') or #citizenid > 64 then return {} end
 
     local ok, history = pcall(MySQL.query.await, [[
         SELECT a.fto_number, a.job_type, a.agency_job, a.status,
