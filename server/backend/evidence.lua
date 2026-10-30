@@ -337,7 +337,8 @@ ps.registerCallback(resourceName .. ':server:addEvidenceItem', function(source, 
         return { success = false, error = 'Evidence authorization changed' }
     end
     local collector = ps.getIdentifier(src)
-    if type(collector) ~= 'string' or not collector:find('%S') or #collector > 64 then
+    if type(collector) ~= 'string' or not collector:find('%S') or #collector > 64
+        or collector:find('%z') then
         return { success = false, error = 'Missing collector identity' }
     end
     if not CheckAuth(src) or not CheckPermission(src, 'evidence_create')
