@@ -726,7 +726,7 @@ ps.registerCallback(resourceName .. ':server:addCaseAttachment', function(source
         return { success = false, error = 'Authorization changed' }
     end
     local uploader = ps.getIdentifier(src)
-    if type(uploader) ~= 'string' or uploader == '' then
+    if type(uploader) ~= 'string' or not uploader:find('%S') or #uploader > 64 then
         return { success = false, error = 'Missing attachment uploader identity' }
     end
     if not CheckAuth(src) or not CheckPermission(src, 'cases_edit')
