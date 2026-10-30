@@ -329,6 +329,8 @@ ps.registerCallback(resourceName .. ':server:linkReportToCase', function(source,
         VALUES (?, ?, ?)
     ]], { caseId, reportId, actor })
     if linked == nil then return { success = false, error = 'Report link not saved' } end
+    local exists = MySQL.scalar.await('SELECT 1 FROM mdt_case_reports WHERE case_id = ? AND report_id = ? LIMIT 1', { caseId, reportId })
+    if not exists then return { success = false, error = 'Report link not saved' } end
     return { success = true }
 end)
 
