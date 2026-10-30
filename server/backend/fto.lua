@@ -601,6 +601,10 @@ ps.registerCallback(resourceName .. ':server:deleteFTOAssignment', function(sour
     end
 
     if not canAccessFTORecord(src, assignmentId) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'fto_manage')
+        or not canAccessFTORecord(src, assignmentId) then
+        return { success = false, error = 'Authorization changed' }
+    end
     MySQL.query.await('DELETE FROM mdt_fto_assignments WHERE id = ?', { assignmentId })
     return { success = true }
 end)
