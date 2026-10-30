@@ -1201,6 +1201,7 @@ ps.registerCallback(resourceName..':server:getCitizenTags', function(source, pla
         ORDER BY t.name ASC
     ]])
 
+    if not CheckAuth(src) or not CheckPermission(src, 'reports_view') then return {} end
     return tags or {}
 end)
 
