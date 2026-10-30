@@ -16,6 +16,7 @@ local function getRadioChannel(playerSource)
 end
 
 local function getCertifications(citizenid)
+    if type(citizenid) ~= 'string' or citizenid == '' then return {} end
     EnsureProfileExists(citizenid)
 
     local profile = MySQL.single.await('SELECT certifications FROM mdt_profiles WHERE citizenid = ?', { citizenid })
