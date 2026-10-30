@@ -679,6 +679,372 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
     local profile = MySQL.single.await('SELECT fullname FROM mdt_profiles WHERE citizenid = ?', { citizenId })
     local authorName = profile and profile.fullname or 'Unknown'
 
+    if data.shift_date ~= nil and (type(data.shift_date) ~= 'string'
+        or not data.shift_date:match('^%d%d%d%d%-%d%d%-%d%d
+        return { success = false, error = 'Invalid DOR notes' }
+    end
+    local overallRating = tonumber(data.overall_rating) or 3
+    if overallRating ~= overallRating or overallRating == math.huge
+        or overallRating < 1 or overallRating > 5 or overallRating % 1 ~= 0 then
+        return { success = false, error = 'Invalid overall rating' }
+    end
+    local dorId = MySQL.insert.await([[
+        INSERT INTO mdt_fto_dors (assignment_id, phase_id, author_citizenid, author_name, shift_date, overall_rating, notes)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ]], {
+        assignmentId,
+        phaseId,
+        citizenId, authorName,
+        data.shift_date or os.date('%Y-%m-%d'),
+        overallRating,
+        data.notes or nil,
+    })
+
+    if not dorId then return { success = false, error = 'Failed to create DOR' } end
+
+    local ratings = data.ratings or {}
+    for _, r in ipairs(ratings) do
+        local compId = tonumber(r.competency_id)
+        local rating = tonumber(r.rating)
+        if compId and rating then
+            MySQL.insert.await([[
+                INSERT INTO mdt_fto_dor_ratings (dor_id, competency_id, rating, notes)
+                VALUES (?, ?, ?, ?)
+            ]], { dorId, compId, rating, r.notes or nil })
+        end
+    end
+
+    return { success = true, id = dorId }
+end)
+
+-- Delete DOR
+ps.registerCallback(resourceName .. ':server:deleteFTODor', function(source, dorId)
+    local src = source
+    if not CheckAuth(src) then return { success = false } end
+    if not CheckPermission(src, 'fto_manage') then return { success = false, error = 'No permission' } end
+
+    dorId = tonumber(dorId)
+    if not dorId then return { success = false, error = 'Invalid ID' } end
+
+    local owner = MySQL.single.await('SELECT assignment_id FROM mdt_fto_dors WHERE id = ?', { dorId })
+    if not owner or not canAccessFTORecord(src, owner.assignment_id) then return { success = false, error = 'Unauthorized' } end
+    MySQL.query.await('DELETE FROM mdt_fto_dors WHERE id = ?', { dorId })
+    return { success = true }
+end))) then
+        return { success = false, error = 'Invalid assignment start date' }
+    end
+    local existing = MySQL.single.await(
+        "SELECT id FROM mdt_fto_assignments WHERE trainee_citizenid = ? AND status IN ('active','suspended') LIMIT 1",
+        { data.trainee_citizenid })
+    if existing then
+        return { success = false, error = 'This trainee already has an active FTO assignment' }
+    end
+
+    -- Default a new trainee to the first phase of the program if none was chosen,
+    -- so they never sit "phase-less" (which breaks DOR/phase tallies).
+    local phaseId = tonumber(data.current_phase_id)
+    if phaseId and (phaseId ~= phaseId or phaseId == math.huge or phaseId <= 0 or phaseId % 1 ~= 0) then
+        return { success = false, error = 'Invalid phase' }
+    end
+    if not phaseId then
+        local job = ps.getJobName and ps.getJobName(src) or nil
+        if job then
+            local first = MySQL.single.await(
+                'SELECT id FROM mdt_fto_phases WHERE job = ? ORDER BY sort_order ASC, id ASC LIMIT 1', { job })
+            phaseId = first and first.id or nil
+        end
+    end
+
+    if phaseId then
+        local owner = MySQL.scalar.await('SELECT job FROM mdt_fto_phases WHERE id = ? LIMIT 1', { phaseId })
+        if owner ~= ps.getJobName(src) then
+            return { success = false, error = 'Phase belongs to another agency' }
+        end
+    end
+    -- Both phase lookup and active-assignment checks may yield. Verify the
+    -- manager and both employees again before creating an employer-owned DOR.
+    if not CheckAuth(src) or not CheckPermission(src, 'fto_manage')
+        or not CanManageMdtPersonnel(src, data.trainee_citizenid)
+        or not CanManageMdtPersonnel(src, data.trainer_citizenid) then
+        return { success = false, error = 'Authorization changed' }
+    end
+    local assignmentId = MySQL.insert.await([[
+        INSERT INTO mdt_fto_assignments
+        (fto_number, trainee_citizenid, trainee_name, trainer_citizenid, trainer_name,
+         current_phase_id, status, start_date, notes, job_type, agency_job)
+        VALUES ('', ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?)
+    ]], {
+        data.trainee_citizenid, data.trainee_name or '',
+        data.trainer_citizenid, data.trainer_name or '',
+        phaseId,
+        data.start_date or os.date('%Y-%m-%d'),
+        data.notes or nil,
+        getFTODomain(src),
+        ps.getJobName(src),
+    })
+
+    if not assignmentId then return { success = false, error = 'Failed to create assignment' } end
+
+    local ftoNumber = buildFTONumber(assignmentId)
+    MySQL.update.await('UPDATE mdt_fto_assignments SET fto_number = ? WHERE id = ?', { ftoNumber, assignmentId })
+
+    return { success = true, id = assignmentId, fto_number = ftoNumber }
+end)
+
+-- Update FTO assignment
+ps.registerCallback(resourceName .. ':server:updateFTOAssignment', function(source, assignmentId, updates)
+    local src = source
+    if not CheckAuth(src) then return { success = false } end
+    if not CheckPermission(src, 'fto_manage') then return { success = false, error = 'No permission' } end
+
+    assignmentId = tonumber(assignmentId)
+    if type(updates) ~= 'table' then return { success = false, error = 'Invalid updates' } end
+    if not assignmentId or assignmentId ~= assignmentId or assignmentId == math.huge
+        or assignmentId <= 0 or assignmentId % 1 ~= 0 then
+        return { success = false, error = 'Invalid ID' }
+    end
+
+    local sets = {}
+    local vals = {}
+    local allowed = { 'current_phase_id', 'status', 'end_date', 'notes', 'trainer_citizenid', 'trainer_name' }
+
+    for _, field in ipairs(allowed) do
+        if updates[field] ~= nil then
+            sets[#sets + 1] = field .. ' = ?'
+            vals[#vals + 1] = updates[field]
+        end
+    end
+
+    if updates.current_phase_id ~= nil then
+        local phase = tonumber(updates.current_phase_id)
+        if not phase or phase ~= phase or phase == math.huge or phase <= 0 or phase % 1 ~= 0 then
+            return { success = false, error = 'Invalid phase ID' }
+        end
+    end
+    if updates.current_phase_id ~= nil then
+        local phaseJob = MySQL.scalar.await('SELECT job FROM mdt_fto_phases WHERE id = ? LIMIT 1', { tonumber(updates.current_phase_id) })
+        if phaseJob ~= ps.getJobName(src) then
+            return { success = false, error = 'Phase belongs to another agency' }
+        end
+    end
+    if updates.trainer_name ~= nil and (type(updates.trainer_name) ~= 'string'
+        or #updates.trainer_name > 255) then
+        return { success = false, error = 'Invalid trainer name' }
+    end
+    if updates.status ~= nil and (type(updates.status) ~= 'string'
+        or not ({ active=true, completed=true, failed=true, suspended=true })[updates.status]) then
+        return { success = false, error = 'Invalid assignment status' }
+    end
+    if updates.notes ~= nil and (type(updates.notes) ~= 'string' or #updates.notes > 20000) then
+        return { success = false, error = 'Invalid notes' }
+    end
+    if #sets == 0 then return { success = false, error = 'No fields to update' } end
+
+    if not canAccessFTORecord(src, assignmentId) then return { success = false, error = 'Unauthorized' } end
+    if not CheckPermission(src, 'fto_manage') then return { success = false, error = 'No permission' } end
+    if updates.trainer_citizenid ~= nil and (type(updates.trainer_citizenid) ~= 'string'
+        or updates.trainer_citizenid == '' or #updates.trainer_citizenid > 64
+        or not CanManageMdtPersonnel(src, updates.trainer_citizenid)) then
+        return { success = false, error = 'Trainer must belong to your department' }
+    end
+    vals[#vals + 1] = assignmentId
+    MySQL.update.await('UPDATE mdt_fto_assignments SET ' .. table.concat(sets, ', ') .. ' WHERE id = ?', vals)
+    return { success = true }
+end)
+
+-- ---------------------------------------------------------------------------
+-- Phase progression — the core of the trainer tool. Advancing walks the job's
+-- ordered phases (by sort_order); advancing past the last phase graduates the
+-- trainee (status = completed). Moving back steps one phase down. This keeps the
+-- "which phase is next" logic on the server so the UI can't desync.
+-- ---------------------------------------------------------------------------
+ps.registerCallback(resourceName .. ':server:advanceFTOPhase', function(source, data)
+    local src = source
+    if not CheckAuth(src) then return { success = false } end
+    if not CheckPermission(src, 'fto_manage') then return { success = false, error = 'No permission' } end
+
+    if type(data) ~= 'table' then return { success = false, error = 'Invalid phase request' } end
+    local assignmentId = tonumber(data.assignment_id)
+    local direction = data.direction or 'next'
+    if direction ~= 'next' and direction ~= 'back' then
+        return { success = false, error = 'Invalid direction' }
+    end
+    if not assignmentId or assignmentId ~= assignmentId or assignmentId == math.huge
+        or assignmentId <= 0 or assignmentId % 1 ~= 0 then
+        return { success = false, error = 'Invalid assignment' }
+    end
+
+    local a = MySQL.single.await(
+        'SELECT id, current_phase_id, status, trainee_name FROM mdt_fto_assignments WHERE id = ?', { assignmentId })
+    if not a then return { success = false, error = 'Assignment not found' } end
+    if not canAccessFTORecord(src, assignmentId) then return { success = false, error = 'Unauthorized' } end
+    if a.status ~= 'active' then return { success = false, error = 'Only active assignments can change phase' } end
+
+    -- Resolve which job's phase ladder applies: the current phase's job, else the caller's.
+    local job = nil
+    if a.current_phase_id then
+        local cp = MySQL.single.await('SELECT job FROM mdt_fto_phases WHERE id = ?', { a.current_phase_id })
+        job = cp and cp.job or nil
+    end
+    if not job then job = ps.getJobName and ps.getJobName(src) or nil end
+    if not job then return { success = false, error = 'Could not resolve the training program' } end
+
+    local phases = MySQL.query.await(
+        'SELECT id, name FROM mdt_fto_phases WHERE job = ? ORDER BY sort_order ASC, id ASC', { job }) or {}
+    if #phases == 0 then return { success = false, error = 'No phases configured for this program' } end
+
+    -- Locate the current phase in the ladder (0 = not yet placed → next is phase 1).
+    local idx = 0
+    for i, p in ipairs(phases) do
+        if a.current_phase_id and tonumber(p.id) == tonumber(a.current_phase_id) then idx = i break end
+    end
+
+    if direction == 'back' then
+        if idx <= 1 then return { success = false, error = 'Already at the first phase' } end
+        local target = phases[idx - 1]
+        MySQL.update.await('UPDATE mdt_fto_assignments SET current_phase_id = ? WHERE id = ?', { target.id, assignmentId })
+        if ps.auditLog then ps.auditLog(src, 'fto_phase_back', 'fto', assignmentId, { to = target.name }) end
+        return { success = true, completed = false, action = 'back', phase = target }
+    end
+
+    if idx < #phases then
+        local target = phases[idx + 1]
+        MySQL.update.await('UPDATE mdt_fto_assignments SET current_phase_id = ? WHERE id = ?', { target.id, assignmentId })
+        if ps.auditLog then ps.auditLog(src, 'fto_phase_advance', 'fto', assignmentId, { to = target.name, note = data.note }) end
+        return { success = true, completed = false, action = 'advance', phase = target }
+    end
+
+    -- Past the last phase → graduation.
+    local endDate = os.date('%Y-%m-%d')
+    MySQL.update.await("UPDATE mdt_fto_assignments SET status = 'completed', end_date = ? WHERE id = ?", { endDate, assignmentId })
+    if ps.auditLog then ps.auditLog(src, 'fto_completed', 'fto', assignmentId, { trainee = a.trainee_name, note = data.note }) end
+    return { success = true, completed = true, action = 'complete' }
+end)
+
+-- Set an assignment's status (fail / suspend / reactivate / complete) with the
+-- matching end_date bookkeeping in one place.
+ps.registerCallback(resourceName .. ':server:setFTOStatus', function(source, data)
+    local src = source
+    if not CheckAuth(src) then return { success = false } end
+    if not CheckPermission(src, 'fto_manage') then return { success = false, error = 'No permission' } end
+
+    if type(data) ~= 'table' then return { success = false, error = 'Invalid status request' } end
+    local assignmentId = tonumber(data.assignment_id)
+    local status = tostring(data.status or '')
+    local valid = { active = true, completed = true, failed = true, suspended = true }
+    if not assignmentId or assignmentId ~= assignmentId or assignmentId == math.huge
+        or assignmentId <= 0 or assignmentId % 1 ~= 0 or not valid[status] then
+        return { success = false, error = 'Invalid request' }
+    end
+
+    local a = MySQL.single.await('SELECT id, trainee_name FROM mdt_fto_assignments WHERE id = ?', { assignmentId })
+    if not a then return { success = false, error = 'Assignment not found' } end
+    if not canAccessFTORecord(src, assignmentId) then return { success = false, error = 'Unauthorized' } end
+
+    if status == 'active' then
+        -- Reactivating clears the end date.
+        MySQL.update.await("UPDATE mdt_fto_assignments SET status = 'active', end_date = NULL WHERE id = ?", { assignmentId })
+    elseif status == 'completed' or status == 'failed' then
+        MySQL.update.await('UPDATE mdt_fto_assignments SET status = ?, end_date = ? WHERE id = ?',
+            { status, os.date('%Y-%m-%d'), assignmentId })
+    else -- suspended
+        MySQL.update.await('UPDATE mdt_fto_assignments SET status = ? WHERE id = ?', { status, assignmentId })
+    end
+
+    if ps.auditLog then ps.auditLog(src, 'fto_status_' .. status, 'fto', assignmentId, { trainee = a.trainee_name }) end
+    return { success = true }
+end)
+
+-- Delete FTO assignment
+ps.registerCallback(resourceName .. ':server:deleteFTOAssignment', function(source, assignmentId)
+    local src = source
+    if not CheckAuth(src) then return { success = false } end
+    if not CheckPermission(src, 'fto_manage') then return { success = false, error = 'No permission' } end
+
+    assignmentId = tonumber(assignmentId)
+    if not assignmentId or assignmentId ~= assignmentId or assignmentId == math.huge
+        or assignmentId <= 0 or assignmentId % 1 ~= 0 then
+        return { success = false, error = 'Invalid ID' }
+    end
+
+    if not canAccessFTORecord(src, assignmentId) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'fto_manage')
+        or not canAccessFTORecord(src, assignmentId) then
+        return { success = false, error = 'Authorization changed' }
+    end
+    MySQL.query.await('DELETE FROM mdt_fto_assignments WHERE id = ?', { assignmentId })
+    return { success = true }
+end)
+
+-- Create DOR (Daily Observation Report)
+ps.registerCallback(resourceName .. ':server:createFTODor', function(source, data)
+    local src = source
+    if not CheckAuth(src) then return { success = false } end
+    if not CheckPermission(src, 'fto_manage') then return { success = false, error = 'No permission' } end
+
+    data = data or {}
+    local assignmentId = tonumber(data.assignment_id)
+    if not assignmentId then return { success = false, error = 'Assignment is required' } end
+
+    if not canAccessFTORecord(src, assignmentId) then return { success = false, error = 'Unauthorized' } end
+
+    -- Always tag a DOR with a phase. If the client didn't send one, fall back to
+    -- the assignment's current phase so it counts for the right phase.
+    local phaseId = tonumber(data.phase_id)
+    if not phaseId then
+        local a = MySQL.single.await('SELECT current_phase_id FROM mdt_fto_assignments WHERE id = ?', { assignmentId })
+        phaseId = a and a.current_phase_id or nil
+    end
+
+    local citizenId = ps.getIdentifier(src)
+    local profile = MySQL.single.await('SELECT fullname FROM mdt_profiles WHERE citizenid = ?', { citizenId })
+    local authorName = profile and profile.fullname or 'Unknown'
+
+    local dorId = MySQL.insert.await([[
+        INSERT INTO mdt_fto_dors (assignment_id, phase_id, author_citizenid, author_name, shift_date, overall_rating, notes)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ]], {
+        assignmentId,
+        phaseId,
+        citizenId, authorName,
+        data.shift_date or os.date('%Y-%m-%d'),
+        tonumber(data.overall_rating) or 3,
+        data.notes or nil,
+    })
+
+    if not dorId then return { success = false, error = 'Failed to create DOR' } end
+
+    local ratings = data.ratings or {}
+    for _, r in ipairs(ratings) do
+        local compId = tonumber(r.competency_id)
+        local rating = tonumber(r.rating)
+        if compId and rating then
+            MySQL.insert.await([[
+                INSERT INTO mdt_fto_dor_ratings (dor_id, competency_id, rating, notes)
+                VALUES (?, ?, ?, ?)
+            ]], { dorId, compId, rating, r.notes or nil })
+        end
+    end
+
+    return { success = true, id = dorId }
+end)
+
+-- Delete DOR
+ps.registerCallback(resourceName .. ':server:deleteFTODor', function(source, dorId)
+    local src = source
+    if not CheckAuth(src) then return { success = false } end
+    if not CheckPermission(src, 'fto_manage') then return { success = false, error = 'No permission' } end
+
+    dorId = tonumber(dorId)
+    if not dorId then return { success = false, error = 'Invalid ID' } end
+
+    local owner = MySQL.single.await('SELECT assignment_id FROM mdt_fto_dors WHERE id = ?', { dorId })
+    if not owner or not canAccessFTORecord(src, owner.assignment_id) then return { success = false, error = 'Unauthorized' } end
+    MySQL.query.await('DELETE FROM mdt_fto_dors WHERE id = ?', { dorId })
+    return { success = true }
+end))) then
+        return { success = false, error = 'Invalid DOR shift date' }
+    end
     if data.notes ~= nil and (type(data.notes) ~= 'string' or #data.notes > 20000) then
         return { success = false, error = 'Invalid DOR notes' }
     end
