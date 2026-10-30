@@ -131,6 +131,8 @@ end)
 ps.registerCallback(resourceName .. ':server:issueWarrant', function(source, data)
     local src = source
     if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    local requesterCitizenId = ps.getIdentifier(src)
+    local requesterJob = ps.getJobName(src)
     if IsMdtAttorneyGeneral(src) then return { success = false, error = 'Prosecution access cannot issue warrants' } end
     if not CheckPermission(src, 'warrants_issue') then
         return { success = false, error = 'Insufficient permissions' }
@@ -171,6 +173,8 @@ ps.registerCallback(resourceName .. ':server:issueWarrant', function(source, dat
     -- Database lookups yield; confirm the issuer still holds the same role and report access.
     if not canReadWarrantData(src) or not CheckPermission(src, 'warrants_issue')
         or not CanReadMdtReport(src, reportId)
+        or ps.getIdentifier(src) ~= requesterCitizenId
+        or ps.getJobName(src) ~= requesterJob
         or (owner and owner ~= ps.getJobName(src)) then
         return { success = false, error = 'Warrant authorization changed' }
     end
@@ -214,6 +218,8 @@ end)
 ps.registerCallback(resourceName .. ':server:closeWarrant', function(source, data)
     local src = source
     if not CheckAuth(src) then return { success = false, error = 'Unauthorized' } end
+    local requesterCitizenId = ps.getIdentifier(src)
+    local requesterJob = ps.getJobName(src)
     if IsMdtAttorneyGeneral(src) then return { success = false, error = 'Prosecution access cannot close warrants' } end
     if not CheckPermission(src, 'warrants_close') then
         return { success = false, error = 'Insufficient permissions' }
@@ -247,6 +253,8 @@ ps.registerCallback(resourceName .. ':server:closeWarrant', function(source, dat
     -- Do not close a warrant after the requester's authority has changed.
     if not canReadWarrantData(src) or not CheckPermission(src, 'warrants_close')
         or not CanReadMdtReport(src, reportId)
+        or ps.getIdentifier(src) ~= requesterCitizenId
+        or ps.getJobName(src) ~= requesterJob
         or (owner and owner ~= ps.getJobName(src)) then
         return { success = false, error = 'Warrant authorization changed' }
     end
