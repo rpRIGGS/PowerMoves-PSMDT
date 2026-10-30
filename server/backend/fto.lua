@@ -507,7 +507,10 @@ ps.registerCallback(resourceName .. ':server:updateFTOAssignment', function(sour
         return { success = false, error = 'Invalid assignment status' }
     end
     if updates.end_date ~= nil and (type(updates.end_date) ~= 'string'
-        or not updates.end_date:match('^%d%d%d%d%-%d%d%-%d%d
+        or not updates.end_date:match('^%d%d%d%d%-%d%d%-%d%d$')) then
+        return { success = false, error = 'Invalid end date' }
+    end
+    if updates.notes ~= nil and (type(updates.notes) ~= 'string' or #updates.notes > 20000) then
         return { success = false, error = 'Invalid notes' }
     end
     if #sets == 0 then return { success = false, error = 'No fields to update' } end
