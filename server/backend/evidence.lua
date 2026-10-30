@@ -1091,8 +1091,8 @@ ps.registerCallback(resourceName .. ':server:getEvidenceDisclosures', function(s
         or not CheckAuth(src) or not CheckPermission(src,'evidence_transfer')
         or not canEditEvidenceRecord(src,id) then return {} end
     local actor,job=ps.getIdentifier(src),ps.getJobName(src)
-    if type(actor) ~= 'string' or actor == ''
-        or type(job) ~= 'string' or job == '' then return {} end
+    if type(actor) ~= 'string' or not actor:find('%S') or #actor > 64
+        or type(job) ~= 'string' or not job:find('%S') or #job > 64 then return {} end
     local ok,rows=pcall(MySQL.query.await,[[
         SELECT id,recipient_citizenid,recipient_job,purpose,granted_at,revoked_at
         FROM mdt_evidence_disclosures
