@@ -346,7 +346,8 @@ end)
 
 ps.registerCallback(resourceName .. ':server:getCaseEvidencePage', function(source, caseId, page, limit)
     local src = source
-    if not CheckAuth(src) or not CheckPermission(src, 'evidence_view') then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'evidence_view')
+        or not CheckPermission(src, 'cases_view') then return { success = false, error = 'Unauthorized' } end
     if not canAccessCaseId(src, caseId) then return { success = false, error = 'Case not found or inaccessible' } end
 
     caseId = tonumber(caseId)
