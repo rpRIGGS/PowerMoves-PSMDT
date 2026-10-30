@@ -96,6 +96,8 @@ ps.registerCallback(resourceName .. ':server:getFTOList', function(source, pageN
     local hasFTOView = CheckPermission(src, 'fto_view')
 
     local page = tonumber(pageNum) or 1
+    if page ~= page or page == math.huge or page < 1 then page = 1 end
+    page = math.min(10000, math.floor(page))
     local limit = 20
     local offset = (page - 1) * limit
 
