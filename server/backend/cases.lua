@@ -508,6 +508,10 @@ ps.registerCallback(resourceName .. ':server:deleteCase', function(source, caseI
     if not caseRow or (not scope.statewide and caseRow.assigned_department ~= scope.agency) then
         return { success = false, error = 'Case not found or inaccessible' }
     end
+    if not CheckAuth(src) or not CheckPermission(src, 'cases_delete')
+        or not canAccessCaseId(src, caseId) then
+        return { success = false, error = 'Authorization changed' }
+    end
     local success = MySQL.query.await('DELETE FROM mdt_cases WHERE id = ?', { caseId })
 
     if not success then
