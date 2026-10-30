@@ -138,12 +138,13 @@ end)
 local function computeReportStatistics(src, snapshot)
     if snapshot and snapshot.jobType == 'ems' then
         if not canReadEmsReports(snapshot) then return { totalThisWeek = 0, changeFromLastWeek = 0 } end
-        local response = MySQL.query.await(([[
+        local ok, response = pcall(MySQL.query.await, ([[
             SELECT
                 COUNT(DISTINCT CASE WHEN mr.datecreated >= NOW() - INTERVAL 1 WEEK THEN mr.id END) AS totalThisWeek,
                 COUNT(DISTINCT CASE WHEN mr.datecreated >= NOW() - INTERVAL 2 WEEK AND mr.datecreated < NOW() - INTERVAL 1 WEEK THEN mr.id END) AS totalLastWeek
             FROM mdt_reports mr WHERE %s
         ]]):format(EMS_REPORT_ACCESS), emsReportParameters(snapshot))
+        if not ok then return { totalThisWeek = 0, changeFromLastWeek = 0 } end
         local row = type(response) == 'table' and type(response[1]) == 'table'
             and response[1] or {}
         return {
