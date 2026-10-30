@@ -54,7 +54,8 @@ local function dashboardSnapshot(src)
         if not before.citizenid or not before.job then return nil end
         local access = GetMdtAccess(src)
         local current = dashboardIdentity(src)
-        if not sameDashboardIdentity(before, current) or type(access) ~= 'table' then return nil end
+        if not sameDashboardIdentity(before, current) or type(access) ~= 'table'
+            or access.authorized ~= true or access.isCivilian == true then return nil end
         current.jobType = getEffectiveJobType(src)
         if current.jobType == 'ems' and (access.authorized ~= true or access.jobType ~= 'ems') then return nil end
         current.interfaceId = access.interfaceId
