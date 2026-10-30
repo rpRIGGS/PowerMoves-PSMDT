@@ -40,6 +40,7 @@ local function toTimestamp(value)
     end
     local numeric = tonumber(value)
     if numeric then
+        if numeric ~= numeric or numeric == math.huge or numeric == -math.huge then return nil end
         if numeric > 100000000000 then
             return math.floor(numeric / 1000)
         end
