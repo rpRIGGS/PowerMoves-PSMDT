@@ -641,6 +641,10 @@ ps.registerCallback(resourceName .. ':server:linkEvidenceToCase', function(sourc
     evidenceId = tonumber(evidenceId)
     if not canEditEvidenceRecord(src, evidenceId) then return { success = false, error = 'Evidence not found or inaccessible' } end
     reportId = tonumber(reportId)
+    if reportId and (reportId ~= reportId or reportId == math.huge
+        or reportId <= 0 or reportId % 1 ~= 0) then
+        return { success = false, error = 'Invalid report reference' }
+    end
 
     local numericCaseId = tonumber(caseId)
     if not numericCaseId and type(caseId) == 'string' and caseId ~= '' then
