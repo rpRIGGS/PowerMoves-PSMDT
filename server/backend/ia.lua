@@ -614,6 +614,10 @@ ps.registerCallback(resourceName .. ':server:addIANote', function(source, compla
     local profile = MySQL.single.await('SELECT fullname FROM mdt_profiles WHERE citizenid = ?', { citizenId })
     local authorName = profile and profile.fullname or 'Unknown'
 
+    if not canManageIA(src) or ps.getIdentifier(src) ~= citizenId
+        or not ownsIAComplaint(src, complaintId) then
+        return { success = false, error = 'Authorization changed' }
+    end
     MySQL.insert.await([[
         INSERT INTO mdt_ia_notes (complaint_id, content, author_citizenid, author_name)
         VALUES (?, ?, ?, ?)
