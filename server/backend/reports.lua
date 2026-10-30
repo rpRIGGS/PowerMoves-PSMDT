@@ -1218,8 +1218,8 @@ ps.registerCallback(resourceName..':server:updateReportContent', function(source
             (callsign or '') .. ' ' .. (playerName or 'Unknown')
         })
 
-        if not insertResult then
-            return { success = false, error = "Failed to save content" }
+        if type(insertResult) ~= 'number' or insertResult <= 0 then
+            return { success = false, error = 'Failed to save content' }
         end
 
         -- Draft creation is also report creation. Apply the employer marker
