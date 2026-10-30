@@ -802,6 +802,8 @@ ps.registerCallback('ps-mdt:server:getJobGrades', function(source, payload)
         jobData = ok and core and core.Shared and core.Shared.Jobs and core.Shared.Jobs[jobName]
     end
     if not jobData or not jobData.grades then return {} end
+    if not CheckAuth(src) or not CheckPermission(src, 'roster_manage_officers')
+        or jobName ~= ps.getJobName(src) then return {} end
 
     local grades = {}
     for gradeKey, gradeValue in pairs(jobData.grades) do
