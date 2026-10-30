@@ -838,7 +838,8 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
         end
     end
     for _, evidence in ipairs(reportData.evidence or {}) do
-        if type(evidence) ~= 'table' then
+        if type(evidence) ~= 'table' or (evidence.images ~= nil
+            and type(evidence.images) ~= 'table') then
             return { success = false, error = 'Invalid report evidence' }
         end
     end
