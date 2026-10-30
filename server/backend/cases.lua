@@ -856,7 +856,8 @@ end)
 
 ps.registerCallback(resourceName .. ':server:revokeCaseDisclosure', function(source, grantId)
     local src,id=source,tonumber(grantId)
-    if not id or not CheckAuth(src) or not CheckPermission(src,'cases_edit') then
+    if not id or id ~= id or id == math.huge or id <= 0 or id % 1 ~= 0
+        or not CheckAuth(src) or not CheckPermission(src,'cases_edit') then
         return {success=false,error='Unauthorized'}
     end
     local actor, employer=ps.getIdentifier(src),ps.getJobName(src)
