@@ -283,6 +283,9 @@ ps.registerCallback(resourceName .. ':server:linkReportToCase', function(source,
         return { success = false, error = 'Invalid report or case' }
     end
 
+    if type(CanReadMdtReport) ~= 'function' or not CanReadMdtReport(src, reportId) then
+        return { success = false, error = 'Report not accessible' }
+    end
     -- Validate report exists before linking
     local reportExists = MySQL.single.await('SELECT id FROM mdt_reports WHERE id = ?', { reportId })
     if not reportExists then
