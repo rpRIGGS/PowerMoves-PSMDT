@@ -793,7 +793,8 @@ ps.registerCallback('ps-mdt:server:getJobGrades', function(source, payload)
     if payload ~= nil and type(payload) ~= 'table' then return {} end
     payload = payload or {}
     local jobName = payload.job or ps.getJobName(src)
-    if jobName ~= ps.getJobName(src) then return {} end
+    if type(jobName) ~= 'string' or #jobName > 64
+        or jobName ~= ps.getJobName(src) then return {} end
 
     local jobData = ps.getSharedJob(jobName)
     if not jobData or not jobData.grades then
