@@ -342,7 +342,8 @@ ps.registerCallback(resourceName .. ':server:getOfficerFTOHistory', function(sou
     ]], { officerCitizenId, getFTODomain(src), ps.getJobName(src) })
 
     if not CheckAuth(src) or ps.getIdentifier(src) ~= actorCitizenid
-        or ps.getJobName(src) ~= actorEmployer then return {} end
+        or ps.getJobName(src) ~= actorEmployer
+        or not getFTODomain(src) then return {} end
     if not isSelf and (not CheckPermission(src, 'fto_view')
         or not CanManageMdtPersonnel(src, officerCitizenId)) then return {} end
     return (ok and rows) or {}
