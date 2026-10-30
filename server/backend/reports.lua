@@ -1662,7 +1662,8 @@ ps.registerCallback(resourceName .. ':server:getReportDisclosures', function(sou
         ORDER BY granted_at DESC, id DESC LIMIT 100
     ]],{id})
     if not CheckAuth(src) or not CheckPermission(src,'reports_delete')
-        or ps.getIdentifier(src)~=actor or ps.getJobName(src)~=employer then return {} end
+        or ps.getIdentifier(src)~=actor or ps.getJobName(src)~=employer
+        or not (GetMdtAccess(src) or {}).authorized then return {} end
     if not ok or type(rows) ~= 'table' then return {} end
     for _, record in ipairs(rows) do
         if type(record) ~= 'table' then return {} end
