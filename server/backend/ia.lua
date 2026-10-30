@@ -175,7 +175,7 @@ ps.registerCallback(resourceName .. ':server:submitComplaint', function(source, 
     if type(data) ~= 'table' then return { success = false, error = 'Invalid complaint' } end
 
     local citizenid = ps.getIdentifier(src)
-    if not citizenid then
+    if type(citizenid) ~= 'string' or not citizenid:find('%S') or #citizenid > 64 then
         return { success = false, error = 'Missing citizen id' }
     end
 
