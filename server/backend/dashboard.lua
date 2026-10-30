@@ -219,7 +219,7 @@ end)
 -- Active warrants handled in server/backend/warrants.lua
 
 local function computeBulletins()
-    local rows = MySQL.query.await('SELECT id, content FROM mdt_bulletins ORDER BY id DESC')
+    local rows = MySQL.query.await('SELECT id, content FROM mdt_bulletins ORDER BY id DESC LIMIT 100')
     if type(rows) ~= 'table' then return {} end
     if #rows == 0 then return { { content = 'No bulletins found..' } } end
     for _, row in ipairs(rows) do
