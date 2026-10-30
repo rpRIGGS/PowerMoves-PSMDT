@@ -1290,7 +1290,11 @@ ps.registerCallback(resourceName .. ':server:getReportsByPlate', function(source
         LIMIT 20
     ]], { plate })
 
-    return rows or {}
+    local visible = {}
+    for _, row in ipairs(rows or {}) do
+        if CanReadMdtReport(src, row.id) then visible[#visible + 1] = row end
+    end
+    return visible
 end)
 
 -- Stage 4 discovery: named report grants are managed only by the report's
