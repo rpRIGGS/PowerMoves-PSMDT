@@ -809,7 +809,9 @@ ps.registerCallback(resourceName .. ':server:deleteCaseNote', function(source, n
 
     noteId = tonumber(noteId)
     caseId = tonumber(caseId)
-    if not noteId or not caseId then
+    if not noteId or not caseId or noteId ~= noteId or caseId ~= caseId
+        or noteId == math.huge or caseId == math.huge or noteId <= 0 or caseId <= 0
+        or noteId % 1 ~= 0 or caseId % 1 ~= 0 then
         return { success = false, error = 'Invalid note or case' }
     end
 
