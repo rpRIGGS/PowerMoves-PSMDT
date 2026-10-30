@@ -562,7 +562,7 @@ end)
 
 ps.registerCallback(resourceName .. ':server:searchOfficers', function(source, query)
     local src = source
-    if not CheckAuth(src) then return end
+    if not CheckAuth(src) or not CheckPermission(src, 'reports_view') then return {} end
 
     local norm, likeQuery = NormalizeSearch(query)
     if not likeQuery or #norm < 2 then
