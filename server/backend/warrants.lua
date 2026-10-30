@@ -11,7 +11,7 @@ end
 
 local function warrantReportExists(reportId)
     local id = tonumber(reportId)
-    if not id or id ~= id or id == math.huge or id <= 0 or id % 1 ~= 0 then return false end
+    if not id or id ~= id or id == math.huge or id == -math.huge or id <= 0 or id % 1 ~= 0 then return false end
     return MySQL.scalar.await('SELECT id FROM mdt_reports WHERE id = ? LIMIT 1', { id }) ~= nil
 end
 
