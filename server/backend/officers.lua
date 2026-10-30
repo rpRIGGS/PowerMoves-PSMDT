@@ -46,6 +46,11 @@ ps.registerCallback(resourceName .. ':server:setCallsign', function(source, payl
     if taken then
         return { success = false, message = 'Callsign "' .. tostring(newCallsign) .. '" is already in use' }
     end
+    if not CheckAuth(src) or (cid ~= ps.getIdentifier(src)
+        and (not CheckPermission(src, 'roster_manage_officers')
+            or not CanManageMdtPersonnel(src, cid))) then
+        return { success = false, message = 'Authorization changed' }
+    end
 
     local Player = QBCore.Functions.GetPlayerByCitizenId(cid)
     if Player then
