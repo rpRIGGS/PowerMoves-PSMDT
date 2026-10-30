@@ -1225,7 +1225,7 @@ ps.registerCallback(resourceName..':server:updateReportContent', function(source
         -- Draft creation is also report creation. Apply the employer marker
         -- and original jobtype visibility together, or discard this new draft.
         local employer = ps.getJobName(src)
-        local frameworkType = ps.getJobType(src)
+        local frameworkType = getEffectiveJobType(src)
         if not employer or employer == '' or not frameworkType then
             MySQL.update.await('DELETE FROM mdt_reports WHERE id = ?', { insertResult })
             return { success = false, error = 'Missing agency or job type' }
