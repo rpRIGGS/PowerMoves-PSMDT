@@ -318,6 +318,13 @@ ps.registerCallback(resourceName .. ':server:updateEvidenceItem', function(sourc
         return { success = false, error = 'Invalid evidence' }
     end
 
+    for _, field in ipairs({ 'title', 'type', 'serial', 'notes', 'location', 'stashId' }) do
+        local value = evidence[field]
+        if value ~= nil and (type(value) ~= 'string' or #value > (field == 'notes' and 20000 or 255)
+            or (field == 'title' and not value:find('%S'))) then
+            return { success = false, error = 'Invalid evidence ' .. field }
+        end
+    end
     local updates = {}
     local values = {}
 
