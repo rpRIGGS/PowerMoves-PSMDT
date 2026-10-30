@@ -716,6 +716,11 @@ ps.registerCallback(resourceName .. ':server:linkEvidenceToReport', function(sou
     if type(CanReadMdtReport) ~= 'function' or not CanReadMdtReport(src, reportId) then
         return { success = false, error = 'Report not accessible' }
     end
+    if not CheckAuth(src) or not CheckPermission(src, 'evidence_transfer')
+        or not canEditEvidenceRecord(src, evidenceId)
+        or not CanReadMdtReport(src, reportId) then
+        return { success = false, error = 'Authorization changed' }
+    end
     local linked = MySQL.update.await('UPDATE mdt_evidence_items SET report_id = ? WHERE id = ?', { reportId, evidenceId })
     if not linked or linked < 1 then
         return { success = false, error = 'Evidence report link not saved' }
