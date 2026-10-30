@@ -443,6 +443,10 @@ ps.registerCallback(resourceName .. ':server:transferEvidenceItem', function(sou
     if type(fromCitizenId) ~= 'string' or fromCitizenId == '' then
         return { success = false, error = 'Missing transferring officer identity' }
     end
+    if not CheckAuth(src) or not CheckPermission(src, 'evidence_transfer')
+        or not canEditEvidenceRecord(src, evidenceId) then
+        return { success = false, error = 'Evidence authorization changed' }
+    end
     MySQL.update.await('UPDATE mdt_evidence_items SET last_holder = ? WHERE id = ?', { toCitizenId, evidenceId })
 
     MySQL.insert.await([[
