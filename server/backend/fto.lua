@@ -110,6 +110,11 @@ ps.registerCallback(resourceName .. ':server:saveFTOCompetencies', function(sour
     if type(competencies) ~= 'table' or #competencies > 200 then
         return { success = false, error = 'Invalid competency list' }
     end
+    for key in pairs(competencies) do
+        if type(key) ~= 'number' or key % 1 ~= 0 or key < 1 or key > #competencies then
+            return { success = false, error = 'Invalid competency list' }
+        end
+    end
     for _, comp in ipairs(competencies) do
         if type(comp) ~= 'table' or type(comp.name) ~= 'string'
             or not comp.name:find('%S') or #comp.name > 255
