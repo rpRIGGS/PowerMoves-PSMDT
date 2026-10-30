@@ -12,7 +12,9 @@ local function getEffectiveJobType(src)
     -- Normalise to a stable MDT domain (name + type aware) instead of returning
     -- the raw core job type, so EMS is detected even when its type isn't "ems".
     if IsEmsJob(jobName, jobType) then return 'ems' end
-    return 'leo'
+    if jobType == 'leo' then return 'leo' end
+    if jobType == 'fire' then return 'fire' end
+    return nil
 end
 
 -- A dashboard request may yield while reading permissions or SQL. Bind every
