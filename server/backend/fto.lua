@@ -292,7 +292,8 @@ ps.registerCallback(resourceName .. ':server:getFTO', function(source, data)
             WHERE r.dor_id = ?
             ORDER BY c.sort_order ASC
         ]], { dor.id })
-        dor.ratings = (rOk and ratings) or {}
+        if not rOk then return { success = false, error = 'Unable to load FTO ratings' } end
+        dor.ratings = ratings or {}
     end
 
     if not CheckAuth(src) or ps.getIdentifier(src) ~= citizenId
