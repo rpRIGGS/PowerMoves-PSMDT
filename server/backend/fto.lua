@@ -741,6 +741,11 @@ end))) then
     end
     local ratings = data.ratings or {}
     if type(ratings) ~= 'table' or #ratings > 200 then return { success = false, error = 'Invalid ratings' } end
+    for key in pairs(ratings) do
+        if type(key) ~= 'number' or key % 1 ~= 0 or key < 1 or key > #ratings then
+            return { success = false, error = 'Invalid rating list' }
+        end
+    end
     for _, r in ipairs(ratings) do
         if type(r) ~= 'table' then return { success = false, error = 'Invalid rating entry' } end
         local compId, rating = tonumber(r.competency_id), tonumber(r.rating)
