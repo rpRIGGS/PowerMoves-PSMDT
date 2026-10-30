@@ -1076,6 +1076,9 @@ ps.registerCallback(resourceName .. ':server:getDisclosedEvidenceDetail', functi
         or not disclosedEvidenceScope(src,id) then
         return {success=false,error='Authorization changed'}
     end
+    if type(custody) ~= 'table' then
+        return {success=false,error='Custody history unavailable'}
+    end
     if not (GetMdtAccess(src) or {}).authorized then
         return {success=false,error='Authorization changed'}
     end
