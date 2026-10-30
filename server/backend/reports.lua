@@ -1506,7 +1506,8 @@ ps.registerCallback(resourceName .. ':server:getReportsByPlate', function(source
     local src = source
     if not CheckAuth(src) or not CheckPermission(src, 'reports_view') then return {} end
 
-    if type(plate) ~= 'string' or plate == '' then
+    if type(plate) ~= 'string' or not plate:find('%S')
+        or #plate > 32 or plate:find('%z') then
         return {}
     end
 
