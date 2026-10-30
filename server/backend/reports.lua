@@ -544,6 +544,7 @@ ps.registerCallback(resourceName .. ':server:searchPlayers', function(source, qu
         LIMIT 25
     ]], { likeQuery, likeQuery, likeQuery, likeQuery })
 
+    if not CheckAuth(src) or not CheckPermission(src, 'reports_view') then return {} end
     local results = {}
     for _, row in ipairs(rows or {}) do
         local fullName = buildFullName(row.firstname, row.lastname, row.citizenid)
