@@ -361,7 +361,7 @@ local function computeActiveBolos(src)
 end
 
 registerDashboardRead('getActiveBolos', function(src, snapshot)
-    if snapshot.jobType == 'ems' then return {} end
+    if snapshot.jobType ~= 'leo' and snapshot.jobType ~= 'doj' then return {} end
     return computeActiveBolos(src)
 end)
 
