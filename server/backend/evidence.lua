@@ -388,8 +388,8 @@ ps.registerCallback(resourceName .. ':server:updateEvidenceItem', function(sourc
     values[#values + 1] = evidenceId
     local success = MySQL.update.await(('UPDATE mdt_evidence_items SET %s WHERE id = ?'):format(table.concat(updates, ', ')), values)
 
-    if not success then
-        return { success = false, error = 'Failed to update evidence' }
+    if not success or success < 1 then
+        return { success = false, error = 'Evidence not found or unchanged' }
     end
 
     if ps.auditLog then
