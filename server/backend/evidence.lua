@@ -553,6 +553,10 @@ ps.registerCallback(resourceName .. ':server:addEvidenceImage', function(source,
     if type(uploader) ~= 'string' or uploader == '' then
         return { success = false, error = 'Missing uploader identity' }
     end
+    if not CheckAuth(src) or not CheckPermission(src, 'evidence_upload')
+        or not canEditEvidenceRecord(src, evidenceId) then
+        return { success = false, error = 'Authorization changed' }
+    end
     local imageId = MySQL.insert.await([[
         INSERT INTO mdt_evidence_images (evidence_id, url, label, uploaded_by)
         VALUES (?, ?, ?, ?)
