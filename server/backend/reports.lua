@@ -460,8 +460,9 @@ ps.registerCallback(resourceName..':server:getReport', function(source, reportid
         WHERE mr.id = ?
     ]], {reportid})
 
-    local report = result[1] or nil
-    if not report then return nil end
+    if type(result) ~= 'table' then return nil end
+    local report = result[1]
+    if type(report) ~= 'table' then return nil end
 
     -- Post-process: resolve names and profile images for involved persons
     local enrichOk, enrichErr = pcall(function()
