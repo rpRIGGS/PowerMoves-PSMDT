@@ -25,7 +25,7 @@ local evidenceReadScope = [[
 
 local function evidenceReadParams(source)
     local access = GetMdtAccess(source)
-    if not access.authorized or not access.agency then return nil end
+    if not access or not access.authorized or not access.agency then return nil end
     local citizenid = ps.getIdentifier(source)
     if not citizenid then return nil end
     return { access.agency, access.interfaceId == 'sadoj' and 1 or 0, citizenid }
