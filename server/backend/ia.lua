@@ -166,6 +166,7 @@ local function resolveOfficer(name, badge)
         LIMIT 2
     ]], { name }) or {}
 
+    if type(rows) ~= 'table' then return nil end
     if #rows == 1 then return rows[1].citizenid end
     return nil -- no match, or ambiguous: better unassigned than wrong
 end
