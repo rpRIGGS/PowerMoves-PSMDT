@@ -366,7 +366,7 @@ ps.registerCallback(resourceName .. ':server:getOfficerFTOHistory', function(sou
         WHERE a.trainee_citizenid = ? AND a.job_type = ? AND a.agency_job = ?
         ORDER BY a.created_at DESC, a.id DESC
         LIMIT 150
-    ]], { officerCitizenId, getFTODomain(src), ps.getJobName(src) })
+    ]], { officerCitizenId, domain, actorEmployer })
 
     if not CheckAuth(src) or ps.getIdentifier(src) ~= actorCitizenid
         or ps.getJobName(src) ~= actorEmployer
