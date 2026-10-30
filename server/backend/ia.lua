@@ -100,6 +100,7 @@ local STATUS_TEXT = {
 --- they'll be contacted, so this is the part that keeps that promise.
 local function mailComplainantStatus(complaintId, status)
     if not iaCfg().NotifyComplainant then return end
+    if type(status) ~= 'string' or not STATUS_TEXT[status] then return end
     if not SendCitizenMail then return end
 
     local row = MySQL.single.await([[
