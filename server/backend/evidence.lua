@@ -239,7 +239,7 @@ ps.registerCallback(resourceName .. ':server:addEvidenceItem', function(source, 
             return { success = false, error = 'Invalid case reference' }
         end
         if n then
-            if not CanAccessMdtCase(src, n) then
+            if not CanAccessMdtCase(src, n) or not CheckPermission(src, 'cases_edit') then
                 return { success = false, error = 'Case not found or inaccessible' }
             end
             local row = MySQL.single.await('SELECT id FROM mdt_cases WHERE id = ?', { n })
