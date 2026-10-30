@@ -380,6 +380,12 @@ ps.registerCallback(resourceName .. ':server:unlinkReportFromCase', function(sou
         or not canAccessCaseId(src, caseId) or not CanReadMdtReport(src, reportId) then
         return { success = false, error = 'Authorization changed' }
     end
+    local unlinkActor = ps.getIdentifier(src)
+    if type(unlinkActor) ~= 'string' or not unlinkActor:find('%S')
+        or not CheckAuth(src) or not CheckPermission(src, 'cases_edit')
+        or not canAccessCaseId(src, caseId) then
+        return { success = false, error = 'Report unlink authorization changed' }
+    end
     local deleted = MySQL.update.await('DELETE FROM mdt_case_reports WHERE case_id = ? AND report_id = ?', { caseId, reportId })
     return { success = deleted ~= nil and deleted > 0 }
 end)
