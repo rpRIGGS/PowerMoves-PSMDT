@@ -158,7 +158,8 @@ ps.registerCallback(resourceName .. ':server:getEvidenceItems', function(source,
             return { success = false, error = 'Evidence attachments unavailable' }
         end
         for _, img in ipairs(images) do
-            if type(img) ~= 'table' then
+            if type(img) ~= 'table' or not tonumber(img.evidence_id)
+                or not tonumber(img.id) then
                 return { success = false, error = 'Invalid evidence attachment' }
             end
             local parent = idLookup[img.evidence_id]
