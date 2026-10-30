@@ -294,7 +294,7 @@ ps.registerCallback(resourceName .. ':server:getReports', function(source, page,
 
     local pageNumber = tonumber(page) or 1
     pageNumber = math.max(1, pageNumber)
-    local limit = math.min(tonumber(filters and filters.limit) or 20, 100)
+    local limit = math.floor(math.max(1, math.min(tonumber(filters and filters.limit) or 20, 100)))
     local offset = (pageNumber - 1) * limit
 
     local filterClause, filterValues = buildReportFilterClause(filters)
