@@ -153,7 +153,8 @@ local function resolveOfficer(name, badge)
             LIMIT 2
         ]], { badge, badge })
         if type(matches) ~= 'table' then matches = {} end
-        if #matches == 1 then return matches[1].citizenid end
+        if #matches == 1 and type(matches[1].citizenid) == 'string'
+            and matches[1].citizenid:find('%S') then return matches[1].citizenid end
         if #matches > 1 then return nil end
     end
 
