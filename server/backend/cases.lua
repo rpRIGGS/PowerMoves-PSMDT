@@ -275,6 +275,10 @@ ps.registerCallback(resourceName .. ':server:getCase', function(source, caseId)
 
     -- Each detail section is queried separately; reject stale grants, duty
     -- loss or employer changes before returning the combined case payload.
+    if type(officers) ~= 'table' or type(attachments) ~= 'table'
+        or type(notes) ~= 'table' then
+        return {success=false,error='Case details unavailable'}
+    end
     local current = getCaseScope(src)
     if not CheckAuth(src) or not CheckPermission(src, 'cases_view') or not current
         or ps.getIdentifier(src) ~= actorCid
