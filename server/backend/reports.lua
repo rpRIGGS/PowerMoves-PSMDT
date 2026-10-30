@@ -1293,6 +1293,9 @@ ps.registerCallback(resourceName..':server:getReportAnalytics', function(source,
         warrants = tonumber(warrantRow and warrantRow.total) or 0,
     }
 
+    if not CheckAuth(src) or not CheckPermission(src, 'reports_view')
+        or ps.getIdentifier(src) ~= identifier or ps.getJobName(src) ~= job
+        or getEffectiveJobType(src) ~= jobType then return { success = false, error = 'Unauthorized' } end
     Cache.set(cacheKey, data, 15)
 
     return {
