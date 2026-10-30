@@ -383,7 +383,7 @@ local function computeActiveBolos(src)
     local ok, BOLOS = pcall(MySQL.query.await,
         'SELECT id, type, subject_id, subject_name, reportId, notes, status FROM mdt_bolos WHERE status = ? ORDER BY id DESC', { 'active' })
     if not ok then return {} end
-    if type(BOLOS) ~= 'table' then return {} end
+    if type(BOLOS) ~= 'table' or #BOLOS > 5000 then return {} end
     local result = {}
     for _, v in pairs(BOLOS) do
         if type(v) ~= 'table' or not tonumber(v.id) then return {} end
