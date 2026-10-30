@@ -560,7 +560,7 @@ ps.registerCallback(resourceName .. ':server:setFTOStatus', function(source, dat
     if not CheckAuth(src) then return { success = false } end
     if not CheckPermission(src, 'fto_manage') then return { success = false, error = 'No permission' } end
 
-    data = data or {}
+    if type(data) ~= 'table' then return { success = false, error = 'Invalid status request' } end
     local assignmentId = tonumber(data.assignment_id)
     local status = tostring(data.status or '')
     local valid = { active = true, completed = true, failed = true, suspended = true }
