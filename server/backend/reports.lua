@@ -708,6 +708,7 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
     end
 
     local identifier = ps.getIdentifier(src)
+    local originatingJob = ps.getJobName(src)
     local playerName = ps.getPlayerName(src)
     local callsign = ps.getMetadata(src, 'callsign')
     if not identifier or not ps.getJobName(src) then
