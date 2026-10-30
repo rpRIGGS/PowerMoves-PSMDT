@@ -499,7 +499,9 @@ ps.registerCallback(resourceName .. ':server:transferEvidenceItem', function(sou
 
     evidenceId = tonumber(evidenceId)
     if not canEditEvidenceRecord(src, evidenceId) then return { success = false, error = 'Evidence not found or inaccessible' } end
-    if not evidenceId or type(toCitizenId) ~= 'string' or toCitizenId == ''
+    if not evidenceId or evidenceId ~= evidenceId or evidenceId == math.huge
+        or evidenceId <= 0 or evidenceId % 1 ~= 0
+        or type(toCitizenId) ~= 'string' or not toCitizenId:find('%S')
         or #toCitizenId > 64 then
         return { success = false, error = 'Invalid evidence transfer' }
     end
