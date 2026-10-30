@@ -468,6 +468,12 @@ ps.registerCallback(resourceName .. ':server:updateFTOAssignment', function(sour
         end
     end
 
+    if updates.current_phase_id ~= nil then
+        local phase = tonumber(updates.current_phase_id)
+        if not phase or phase ~= phase or phase == math.huge or phase <= 0 or phase % 1 ~= 0 then
+            return { success = false, error = 'Invalid phase ID' }
+        end
+    end
     if updates.trainer_name ~= nil and (type(updates.trainer_name) ~= 'string'
         or #updates.trainer_name > 255) then
         return { success = false, error = 'Invalid trainer name' }
