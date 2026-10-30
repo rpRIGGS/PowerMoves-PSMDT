@@ -788,6 +788,11 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
         return { success = false, error = 'Report needs content' }
     end
 
+    for _, key in ipairs({'involved', 'charges', 'evidence', 'restrictions', 'vehicles'}) do
+        if reportData[key] ~= nil and type(reportData[key]) ~= 'table' then
+            return { success = false, error = 'Invalid report ' .. key }
+        end
+    end
     -- Tags are required
     local tags = reportData.tags
     if type(tags) ~= 'table' or #tags == 0 or #tags > 50 then
