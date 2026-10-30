@@ -644,7 +644,8 @@ ps.registerCallback(resourceName .. ':server:setFTOStatus', function(source, dat
 
     if status == 'active' then
         -- Reactivating clears the end date.
-        MySQL.update.await("UPDATE mdt_fto_assignments SET status = 'active', end_date = NULL WHERE id = ?", { assignmentId })
+        local changed = MySQL.update.await("UPDATE mdt_fto_assignments SET status = 'active', end_date = NULL WHERE id = ?", { assignmentId })
+        if not changed or changed < 1 then return { success = false, error = 'Status was not saved' } end
     elseif status == 'completed' or status == 'failed' then
         MySQL.update.await('UPDATE mdt_fto_assignments SET status = ?, end_date = ? WHERE id = ?',
             { status, os.date('%Y-%m-%d'), assignmentId })
