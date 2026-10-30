@@ -399,7 +399,10 @@ ps.registerCallback(resourceName .. ':server:createFTOAssignment', function(sour
     end
 
     if data.start_date ~= nil and (type(data.start_date) ~= 'string'
-        or not data.start_date:match('^%d%d%d%d%-%d%d%-%d%d = MySQL.single.await(
+        or not data.start_date:match('^%d%d%d%d%-%d%d%-%d%d$')) then
+        return { success = false, error = 'Invalid assignment start date' }
+    end
+    local existing = MySQL.single.await(
         "SELECT id FROM mdt_fto_assignments WHERE trainee_citizenid = ? AND status IN ('active','suspended') LIMIT 1",
         { data.trainee_citizenid })
     if existing then
