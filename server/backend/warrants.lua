@@ -89,7 +89,10 @@ function GetActiveWarrantsData(src)
     end
     local results = {}
     for _, row in ipairs(rows) do
-        if type(row) == 'table' and (src == nil or (type(CanReadMdtReport) == 'function' and CanReadMdtReport(src, row.reportid))) then
+        if type(row) == 'table' and (src == nil or (canReadWarrantData(src)
+            and CheckPermission(src, 'warrants_view')
+            and type(CanReadMdtReport) == 'function'
+            and CanReadMdtReport(src, row.reportid))) then
         local first = type(row.firstname) == 'string' and row.firstname or ''
         local last = type(row.lastname) == 'string' and row.lastname or ''
         local name = (first .. ' ' .. last):gsub('^%s+', ''):gsub('%s+
