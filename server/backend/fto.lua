@@ -768,7 +768,7 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
             INSERT INTO mdt_fto_dor_ratings (dor_id, competency_id, rating, notes)
             VALUES (?, ?, ?, ?)
         ]], { dorId, tonumber(ratingRow.competency_id), tonumber(ratingRow.rating), ratingRow.notes })
-        if not saved then
+        if not saved or saved <= 0 then
             return { success = false, error = 'DOR created but rating could not be saved', id = dorId }
         end
     end
