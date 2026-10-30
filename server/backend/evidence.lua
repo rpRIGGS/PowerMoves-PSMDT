@@ -381,6 +381,10 @@ ps.registerCallback(resourceName .. ':server:updateEvidenceItem', function(sourc
         return { success = false, error = 'No updates provided' }
     end
 
+    if not CheckAuth(src) or not CheckPermission(src, 'evidence_transfer')
+        or not canEditEvidenceRecord(src, evidenceId) then
+        return { success = false, error = 'Evidence authorization changed' }
+    end
     values[#values + 1] = evidenceId
     local success = MySQL.update.await(('UPDATE mdt_evidence_items SET %s WHERE id = ?'):format(table.concat(updates, ', ')), values)
 
