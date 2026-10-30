@@ -712,6 +712,9 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
     local playerName = ps.getPlayerName(src)
     local callsign = ps.getMetadata(src, 'callsign')
 
+    if type(reportData) ~= 'table' or type(reportData.report) ~= 'table' then
+        return { success = false, error = 'Invalid report data' }
+    end
     local title = reportData.report and reportData.report.title
     if not title or title == "" then
         ps.notify(src, 'Failed to save Report: Needs a title', 'error')
