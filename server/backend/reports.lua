@@ -1315,7 +1315,14 @@ ps.registerCallback(resourceName..':server:deleteReport', function(source, repor
         or not checkReportWriteAccess(src, reportId, 'reports_delete') then
         return { success = false, error = 'Authorization changed' }
     end
-    local deleted = MySQL.update.await("DELETE FROM mdt_reports WHERE id = ?", { reportId })
+    local deleted = MySQL.update.await([[
+        DELETE FROM mdt_reports WHERE id = ?
+        AND NOT EXISTS (
+            SELECT 1 FROM mdt_reports_restrictions owner_check
+            WHERE owner_check.reportid = mdt_reports.id
+              AND owner_check.type = 'owner' AND owner_check.identifier <> ?
+        )
+    ]], { reportId, deleteJob })
 
     if type(deleted) == 'number' and deleted > 0 then
         Cache.invalidate('dashboard:reportStats')
