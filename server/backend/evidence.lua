@@ -886,7 +886,7 @@ RegisterNetEvent(resourceName .. ':server:openEvidenceStash', function(stashId)
     if not CheckAuth(src) then return end
     if not CheckPermission(src, 'evidence_view') then return end
 
-    if type(stashId) ~= 'string' or stashId == '' or #stashId > 128 then return end
+    if type(stashId) ~= 'string' or not stashId:find('%S') or #stashId > 128 then return end
     -- A client may request only a stash referenced by evidence they can access.
     local row = MySQL.single.await(
         'SELECT id FROM mdt_evidence_items WHERE stash_id = ? LIMIT 1',
