@@ -359,6 +359,9 @@ local function computeActiveBolos(src)
     local result = {}
     for _, v in pairs(BOLOS) do
         if type(v) ~= 'table' then return {} end
+        local reportId = tonumber(v.reportId)
+        if not reportId or (type(CanReadMdtReport) == 'function'
+            and CanReadMdtReport(src, reportId)) then
         result[#result + 1] = {
             id       = v.id,
             reportId = v.reportId and tostring(v.reportId) or 'N/A',
@@ -367,6 +370,7 @@ local function computeActiveBolos(src)
             notes    = v.notes or '',
             status   = v.status,
         }
+        end
     end
     return result
 end
