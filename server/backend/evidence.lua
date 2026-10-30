@@ -919,7 +919,8 @@ end)
 local function disclosedEvidenceScope(src, id)
     if not CheckAuth(src) or not CheckPermission(src,'evidence_view') then return false end
     local cid,job=ps.getIdentifier(src),ps.getJobName(src)
-    if not cid or not job then return false end
+    if type(cid) ~= 'string' or not cid:find('%S') or #cid > 64
+        or type(job) ~= 'string' or not job:find('%S') or #job > 64 then return false end
     local ok,record=pcall(MySQL.single.await,[[
         SELECT g.id
         FROM mdt_evidence_disclosures g
