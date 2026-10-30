@@ -283,6 +283,8 @@ ps.registerCallback(resourceName .. ':server:getIAComplaints', function(source, 
     end
 
     local page = tonumber(pageNum) or 1
+    if page ~= page or page == math.huge or page < 1 then page = 1 end
+    page = math.min(10000, math.floor(page))
     local limit = Config.Pagination and Config.Pagination.Cases or 20
     local offset = (page - 1) * limit
 
