@@ -495,10 +495,17 @@ ps.registerCallback(resourceName .. ':server:updateIAComplaintInfo', function(so
         if correctedAgency and ps.getJobName(src) ~= correctedAgency and ps.getJobName(src) ~= 'sadle' then
             return { success = false, error = 'Cannot transfer complaint to another agency' }
         end
-        sets[#sets + 1] = 'officer_citizenid = ?'
-        vals[#vals + 1] = correctedCid
-        sets[#sets + 1] = 'agency = ?'
-        vals[#vals + 1] = correctedAgency
+        -- An unresolved name/badge must never clear the complaint's existing
+        -- officer identity or originating agency ownership.
+        if correctedCid and correctedAgency then
+            if existing.agency and existing.agency ~= correctedAgency then
+                return { success = false, error = 'Complaint agency transfer requires explicit authorization' }
+            end
+            sets[#sets + 1] = 'officer_citizenid = ?'
+            vals[#vals + 1] = correctedCid
+            sets[#sets + 1] = 'agency = ?'
+            vals[#vals + 1] = correctedAgency
+        end
     end
     if updates.incident_date ~= nil and (type(updates.incident_date) ~= 'string' or #updates.incident_date > 32) then
         return { success = false, error = 'Invalid incident date' }
