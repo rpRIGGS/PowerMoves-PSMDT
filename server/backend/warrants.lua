@@ -148,6 +148,15 @@ ps.registerCallback(resourceName .. ':server:issueWarrant', function(source, dat
         expiryDate = os.date('%Y-%m-%d %H:%M:%S', os.time() + (defaultDays * 24 * 60 * 60))
     end
 
+    -- A newly issued warrant must have a future expiration when supplied as a timestamp.
+    local numericExpiry = tonumber(expiryValue)
+    if numericExpiry then
+        local seconds = numericExpiry > 100000000000 and numericExpiry / 1000 or numericExpiry
+        if seconds <= os.time() then
+            return { success = false, error = 'Warrant expiry must be in the future' }
+        end
+    end
+
     if not reportId or reportId <= 0 or reportId % 1 ~= 0
         or type(citizenid) ~= 'string' or citizenid == '' then
         return { success = false, error = 'Missing required fields' }
