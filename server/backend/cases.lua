@@ -403,7 +403,7 @@ ps.registerCallback(resourceName .. ':server:getCaseEvidencePage', function(sour
         SELECT id, title, type, serial, notes, location, stash_id, stored, last_holder, created_by, created_at, updated_at
         FROM mdt_evidence_items
         WHERE case_id = ?
-        ORDER BY created_at DESC
+        ORDER BY created_at DESC, id DESC
         LIMIT ? OFFSET ?
     ]], { caseId, limit, offset })
 
