@@ -120,7 +120,7 @@ ps.registerCallback(resourceName .. ':server:getFTOList', function(source, pageN
         values[#values + 1] = filters.status
     end
 
-    if filters.search and filters.search ~= '' then
+    if type(filters.search) == 'string' and filters.search ~= '' and #filters.search <= 100 then
         clauses[#clauses + 1] = '(a.trainee_name LIKE ? OR a.trainer_name LIKE ? OR a.fto_number LIKE ?)'
         local s = '%' .. filters.search .. '%'
         values[#values + 1] = s
