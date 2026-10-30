@@ -1028,7 +1028,7 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
     end
 
     -- Auto-add jobtype restriction so reports are only visible to the same job type
-    local creatorJobType = ps.getJobType(src)
+    local creatorJobType = getEffectiveJobType(src)
     if creatorJobType then
         table.insert(attachmentQueries, {
             query = "INSERT INTO mdt_reports_restrictions (reportid, type, identifier) VALUES (?, ?, ?)",
