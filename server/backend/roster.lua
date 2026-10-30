@@ -949,6 +949,12 @@ ps.registerCallback('ps-mdt:server:fireOfficer', function(source, payload)
         return { success = false, message = 'Personnel authorization changed' }
     end
 
+    local latest = ps.getPlayerByIdentifier(citizenid)
+    local latestSource = latest and (latest.source or (latest.PlayerData and latest.PlayerData.source))
+    if tonumber(latestSource) ~= tonumber(targetSrc) then
+        return { success = false, message = 'Officer session changed; refresh the roster' }
+    end
+
     if not setOfficerJob(targetSrc, 'unemployed', 0) then
         return { success = false, message = 'Failed to terminate officer (framework error)' }
     end
