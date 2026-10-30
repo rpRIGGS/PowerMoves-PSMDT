@@ -242,7 +242,9 @@ end)
 ps.registerCallback(resourceName .. ':server:createBulletin', function(source, payload)
     local src = source
     assert(src, 'Player ID cannot be nil')
-    if not CheckAuth(src) then return { success = false, message = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'bulletin_create') then
+        return { success = false, message = 'Unauthorized' }
+    end
 
     payload = payload or {}
     local content = payload.content
