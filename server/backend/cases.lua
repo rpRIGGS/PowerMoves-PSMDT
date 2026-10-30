@@ -756,7 +756,7 @@ ps.registerCallback(resourceName .. ':server:addCaseAttachmentUpload', function(
         attachmentType,
         publicUrl,
         label,
-        ps.getIdentifier(src)
+        uploader
     })
 
     if not attachmentId then
