@@ -793,5 +793,6 @@ ps.registerCallback(resourceName .. ':server:deleteFTODor', function(source, dor
         return { success = false, error = 'Authorization changed' }
     end
     local deleted = MySQL.update.await('DELETE FROM mdt_fto_dors WHERE id = ?', { dorId })
-    return { success = deleted ~= nil and deleted > 0 }
+    if not deleted or deleted < 1 then return { success = false, error = 'DOR was not deleted' } end
+    return { success = true }
 end)
