@@ -267,7 +267,8 @@ end)
 local function canAccessFTORecord(src, assignmentId)
     if not CheckAuth(src) then return false end
     local id = tonumber(assignmentId)
-    if not id or id ~= id or id == math.huge or id <= 0 or id % 1 ~= 0 then return false end
+    if not id or id ~= id or id == math.huge or id == -math.huge
+        or id <= 0 or id % 1 ~= 0 then return false end
     local row = MySQL.single.await(
         'SELECT job_type, agency_job FROM mdt_fto_assignments WHERE id = ? LIMIT 1',
         {id}
