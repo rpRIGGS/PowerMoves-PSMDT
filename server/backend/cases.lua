@@ -494,7 +494,7 @@ ps.registerCallback(resourceName .. ':server:updateCase', function(source, caseI
     end
     if type(payload) ~= 'table' then return { success = false, error = 'Invalid case payload' } end
     if payload.department ~= nil and (type(payload.department) ~= 'string'
-        or payload.department == '' or #payload.department > 64) then
+        or not payload.department:find('%S') or #payload.department > 64) then
         return { success = false, error = 'Invalid department' }
     end
     if payload.department and not scope.statewide and payload.department ~= scope.agency then
