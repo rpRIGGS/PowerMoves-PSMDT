@@ -866,7 +866,7 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
             (callsign or '') .. ' ' .. (playerName or 'Unknown')
         })
 
-        if not insertResult then
+        if type(insertResult) ~= 'number' or insertResult <= 0 then
             ps.notify(src, 'Failed to save Report', 'error')
             ps.warn(('[Failed to save] Player [%s] %s tried to save a report (new). Insert failed.')
                 :format(src, playerName))
