@@ -256,7 +256,7 @@ ps.registerCallback(resourceName .. ':server:getCase', function(source, caseId)
         ORDER BY mr.datecreated DESC, mr.id DESC
     ]], { caseId })
 
-    if type(CanReadMdtReport) ~= 'function' then
+    if type(reports) ~= 'table' or type(CanReadMdtReport) ~= 'function' then
         reports = {}
     else
         local readable = {}
