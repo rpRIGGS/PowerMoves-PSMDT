@@ -41,7 +41,7 @@ local function deptLabel(jobName, jobObj)
     if jobObj and type(jobObj.label) == 'string' and jobObj.label ~= '' then return jobObj.label end
     if jobName and ps.getSharedJobData then
         local shared = ps.getSharedJobData(jobName)
-        if shared and shared.label and shared.label ~= '' then return shared.label end
+        if shared and type(shared.label) == 'string' and shared.label ~= '' then return shared.label end
     end
     return jobName
 end
