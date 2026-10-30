@@ -645,7 +645,7 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
         or phaseId <= 0 or phaseId % 1 ~= 0) then
         return { success = false, error = 'Invalid DOR phase' }
     end
-    if not phaseId
+    if not phaseId then
         local a = MySQL.single.await('SELECT current_phase_id FROM mdt_fto_assignments WHERE id = ?', { assignmentId })
         phaseId = a and a.current_phase_id or nil
     end
