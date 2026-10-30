@@ -269,7 +269,7 @@ ps.registerCallback(resourceName .. ':server:deleteBulletin', function(source, p
         return { success = false, message = 'Unauthorized' }
     end
 
-    payload = payload or {}
+    if type(payload) ~= 'table' then return { success = false, message = 'Invalid bulletin' } end
     local id = tonumber(payload.id)
     if not id then
         return { success = false, message = 'Invalid bulletin ID' }
