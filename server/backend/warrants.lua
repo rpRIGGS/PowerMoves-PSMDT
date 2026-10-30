@@ -89,7 +89,7 @@ function GetActiveWarrantsData(src)
     if type(rows) ~= 'table' then return {} end
     local results = {}
     for _, row in ipairs(rows) do
-        if src == nil or (type(CanReadMdtReport) == 'function' and CanReadMdtReport(src, row.reportid)) then
+        if type(row) == 'table' and (src == nil or (type(CanReadMdtReport) == 'function' and CanReadMdtReport(src, row.reportid)) then
         local name = ((row.firstname or '') .. ' ' .. (row.lastname or '')):gsub('^%s+', ''):gsub('%s+$', '')
         if name == '' then
             name = ps.getPlayerNameByIdentifier(row.citizenid) or 'Unknown'
