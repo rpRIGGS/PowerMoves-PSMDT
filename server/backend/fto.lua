@@ -68,11 +68,18 @@ ps.registerCallback(resourceName .. ':server:saveFTOPhases', function(source, ph
         or ps.getJobName(src) ~= job then
         return { success = false, error = 'Authorization changed' }
     end
-    MySQL.query.await('DELETE FROM mdt_fto_phases WHERE job = ?', { job })
+    local statements = {
+        { query = 'DELETE FROM mdt_fto_phases WHERE job = ?', values = { job } }
+    }
     for i, phase in ipairs(phases) do
-        MySQL.insert.await('INSERT INTO mdt_fto_phases (job, name, description, duration_days, sort_order) VALUES (?, ?, ?, ?, ?)', {
-            job, phase.name or '', phase.description or '', tonumber(phase.duration_days) or 0, i
-        })
+        statements[#statements + 1] = {
+            query = 'INSERT INTO mdt_fto_phases (job, name, description, duration_days, sort_order) VALUES (?, ?, ?, ?, ?)',
+            values = { job, phase.name, phase.description or '', tonumber(phase.duration_days) or 0, i }
+        }
+    end
+    local ok, committed = pcall(MySQL.transaction.await, statements)
+    if not ok or not committed then
+        return { success = false, error = 'Failed to save FTO phases' }
     end
     return { success = true }
 end)
