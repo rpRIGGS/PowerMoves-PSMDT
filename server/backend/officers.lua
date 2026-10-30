@@ -73,7 +73,7 @@ ps.registerCallback(resourceName .. ':server:getCallsign', function(source, payl
     if not QBCore then return { success = false, message = 'Core framework not available' } end
     local Player = QBCore.Functions.GetPlayerByCitizenId(cid)
     if Player then
-        return { callsign = tostring(Player.PlayerData.metadata.callsign or '') }
+        return { callsign = tostring((Player.PlayerData.metadata or {}).callsign or '') }
     end
     local row = MySQL.single.await('SELECT callsign FROM mdt_profiles WHERE citizenid = ?', { cid })
     return { callsign = tostring(row and row.callsign or '') }
