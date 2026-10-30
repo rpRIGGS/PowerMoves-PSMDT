@@ -617,7 +617,10 @@ ps.registerCallback(resourceName .. ':server:createFTODor', function(source, dat
 
     data = data or {}
     local assignmentId = tonumber(data.assignment_id)
-    if not assignmentId then return { success = false, error = 'Assignment is required' } end
+    if not assignmentId or assignmentId ~= assignmentId or assignmentId == math.huge
+        or assignmentId <= 0 or assignmentId % 1 ~= 0 then
+        return { success = false, error = 'Assignment is required' }
+    end
 
     if not canAccessFTORecord(src, assignmentId) then return { success = false, error = 'Unauthorized' } end
 
