@@ -1633,7 +1633,8 @@ end)
 
 ps.registerCallback(resourceName .. ':server:getReportDisclosures', function(source, reportId)
     local src,id=source,tonumber(reportId)
-    if not id or not CheckAuth(src) or not CheckPermission(src,'reports_delete') then return {} end
+    if not id or id ~= id or id == math.huge or id <= 0 or id % 1 ~= 0
+        or not CheckAuth(src) or not CheckPermission(src,'reports_delete') then return {} end
     local actor,employer=ps.getIdentifier(src),ps.getJobName(src)
     local owner=MySQL.scalar.await(
         "SELECT identifier FROM mdt_reports_restrictions WHERE reportid = ? AND type = 'owner' LIMIT 1",{id})
