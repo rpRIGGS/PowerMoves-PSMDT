@@ -362,6 +362,7 @@ end
 
 registerDashboardRead('getActiveBolos', function(src, snapshot)
     if snapshot.jobType ~= 'leo' and snapshot.jobType ~= 'doj' then return {} end
+    if not snapshot.permissions.bolos_view then return {} end
     return computeActiveBolos(src)
 end)
 
