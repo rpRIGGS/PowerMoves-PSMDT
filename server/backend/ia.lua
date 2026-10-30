@@ -45,7 +45,7 @@ local function ownsIAComplaint(src, complaintId)
     if not id or id ~= id or id == math.huge or id <= 0 or id % 1 ~= 0 then return false end
     local record = MySQL.single.await(
         'SELECT job_type, agency FROM mdt_ia_complaints WHERE id = ? LIMIT 1',
-        {complaintId}
+        {id}
     )
     return canAccessIARecord(src, record)
 end
