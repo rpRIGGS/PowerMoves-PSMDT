@@ -263,6 +263,10 @@ ps.registerCallback(resourceName .. ':server:createBulletin', function(source, p
         return { success = false, message = 'Bulletin content is required' }
     end
 
+    if not sameDashboardSnapshot(snapshot, dashboardSnapshot(src))
+        or not CheckPermission(src, 'bulletin_create') then
+        return { success = false, message = 'Authorization changed' }
+    end
     local inserted = MySQL.insert.await('INSERT INTO mdt_bulletins (content) VALUES (?)', { content })
     if type(inserted) ~= 'number' or inserted ~= inserted
         or inserted == math.huge or inserted == -math.huge or inserted <= 0 then
