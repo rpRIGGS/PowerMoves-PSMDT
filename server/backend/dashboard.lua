@@ -283,7 +283,9 @@ ps.registerCallback(resourceName .. ':server:deleteBulletin', function(source, p
 end)
 
 registerDashboardRead('getRecentReports', function(src, snapshot, page, limit)
-    local pageNumber = math.max(1, tonumber(page) or 1)
+    local pageNumber = tonumber(page) or 1
+    if pageNumber ~= pageNumber or pageNumber == math.huge or pageNumber == -math.huge then pageNumber = 1 end
+    pageNumber = math.floor(math.min(10000, math.max(1, pageNumber)))
     local pageSize   = math.min(50, math.max(1, tonumber(limit) or 10))
 
     local identifier = snapshot.citizenid
