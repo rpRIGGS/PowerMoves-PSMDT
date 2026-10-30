@@ -415,6 +415,12 @@ ps.registerCallback(resourceName .. ':server:createFTOAssignment', function(sour
         end
     end
 
+    if phaseId then
+        local owner = MySQL.scalar.await('SELECT job FROM mdt_fto_phases WHERE id = ? LIMIT 1', { phaseId })
+        if owner ~= ps.getJobName(src) then
+            return { success = false, error = 'Phase belongs to another agency' }
+        end
+    end
     -- Both phase lookup and active-assignment checks may yield. Verify the
     -- manager and both employees again before creating an employer-owned DOR.
     if not CheckAuth(src) or not CheckPermission(src, 'fto_manage')
