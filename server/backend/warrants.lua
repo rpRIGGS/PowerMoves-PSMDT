@@ -18,7 +18,8 @@ end
 local function validateExpiry(expiry)
     if expiry == nil then return nil end
     if type(expiry) ~= 'string' and type(expiry) ~= 'number' then return nil end
-    if type(expiry) == 'string' and (expiry:find('%z') or #expiry > 32) then return nil end
+    if type(expiry) == 'string' and (expiry:find('%z') or #expiry > 32
+        or not expiry:find('%S')) then return nil end
     local numeric = tonumber(expiry)
     if numeric then
         if numeric ~= numeric or numeric == math.huge or numeric == -math.huge then return nil end
