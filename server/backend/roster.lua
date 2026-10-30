@@ -263,7 +263,12 @@ ps.registerCallback('ps-mdt:server:getRosterList', function(source)
             local callsign = metadata.callsign or 'N/A'
             local firstName = charinfo.firstname or 'N/A'
             local lastName = charinfo.lastname or 'N/A'
-            local rank = job.grade and job.grade.name or (employee.grade and ps.getSharedJobGradeData(jobName or defaultDept, employee.grade, 'name')) or 'Unknown Rank'
+            local grade = job.grade
+            local gradeLevel = type(grade) == 'table' and (grade.level or grade.grade) or grade
+            local rank = (type(grade) == 'table' and grade.name)
+                or (gradeLevel ~= nil and ps.getSharedJobGradeData(jobName, gradeLevel, 'name'))
+                or (employee.grade and ps.getSharedJobGradeData(jobName, employee.grade, 'name'))
+                or 'Unknown Rank'
             local status = checkDuty(citizenid, matchFn)
             local onlineSrc = onlinePlayer and (onlinePlayer.source or (onlinePlayer.PlayerData and onlinePlayer.PlayerData.source)) or nil
             rosterList[#rosterList + 1] = {
