@@ -457,7 +457,8 @@ ps.registerCallback(resourceName .. ':server:createFTOAssignment', function(sour
     if not assignmentId or assignmentId <= 0 then return { success = false, error = 'Failed to create assignment' } end
 
     local ftoNumber = buildFTONumber(assignmentId)
-    MySQL.update.await('UPDATE mdt_fto_assignments SET fto_number = ? WHERE id = ?', { ftoNumber, assignmentId })
+    local numbered = MySQL.update.await('UPDATE mdt_fto_assignments SET fto_number = ? WHERE id = ?', { ftoNumber, assignmentId })
+    if not numbered or numbered < 1 then return { success = false, error = 'Failed to finalize assignment number' } end
 
     return { success = true, id = assignmentId, fto_number = ftoNumber }
 end)
