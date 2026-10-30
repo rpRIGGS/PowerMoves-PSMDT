@@ -20,6 +20,7 @@ local function validateExpiry(expiry)
     if type(expiry) ~= 'string' and type(expiry) ~= 'number' then return nil end
     local asNumber = tonumber(expiry)
     if asNumber then
+        if asNumber ~= asNumber or asNumber == math.huge or asNumber == -math.huge then return nil end
         return asNumber
     end
     if type(expiry) == 'string' then
