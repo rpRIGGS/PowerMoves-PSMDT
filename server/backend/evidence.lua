@@ -1091,8 +1091,8 @@ ps.registerCallback(resourceName .. ':server:getDisclosedEvidenceDetail', functi
         return {success=false,error='Unauthorized'}
     end
     local item=MySQL.single.await([[
-        SELECT id,case_id,report_id,title,type,serial,notes,location,stored,last_holder,
-               created_by,created_at,updated_at
+        SELECT id,case_id,report_id,title,type,serial,stored,
+               created_at,updated_at
         FROM mdt_evidence_items WHERE id = ?
     ]],{id})
     if type(item) ~= 'table' or not CheckAuth(src) or not CheckPermission(src,'evidence_view')
