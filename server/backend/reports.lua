@@ -1298,6 +1298,7 @@ ps.registerCallback(resourceName .. ':server:getReportsByPlate', function(source
         LIMIT 20
     ]], { plate })
 
+    if ps.getIdentifier(src) ~= requesterCitizenId or ps.getJobName(src) ~= requesterJob then return {} end
     local visible = {}
     for _, row in ipairs(rows or {}) do
         if CanReadMdtReport(src, row.id) then visible[#visible + 1] = row end
