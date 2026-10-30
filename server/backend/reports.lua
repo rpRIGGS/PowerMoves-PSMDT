@@ -636,9 +636,8 @@ ps.registerCallback(resourceName .. ':server:searchOfficers', function(source, q
         jobClauses[#jobClauses + 1] =
             "JSON_UNQUOTE(JSON_EXTRACT(p.job, '$.name')) IN (" .. table.concat(ph, ',') .. ")"
     end
-    local jobFilter = #jobClauses > 0
-        and (' AND (' .. table.concat(jobClauses, ' OR ') .. ')')
-        or ''
+    if #jobClauses == 0 then return {} end
+    local jobFilter = ' AND (' .. table.concat(jobClauses, ' OR ') .. ')'
 
     local params = { likeQuery, likeQuery, likeQuery, likeQuery, likeQuery }
     for _, p in ipairs(jobParams) do params[#params + 1] = p end
