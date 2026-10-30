@@ -549,6 +549,10 @@ ps.registerCallback(resourceName .. ':server:addEvidenceImage', function(source,
         return { success = false, error = 'Invalid image metadata' }
     end
 
+    local uploader = ps.getIdentifier(src)
+    if type(uploader) ~= 'string' or uploader == '' then
+        return { success = false, error = 'Missing uploader identity' }
+    end
     local imageId = MySQL.insert.await([[
         INSERT INTO mdt_evidence_images (evidence_id, url, label, uploaded_by)
         VALUES (?, ?, ?, ?)
