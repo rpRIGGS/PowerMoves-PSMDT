@@ -104,6 +104,8 @@ local function checkReportAccess(src, reportId)
     ]], {reportId, jobType, jobType, jobType, jobType, identifier, job, jobType, job, identifier, job})
 
     return hasAccess and hasAccess[1] ~= nil
+        and CheckAuth(src) and ps.getIdentifier(src) == identifier
+        and ps.getJobName(src) == job and getEffectiveJobType(src) == jobType
 end
 
 -- A disclosed report can be read but cannot be rewritten or deleted.
