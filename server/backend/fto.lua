@@ -452,7 +452,10 @@ ps.registerCallback(resourceName .. ':server:updateFTOAssignment', function(sour
 
     assignmentId = tonumber(assignmentId)
     if type(updates) ~= 'table' then return { success = false, error = 'Invalid updates' } end
-    if not assignmentId then return { success = false, error = 'Invalid ID' } end
+    if not assignmentId or assignmentId ~= assignmentId or assignmentId == math.huge
+        or assignmentId <= 0 or assignmentId % 1 ~= 0 then
+        return { success = false, error = 'Invalid ID' }
+    end
 
     local sets = {}
     local vals = {}
