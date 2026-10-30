@@ -196,7 +196,7 @@ local function computeTimeStatistics(src)
         local seconds = tonumber(row.seconds)
         if seconds and seconds == seconds and seconds >= 0
             and seconds ~= math.huge then
-            secondsByDay[tostring(row.day)] = seconds
+            secondsByDay[tostring(row.day)] = math.min(seconds, 86400 * 7)
         end
     end
 
