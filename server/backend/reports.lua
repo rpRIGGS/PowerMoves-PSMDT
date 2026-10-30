@@ -158,7 +158,8 @@ local function buildFullName(firstname, lastname, citizenid)
     if full ~= '' then
         return full
     end
-    return ps.getPlayerNameByIdentifier(citizenid) or 'Unknown'
+    local fallback = ps.getPlayerNameByIdentifier(citizenid)
+    return type(fallback) == 'string' and fallback ~= '' and fallback or 'Unknown'
 end
 
 
