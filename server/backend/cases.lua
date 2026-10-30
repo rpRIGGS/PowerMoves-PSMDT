@@ -358,8 +358,8 @@ ps.registerCallback(resourceName .. ':server:getCaseEvidencePage', function(sour
 
     page = tonumber(page) or 1
     limit = tonumber(limit) or 5
-    if page ~= page or page == math.huge or page < 1 then page = 1 end
-    if limit ~= limit or limit == math.huge or limit < 1 then limit = 5 end
+    if page ~= page or page == math.huge or page == -math.huge or page < 1 then page = 1 end
+    if limit ~= limit or limit == math.huge or limit == -math.huge or limit < 1 then limit = 5 end
     page = math.min(10000, math.floor(page))
     limit = math.min(100, math.floor(limit))
     local offset = (page - 1) * limit
