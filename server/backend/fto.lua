@@ -218,7 +218,7 @@ ps.registerCallback(resourceName .. ':server:getFTOList', function(source, pageN
     ]]):format(whereClause)
 
     local ok, rows = pcall(MySQL.query.await, query, values)
-    if not ok then return { entries = {}, hasMore = false } end
+    if not ok then return { entries = {}, hasMore = false, error = 'Unable to load FTO assignments' } end
 
     -- Reject an old employer's results if the user changes character/job
     -- while the database query is running.
