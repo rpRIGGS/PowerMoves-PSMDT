@@ -833,8 +833,14 @@ ps.registerCallback(resourceName .. ':server:createCaseFromEvidence', function(s
     evidenceId = tonumber(evidenceId)
     if not canEditEvidenceRecord(src, evidenceId) then return { success = false, error = 'Evidence not found or inaccessible' } end
     reportId = tonumber(reportId)
-    if not evidenceId then
+    if not evidenceId or evidenceId ~= evidenceId or evidenceId == math.huge
+        or evidenceId <= 0 or evidenceId % 1 ~= 0 then
         return { success = false, error = 'Invalid evidence' }
+    end
+    if reportId and (reportId ~= reportId or reportId == math.huge
+        or reportId <= 0 or reportId % 1 ~= 0
+        or type(CanReadMdtReport) ~= 'function' or not CanReadMdtReport(src, reportId)) then
+        return { success = false, error = 'Report not accessible' }
     end
 
     local citizenid = ps.getIdentifier(src)
