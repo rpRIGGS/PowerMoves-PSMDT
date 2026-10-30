@@ -1169,7 +1169,11 @@ ps.registerCallback(resourceName..':server:updateReportContent', function(source
         return { success = false, error = 'Invalid report content' }
     end
 
-    local reportId = reportid and tonumber(reportid) or nil
+    local reportId = reportid ~= nil and tonumber(reportid) or nil
+    if reportid ~= nil and (not reportId or reportId ~= reportId
+        or reportId == math.huge or reportId <= 0 or reportId % 1 ~= 0) then
+        return { success = false, error = 'Invalid report identifier' }
+    end
     local title = (reportData and reportData.title) or "Draft Report"
     local reportType = (reportData and reportData.type) or "Incident Report"
 
