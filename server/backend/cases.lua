@@ -744,7 +744,7 @@ ps.registerCallback(resourceName .. ':server:addCaseAttachment', function(source
         uploader
     })
 
-    if not attachmentId then
+    if type(attachmentId) ~= 'number' or attachmentId <= 0 then
         return { success = false, error = 'Failed to add attachment' }
     end
 
