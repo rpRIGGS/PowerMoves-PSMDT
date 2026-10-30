@@ -161,6 +161,9 @@ ps.registerCallback(resourceName .. ':server:getFTOList', function(source, pageN
     if not CheckAuth(src) then return { entries = {}, hasMore = false } end
 
     if type(filters) ~= 'table' then filters = {} end
+    if type(filters.status) == 'string' and #filters.status > 40 then
+        return { entries = {}, hasMore = false, error = 'Invalid status filter' }
+    end
     if type(filters.search) == 'string' and #filters.search > 100 then
         return { entries = {}, hasMore = false, error = 'Search too long' }
     end
