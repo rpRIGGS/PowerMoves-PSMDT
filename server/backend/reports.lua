@@ -1285,6 +1285,7 @@ ps.registerCallback(resourceName .. ':server:getReportsByPlate', function(source
 
     local requesterCitizenId = ps.getIdentifier(src)
     local requesterJob = ps.getJobName(src)
+    if not requesterCitizenId or not requesterJob then return {} end
     local rows = MySQL.query.await([[
         SELECT
             mr.id,
