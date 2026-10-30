@@ -1190,7 +1190,7 @@ end)
 -- domain (EMS sees ems + shared, police sees leo + shared).
 ps.registerCallback(resourceName..':server:getCitizenTags', function(source, playerJobType)
     local src = source
-    if not CheckAuth(src) then return {} end
+    if not CheckAuth(src) or not CheckPermission(src, 'reports_view') then return {} end
 
     -- Return the full citizen-tag dictionary (with job_type) so the UI can
     -- colour every tag; the client gates which ones a domain may add/remove.
