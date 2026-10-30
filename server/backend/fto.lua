@@ -710,6 +710,10 @@ ps.registerCallback(resourceName .. ':server:deleteFTODor', function(source, dor
 
     local owner = MySQL.single.await('SELECT assignment_id FROM mdt_fto_dors WHERE id = ?', { dorId })
     if not owner or not canAccessFTORecord(src, owner.assignment_id) then return { success = false, error = 'Unauthorized' } end
+    if not CheckAuth(src) or not CheckPermission(src, 'fto_manage')
+        or not canAccessFTORecord(src, owner.assignment_id) then
+        return { success = false, error = 'Authorization changed' }
+    end
     MySQL.query.await('DELETE FROM mdt_fto_dors WHERE id = ?', { dorId })
     return { success = true }
 end)
