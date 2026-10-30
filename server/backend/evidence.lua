@@ -1033,8 +1033,8 @@ ps.registerCallback(resourceName .. ':server:getDisclosedEvidence', function(sou
     local src=source
     if not CheckAuth(src) or not CheckPermission(src,'evidence_view') then return {} end
     local cid,job=ps.getIdentifier(src),ps.getJobName(src)
-    if type(cid) ~= 'string' or cid == ''
-        or type(job) ~= 'string' or job == '' then return {} end
+    if type(cid) ~= 'string' or not cid:find('%S') or #cid > 64
+        or type(job) ~= 'string' or not job:find('%S') or #job > 64 then return {} end
     local ok,rows=pcall(MySQL.query.await,[[
         SELECT e.id,e.case_id,e.report_id,e.title,e.type,e.serial,e.created_at,
                g.purpose,g.granted_at
