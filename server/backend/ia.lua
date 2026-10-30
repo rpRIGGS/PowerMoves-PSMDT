@@ -598,7 +598,8 @@ ps.registerCallback(resourceName .. ':server:assignIAComplaint', function(source
     end
     local profile = MySQL.single.await('SELECT fullname FROM mdt_profiles WHERE citizenid = ?', { assigneeCitizenId })
     local assigneeName = type(profile) == 'table' and profile.fullname or nil
-    if type(assigneeName) ~= 'string' or not assigneeName:find('%S') then
+    if type(assigneeName) ~= 'string' or not assigneeName:find('%S')
+        or #assigneeName > 255 then
         return { success = false, error = 'Investigator profile unavailable' }
     end
     if not CanManageMdtPersonnel(src, assigneeCitizenId)
