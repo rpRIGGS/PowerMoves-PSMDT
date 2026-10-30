@@ -987,7 +987,7 @@ ps.registerCallback(resourceName..':server:saveReport', function(source, reportD
         end
     end
 
-    if reportData.evidence and #reportData.evidence > 0 then
+    if type(reportData.evidence) == 'table' and #reportData.evidence > 0 then
         for _, evidence in ipairs(reportData.evidence) do
             local imagesJson = nil
             if evidence.images and type(evidence.images) == 'table' and #evidence.images > 0 then
