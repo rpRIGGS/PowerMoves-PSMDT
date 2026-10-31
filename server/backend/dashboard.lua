@@ -137,7 +137,9 @@ end)
 
 local function computeReportStatistics(src, snapshot)
     if not snapshot or not snapshot.permissions.reports_view
-        or not CheckAuth(src) or not CheckPermission(src, 'reports_view') then
+        or not CheckAuth(src) or not CheckPermission(src, 'reports_view')
+        or (snapshot.jobType ~= 'leo' and snapshot.jobType ~= 'ems'
+            and snapshot.jobType ~= 'doj') then
         return { totalThisWeek = 0, changeFromLastWeek = 0 }
     end
     if not sameDashboardSnapshot(snapshot, dashboardSnapshot(src)) then
