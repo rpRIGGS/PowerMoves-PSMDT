@@ -913,6 +913,7 @@ local function computeRecentDispatches(src, snapshot)
 end
 
 registerDashboardRead('getRecentDispatches', function(src, snapshot)
+    if not snapshot.permissions.dispatch_view then return {} end
     if snapshot.jobType ~= 'leo' and snapshot.jobType ~= 'ems'
         and snapshot.jobType ~= 'fire' and snapshot.jobType ~= 'doj' then return {} end
     return computeRecentDispatches(src, snapshot)
