@@ -936,6 +936,7 @@ local function computeImpoundMetrics(safeCount)
         if days > oldestDays then oldestDays = days end
 
         local paid = r.fee_paid == true or r.fee_paid == 1
+            or r.fee_paid == '1'
         if not paid then
             local billable = math.min(days, maxDays)
             local fee = tonumber(r.fee) or 0
