@@ -546,14 +546,16 @@ end
 local function computeUpcomingHearings(src, snapshot)
     if snapshot and snapshot.jobType == 'ems' then
         if not snapshot.permissions.training_view then return {} end
-        return MySQL.query.await([[
+        local ok, rows = pcall(MySQL.query.await, [[
             SELECT id, title, category, hearing_type, scheduled_at, location, status
             FROM mdt_court_hearings
             WHERE job_type = ? AND category IN ('training', 'meeting', 'other')
               AND status IN ('scheduled', 'in_session')
               AND scheduled_at >= (NOW() - INTERVAL 1 HOUR)
             ORDER BY scheduled_at ASC LIMIT 6
-        ]], { 'ems' }) or {}
+        ]], { 'ems' })
+        if not ok or type(rows) ~= 'table' then return {} end
+        return rows
     end
     local domain = GetMdtDomain and GetMdtDomain(src)
     if type(domain) ~= 'string' or domain == '' then return {} end
