@@ -463,7 +463,8 @@ registerDashboardRead('getActiveUnits', function(src, snapshot)
 end, function() return { count = 0 } end)
 
 local function sanitizeDispatch(call)
-    if not call or type(call) ~= 'table' then return nil end
+    if type(call) ~= 'table' then return nil end
+    if call.id ~= nil and type(call.id) ~= 'number' and type(call.id) ~= 'string' then return nil end
     local sanitized = {
         id          = call.id,
         message     = call.message     or call.dispatchMessage or '',
