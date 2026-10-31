@@ -872,6 +872,7 @@ local function computeRecentDispatches(src, snapshot)
         end
     end
 
+    if not CheckAuth(src) or not sameDashboardSnapshot(snapshot, dashboardSnapshot(src)) then return {} end
     return dispatches
 end
 
