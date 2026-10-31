@@ -1072,7 +1072,8 @@ registerDashboardRead('getDashboard', function(src, snapshot)
             activeBolos = {},
             activeUnits = computeActiveUnits(snapshot),
             usageMetrics = computeUsageMetrics(src, snapshot),
-            recentDispatches = computeRecentDispatches(src, snapshot),
+            recentDispatches = snapshot.permissions.dispatch_view
+            and computeRecentDispatches(src, snapshot) or {},
         }
     end
     return {
