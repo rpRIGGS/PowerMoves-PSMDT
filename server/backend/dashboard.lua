@@ -400,6 +400,7 @@ registerDashboardRead('getRecentReports', function(src, snapshot, page, limit)
     for _, row in ipairs(rows) do
         if type(row) ~= 'table' or not tonumber(row.id) then return {} end
     end
+    if not CheckAuth(src) or not CheckPermission(src, 'reports_view') then return {} end
     return rows
 end)
 
