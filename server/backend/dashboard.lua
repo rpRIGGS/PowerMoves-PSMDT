@@ -992,7 +992,8 @@ local function computeUsageMetrics(snapshot)
             impound = { held = 0, outstanding = 0, oldestDays = 0, impoundedLast7 = 0 },
         }
     end
-    if not snapshot or type(snapshot.job) ~= 'string' then return {} end
+    if not snapshot or type(snapshot.job) ~= 'string' or not snapshot.job:find('%S')
+        or #snapshot.job > 64 or snapshot.job:find('%z') then return {} end
     return Cache.getOrSet('dashboard:usageMetrics:' .. snapshot.job,
         Config.CacheTTL and Config.CacheTTL.UsageMetrics or 60, function()
         local function safeCount(query, params)
