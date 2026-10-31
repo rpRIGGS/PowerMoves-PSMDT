@@ -1098,7 +1098,8 @@ registerDashboardRead('getDashboard', function(src, snapshot)
         usageMetrics     = snapshot.permissions.reports_view
             and (snapshot.jobType == 'leo' or snapshot.jobType == 'doj')
             and computeUsageMetrics(src, snapshot) or {},
-        recentDispatches = computeRecentDispatches(src, snapshot),
+        recentDispatches = snapshot.permissions.dispatch_view
+            and computeRecentDispatches(src, snapshot) or {},
     }
 end)
 -- Human-readable description of a call for audit labels, e.g. "10-71 (Shooting)"
