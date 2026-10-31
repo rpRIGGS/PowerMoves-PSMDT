@@ -972,6 +972,7 @@ end
 
 local function computeUsageMetrics(snapshot)
     if snapshot and snapshot.jobType == 'ems' then
+        if not snapshot.permissions.reports_view then return {} end
         local row = {}
         if canReadEmsReports(snapshot) then
             local ok, rows = pcall(MySQL.query.await, ([[
