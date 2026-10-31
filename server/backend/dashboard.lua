@@ -933,6 +933,7 @@ local function computeImpoundMetrics(safeCount)
         if impoundTime ~= impoundTime or math.abs(impoundTime) == math.huge then impoundTime = now end
         local days = math.floor((now - impoundTime) / 86400)
         if days < 0 then days = 0 end
+        if days > 36500 then days = 36500 end
         if days > oldestDays then oldestDays = days end
 
         local paid = r.fee_paid == true or r.fee_paid == 1
