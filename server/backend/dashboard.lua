@@ -801,7 +801,8 @@ end
 
 local function buildSanitizedDispatches()
     local now = GetGameTimer()
-    if dispatchListCache.list and (now - dispatchListCache.ts) < DISPATCH_CACHE_TTL then
+    if dispatchListCache.list and now >= dispatchListCache.ts
+        and (now - dispatchListCache.ts) < DISPATCH_CACHE_TTL then
         return dispatchListCache.list
     end
 
