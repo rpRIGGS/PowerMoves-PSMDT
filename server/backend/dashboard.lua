@@ -926,6 +926,7 @@ local function computeImpoundMetrics(safeCount)
     local outstanding, oldestDays = 0, 0
     local now = os.time()
     for _, r in ipairs(rows) do
+        if type(r) ~= 'table' then return { held = 0, outstanding = 0, oldestDays = 0, impoundedLast7 = 0 } end
         local days = math.floor((now - (r.time or now)) / 86400)
         if days < 0 then days = 0 end
         if days > oldestDays then oldestDays = days end
