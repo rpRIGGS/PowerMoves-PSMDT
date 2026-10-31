@@ -921,7 +921,7 @@ local function computeImpoundMetrics(safeCount)
     local rows = {}
     local ok, res = pcall(MySQL.query.await,
         "SELECT fee, fee_paid, time FROM mdt_impound WHERE status = 'active'")
-    if ok and res then rows = res end
+    if ok and type(res) == 'table' then rows = res end
 
     local outstanding, oldestDays = 0, 0
     local now = os.time()
