@@ -764,7 +764,7 @@ local dispatchAudiences = setmetatable({}, { __mode = 'k' })
 local function normalizedDispatchAudience(value)
     local audience = {}
     if type(value) == 'string' then
-        if value ~= '' then audience[value] = true end
+        if value ~= '' and #value <= 64 and not value:find('%z') then audience[value] = true end
     elseif type(value) == 'table' then
         for key, entry in pairs(value) do
             if type(key) == 'number' and type(entry) == 'string' and entry ~= '' then
