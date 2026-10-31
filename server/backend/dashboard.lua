@@ -1078,7 +1078,8 @@ registerDashboardRead('getDashboard', function(src, snapshot)
     return {
         jobData          = computeJobData(src),
         upcomingHearings = computeUpcomingHearings(src, snapshot),
-        openCases        = snapshot.permissions.cases_view and computeOpenCases() or {},
+        openCases        = (snapshot.jobType == 'doj' and snapshot.permissions.cases_view)
+            and computeOpenCases() or {},
         reportStatistics = computeReportStatistics(src, snapshot),
         timeStatistics   = computeTimeStatistics(src),
         activeWarrants   = snapshot.permissions.warrants_view
