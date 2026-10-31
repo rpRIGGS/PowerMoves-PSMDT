@@ -815,7 +815,8 @@ local function buildSanitizedDispatches()
 
     -- Merge MDT-created calls in alongside the provider's own calls.
     for _, call in pairs(ManualDispatches) do
-        recentDispatches[#recentDispatches + 1] = call
+        if #recentDispatches >= 600 then break end
+        if type(call) == 'table' then recentDispatches[#recentDispatches + 1] = call end
     end
 
     recentDispatches = filterDismissed(recentDispatches)
