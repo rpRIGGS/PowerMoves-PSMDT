@@ -140,6 +140,9 @@ local function computeReportStatistics(src, snapshot)
         or not CheckAuth(src) or not CheckPermission(src, 'reports_view') then
         return { totalThisWeek = 0, changeFromLastWeek = 0 }
     end
+    if not sameDashboardSnapshot(snapshot, dashboardSnapshot(src)) then
+        return { totalThisWeek = 0, changeFromLastWeek = 0 }
+    end
     if snapshot.jobType == 'ems' then
         if not canReadEmsReports(snapshot) then return { totalThisWeek = 0, changeFromLastWeek = 0 } end
         local ok, response = pcall(MySQL.query.await, ([[
