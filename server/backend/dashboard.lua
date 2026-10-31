@@ -974,13 +974,13 @@ local function computeUsageMetrics(snapshot)
     if snapshot and snapshot.jobType == 'ems' then
         local row = {}
         if canReadEmsReports(snapshot) then
-            local rows = MySQL.query.await(([[
+            local ok, rows = pcall(MySQL.query.await, ([[
                 SELECT COUNT(DISTINCT mr.id) AS reports,
                     COUNT(DISTINCT CASE WHEN mr.datecreated >= NOW() - INTERVAL 7 DAY THEN mr.id END) AS reportsLast7,
                     COUNT(DISTINCT CASE WHEN mr.datecreated >= NOW() - INTERVAL 30 DAY THEN mr.id END) AS reportsLast30
                 FROM mdt_reports mr WHERE %s
             ]]):format(EMS_REPORT_ACCESS), emsReportParameters(snapshot))
-            row = rows and rows[1] or {}
+            row = ok and type(rows) == 'table' and type(rows[1]) == 'table' and rows[1] or {}
         end
         return {
             totals = { reports = tonumber(row.reports) or 0, arrests = 0, activeWarrants = 0 },
