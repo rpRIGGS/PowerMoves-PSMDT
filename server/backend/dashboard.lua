@@ -162,7 +162,7 @@ local function computeReportStatistics(src, snapshot)
             changeFromLastWeek = (tonumber(row.totalThisWeek) or 0) - (tonumber(row.totalLastWeek) or 0),
         }
     end
-    return Cache.getOrSet('dashboard:reportStats:' .. tostring(snapshot.job) .. ':' .. tostring(snapshot.jobType)
+    local statistics = Cache.getOrSet('dashboard:reportStats:' .. tostring(snapshot.job) .. ':' .. tostring(snapshot.jobType)
         .. ':' .. tostring(snapshot.permissionKey) .. ':' .. tostring(snapshot.citizenid),
         Config.CacheTTL and Config.CacheTTL.ReportStats or 30, function()
         local ok, response = pcall(MySQL.query.await, [[
@@ -185,6 +185,11 @@ local function computeReportStatistics(src, snapshot)
             changeFromLastWeek = (tonumber(row.totalThisWeek) or 0) - (tonumber(row.totalLastWeek) or 0),
         }
     end)
+    if not CheckAuth(src) or not CheckPermission(src, 'reports_view')
+        or not sameDashboardSnapshot(snapshot, dashboardSnapshot(src)) then
+        return { totalThisWeek = 0, changeFromLastWeek = 0 }
+    end
+    return statistics
 end
 
 registerDashboardRead('getReportStatistics', function(src, snapshot)
