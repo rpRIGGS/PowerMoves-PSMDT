@@ -970,7 +970,7 @@ local function computeImpoundMetrics(safeCount)
     }
 end
 
-local function computeUsageMetrics(snapshot)
+local function computeUsageMetrics(src, snapshot)
     if snapshot and snapshot.jobType == 'ems' then
         if not snapshot.permissions.reports_view then return {} end
         local row = {}
@@ -1031,7 +1031,7 @@ local function computeUsageMetrics(snapshot)
 end
 
 registerDashboardRead('getUsageMetrics', function(src, snapshot)
-    return computeUsageMetrics(snapshot)
+    return computeUsageMetrics(src, snapshot)
 end)
 
 -- ============================================================================
@@ -1054,7 +1054,7 @@ registerDashboardRead('getDashboard', function(src, snapshot)
             bulletins = computeEmsBulletins(snapshot),
             activeBolos = {},
             activeUnits = computeActiveUnits(snapshot),
-            usageMetrics = computeUsageMetrics(snapshot),
+            usageMetrics = computeUsageMetrics(src, snapshot),
             recentDispatches = computeRecentDispatches(src, snapshot),
         }
     end
@@ -1074,7 +1074,7 @@ registerDashboardRead('getDashboard', function(src, snapshot)
         -- The frontend already reads usageMetrics off this payload but the server
         -- never sent it, so the numbers (and the impound tile) stayed empty.
         usageMetrics     = snapshot.permissions.reports_view
-            and computeUsageMetrics(snapshot) or {},
+            and computeUsageMetrics(src, snapshot) or {},
         recentDispatches = computeRecentDispatches(src, snapshot),
     }
 end)
