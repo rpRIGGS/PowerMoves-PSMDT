@@ -997,6 +997,7 @@ local function computeUsageMetrics(src, snapshot)
         }
     end
     if not snapshot or not snapshot.permissions.reports_view
+        or not CheckAuth(src) or not CheckPermission(src, 'reports_view')
         or (snapshot.jobType ~= 'leo' and snapshot.jobType ~= 'doj')
         or type(snapshot.job) ~= 'string' or not snapshot.job:find('%S')
         or #snapshot.job > 64 or snapshot.job:find('%z') then return {} end
