@@ -914,6 +914,7 @@ local function computeImpoundMetrics(safeCount)
     local perDay = tonumber(storage.PerDay) or 0
     local maxDays = tonumber(storage.MaxDays) or 0
     if perDay ~= perDay or perDay < 0 or perDay == math.huge then perDay = 0 end
+    perDay = math.min(perDay, 1000000)
     if maxDays ~= maxDays or maxDays < 0 or maxDays == math.huge then maxDays = 0 end
     maxDays = math.floor(math.min(maxDays, 36500))
 
