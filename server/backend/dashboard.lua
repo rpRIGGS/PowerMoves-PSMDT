@@ -995,7 +995,7 @@ local function computeUsageMetrics(snapshot)
     end
     if not snapshot or type(snapshot.job) ~= 'string' or not snapshot.job:find('%S')
         or #snapshot.job > 64 or snapshot.job:find('%z') then return {} end
-    return Cache.getOrSet('dashboard:usageMetrics:' .. snapshot.job,
+    return Cache.getOrSet('dashboard:usageMetrics:' .. snapshot.job .. ':' .. tostring(snapshot.permissionKey),
         Config.CacheTTL and Config.CacheTTL.UsageMetrics or 60, function()
         local function safeCount(query, params)
             local ok, result = pcall(MySQL.scalar.await, query, params or {})
