@@ -790,6 +790,7 @@ local function projectEmsDispatch(call, audience)
     table.sort(result.jobs)
     result.units = {}
     for _, unit in pairs(call.units or {}) do
+        if type(unit) ~= 'table' then return nil end
         local info = type(unit.charinfo) == 'table' and unit.charinfo or {}
         local job = type(unit.job) == 'table' and unit.job or {}
         local metadata = type(unit.metadata) == 'table' and unit.metadata or {}
