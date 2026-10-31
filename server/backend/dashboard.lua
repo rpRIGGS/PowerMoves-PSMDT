@@ -1020,7 +1020,7 @@ local function computeUsageMetrics(src, snapshot)
                 reports       = safeCount([[SELECT COUNT(*) FROM mdt_reports mr
                     WHERE EXISTS (SELECT 1 FROM mdt_reports_restrictions own
                         WHERE own.reportid = mr.id AND own.type = 'owner' AND own.identifier = ?)]], {snapshot.job}),
-                arrests       = snapshot.permissions.arrests_view
+                arrests       = snapshot.permissions.charges_view
                     and safeCount('SELECT COUNT(*) FROM mdt_arrests') or 0,
                 activeWarrants = snapshot.permissions.warrants_view
                     and safeCount('SELECT COUNT(*) FROM mdt_reports_warrants WHERE expirydate >= NOW()') or 0,
