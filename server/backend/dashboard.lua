@@ -549,7 +549,8 @@ end
 -- Next few calendar entries (court/training/meetings) for the dashboard.
 local function computeUpcomingHearings(src, snapshot)
     if snapshot and snapshot.jobType == 'ems' then
-        if not snapshot.permissions.training_view then return {} end
+        if not snapshot.permissions.training_view or not CheckAuth(src)
+            or not CheckPermission(src, 'training_view') then return {} end
         local ok, rows = pcall(MySQL.query.await, [[
             SELECT id, title, category, hearing_type, scheduled_at, location, status
             FROM mdt_court_hearings
