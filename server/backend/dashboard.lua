@@ -450,7 +450,9 @@ local function computeActiveUnits(snapshot)
     end
     return Cache.getOrSet('dashboard:activeUnits:' .. tostring(snapshot and snapshot.jobType),
         Config.CacheTTL and Config.CacheTTL.ActiveUnits or 10, function()
-        return { count = ps.getJobTypeCount('leo') }
+        local count = tonumber(ps.getJobTypeCount('leo'))
+        if not count or count ~= count or count < 0 or count == math.huge then count = 0 end
+        return { count = math.floor(count) }
     end)
 end
 
