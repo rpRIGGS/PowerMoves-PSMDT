@@ -1043,7 +1043,8 @@ registerDashboardRead('getDashboard', function(src, snapshot)
         activeUnits      = computeActiveUnits(snapshot),
         -- The frontend already reads usageMetrics off this payload but the server
         -- never sent it, so the numbers (and the impound tile) stayed empty.
-        usageMetrics     = computeUsageMetrics(snapshot),
+        usageMetrics     = snapshot.permissions.reports_view
+            and computeUsageMetrics(snapshot) or {},
         recentDispatches = computeRecentDispatches(src, snapshot),
     }
 end)
