@@ -1035,7 +1035,9 @@ registerDashboardRead('getDashboard', function(src, snapshot)
         reportStatistics = computeReportStatistics(src, snapshot),
         timeStatistics   = computeTimeStatistics(src),
         activeWarrants   = (GetActiveWarrantsData and GetActiveWarrantsData(src)) or {},
-        bulletins        = computeBulletins(),
+        bulletins        = (snapshot.permissions.bulletin_view
+            and (snapshot.jobType == 'leo' or snapshot.jobType == 'doj'))
+            and computeBulletins() or {},
         activeBolos      = computeActiveBolos(src),
         activeUnits      = computeActiveUnits(snapshot),
         -- The frontend already reads usageMetrics off this payload but the server
