@@ -1083,6 +1083,7 @@ registerDashboardRead('getDashboard', function(src, snapshot)
         reportStatistics = computeReportStatistics(src, snapshot),
         timeStatistics   = computeTimeStatistics(src),
         activeWarrants   = snapshot.permissions.warrants_view
+            and (snapshot.jobType == 'leo' or snapshot.jobType == 'doj')
             and (GetActiveWarrantsData and GetActiveWarrantsData(src)) or {},
         bulletins        = (snapshot.permissions.bulletin_view
             and (snapshot.jobType == 'leo' or snapshot.jobType == 'doj'))
