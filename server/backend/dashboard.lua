@@ -1007,6 +1007,8 @@ local function computeUsageMetrics(src, snapshot)
             if not count or count ~= count or count < 0 or count == math.huge then return 0 end
             return math.floor(count)
         end
+        if not CheckAuth(src) or not CheckPermission(src, 'reports_view')
+            or not sameDashboardSnapshot(snapshot, dashboardSnapshot(src)) then return {} end
         return {
             totals = {
                 reports       = safeCount([[SELECT COUNT(*) FROM mdt_reports mr
