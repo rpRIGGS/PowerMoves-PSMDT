@@ -557,7 +557,7 @@ local function computeUpcomingHearings(src, snapshot)
     end
     local domain = GetMdtDomain and GetMdtDomain(src)
     if type(domain) ~= 'string' or domain == '' then return {} end
-    local rows = MySQL.query.await([[
+    local ok, rows = pcall(MySQL.query.await, [[
         SELECT id, title, category, hearing_type, defendant_name, scheduled_at, location, status
         FROM mdt_court_hearings
         WHERE job_type = ?
@@ -566,7 +566,8 @@ local function computeUpcomingHearings(src, snapshot)
         ORDER BY scheduled_at ASC
         LIMIT 6
     ]], { domain })
-    return rows or {}
+    if not ok or type(rows) ~= 'table' then return {} end
+    return rows
 end
 
 -- Globally dismissed calls (dispatcher action) — filtered out of every list.
