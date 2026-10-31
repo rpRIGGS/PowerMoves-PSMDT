@@ -158,7 +158,7 @@ local function computeReportStatistics(src, snapshot)
         }
     end
     return Cache.getOrSet('dashboard:reportStats:' .. tostring(snapshot.job) .. ':' .. tostring(snapshot.jobType)
-        .. ':' .. tostring(snapshot.permissionKey),
+        .. ':' .. tostring(snapshot.permissionKey) .. ':' .. tostring(snapshot.citizenid),
         Config.CacheTTL and Config.CacheTTL.ReportStats or 30, function()
         local ok, response = pcall(MySQL.query.await, [[
             SELECT
