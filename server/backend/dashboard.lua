@@ -1012,7 +1012,10 @@ local function computeUsageMetrics(snapshot)
                 activeWarrants = safeCount('SELECT COUNT(*) FROM mdt_reports_warrants WHERE expirydate >= NOW()'),
             },
             windows = {
-                reportsLast7   = safeCount('SELECT COUNT(*) FROM mdt_reports WHERE datecreated >= NOW() - INTERVAL 7 DAY'),
+                reportsLast7   = safeCount([[SELECT COUNT(*) FROM mdt_reports mr
+                    WHERE mr.datecreated >= NOW() - INTERVAL 7 DAY
+                    AND EXISTS (SELECT 1 FROM mdt_reports_restrictions own
+                        WHERE own.reportid = mr.id AND own.type = 'owner' AND own.identifier = ?)]], {snapshot.job}),
                 reportsLast30  = safeCount('SELECT COUNT(*) FROM mdt_reports WHERE datecreated >= NOW() - INTERVAL 30 DAY'),
                 arrestsLast7   = safeCount('SELECT COUNT(*) FROM mdt_arrests WHERE created_at >= NOW() - INTERVAL 7 DAY'),
                 arrestsLast30  = safeCount('SELECT COUNT(*) FROM mdt_arrests WHERE created_at >= NOW() - INTERVAL 30 DAY'),
