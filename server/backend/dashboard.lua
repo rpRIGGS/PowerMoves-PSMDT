@@ -159,9 +159,12 @@ local function computeReportStatistics(src, snapshot)
         end
         local row = type(response) == 'table' and type(response[1]) == 'table'
             and response[1] or {}
+        local current, previous = tonumber(row.totalThisWeek) or 0, tonumber(row.totalLastWeek) or 0
+        if current ~= current or current < 0 or current == math.huge then current = 0 end
+        if previous ~= previous or previous < 0 or previous == math.huge then previous = 0 end
         return {
-            totalThisWeek = tonumber(row.totalThisWeek) or 0,
-            changeFromLastWeek = (tonumber(row.totalThisWeek) or 0) - (tonumber(row.totalLastWeek) or 0),
+            totalThisWeek = current,
+            changeFromLastWeek = current - previous,
         }
     end
     local statistics = Cache.getOrSet('dashboard:reportStats:' .. tostring(snapshot.job) .. ':' .. tostring(snapshot.jobType)
