@@ -992,7 +992,9 @@ local function computeUsageMetrics(snapshot)
             impound = { held = 0, outstanding = 0, oldestDays = 0, impoundedLast7 = 0 },
         }
     end
-    return Cache.getOrSet('dashboard:usageMetrics', Config.CacheTTL and Config.CacheTTL.UsageMetrics or 60, function()
+    if not snapshot or type(snapshot.job) ~= 'string' then return {} end
+    return Cache.getOrSet('dashboard:usageMetrics:' .. snapshot.job,
+        Config.CacheTTL and Config.CacheTTL.UsageMetrics or 60, function()
         local function safeCount(query, params)
             local ok, result = pcall(MySQL.scalar.await, query, params or {})
             return ok and (tonumber(result) or 0) or 0
