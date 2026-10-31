@@ -837,6 +837,7 @@ local function computeRecentDispatches(src, snapshot)
     local dispatches = buildSanitizedDispatches()
 
     if snapshot and snapshot.jobType == 'ems' then
+        if type(snapshot.job) ~= 'string' or snapshot.job == '' then return {} end
         local filtered = {}
         for _, call in ipairs(dispatches) do
             local audience = dispatchAudiences[call] or {}
