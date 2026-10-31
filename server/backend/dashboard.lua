@@ -825,7 +825,7 @@ local function buildSanitizedDispatches()
     local built = {}
     for _, call in ipairs(recentDispatches) do
         local sanitized = sanitizeDispatch(call)
-        if sanitized then
+        if sanitized and sanitized.id ~= nil then
             dispatchAudiences[sanitized] = normalizedDispatchAudience(call.jobs)
             local note = sanitized.id ~= nil and DispatchNotes[tostring(sanitized.id)] or nil
             if note then
