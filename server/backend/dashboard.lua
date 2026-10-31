@@ -513,7 +513,8 @@ local function sanitizeDispatch(call)
                     citizenid = unit.citizenid,
                     charinfo  = unit.charinfo,
                     job       = unit.job,
-                    metadata  = unit.metadata and { callsign = unit.metadata.callsign } or nil,
+                    metadata  = type(unit.metadata) == 'table'
+                        and { callsign = unit.metadata.callsign } or nil,
                 }
             end
         end
