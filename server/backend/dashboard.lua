@@ -1095,6 +1095,7 @@ registerDashboardRead('getDashboard', function(src, snapshot)
         -- The frontend already reads usageMetrics off this payload but the server
         -- never sent it, so the numbers (and the impound tile) stayed empty.
         usageMetrics     = snapshot.permissions.reports_view
+            and (snapshot.jobType == 'leo' or snapshot.jobType == 'doj')
             and computeUsageMetrics(src, snapshot) or {},
         recentDispatches = computeRecentDispatches(src, snapshot),
     }
