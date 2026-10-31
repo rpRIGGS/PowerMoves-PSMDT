@@ -493,7 +493,10 @@ local function sanitizeDispatch(call)
     end
     sanitized.units = {}
     if call.units and type(call.units) == 'table' then
+        local unitCount = 0
         for _, unit in pairs(call.units) do
+            unitCount = unitCount + 1
+            if unitCount > 100 then break end
             if type(unit) == 'table' then
                 sanitized.units[#sanitized.units + 1] = {
                     citizenid = unit.citizenid,
