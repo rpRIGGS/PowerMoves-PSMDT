@@ -1058,6 +1058,7 @@ end)
 --  the bulk of the on-open client spike.
 -- ============================================================================
 registerDashboardRead('getDashboard', function(src, snapshot)
+    if not CheckAuth(src) or not sameDashboardSnapshot(snapshot, dashboardSnapshot(src)) then return {} end
     if snapshot.jobType == 'ems' then
         return {
             dashboardDomain = 'ems',
