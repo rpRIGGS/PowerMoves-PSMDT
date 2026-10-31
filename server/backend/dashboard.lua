@@ -355,11 +355,13 @@ registerDashboardRead('getRecentReports', function(src, snapshot, page, limit)
         local params = emsReportParameters(snapshot)
         params[#params + 1] = pageSize
         params[#params + 1] = offset
-        return MySQL.query.await(([[
+        local ok, rows = pcall(MySQL.query.await, ([[
             SELECT mr.id, mr.title, mr.type, mr.contentplaintext, mr.author, mr.authorplaintext, mr.datecreated, mr.dateupdated
             FROM mdt_reports mr WHERE %s
             ORDER BY mr.datecreated DESC LIMIT ? OFFSET ?
-        ]]):format(EMS_REPORT_ACCESS), params) or {}
+        ]]):format(EMS_REPORT_ACCESS), params)
+        if not ok or type(rows) ~= 'table' then return {} end
+        return rows
     end
 
     local ok, rows = pcall(MySQL.query.await, [[
