@@ -173,7 +173,8 @@ local function computeReportStatistics(src, snapshot)
             WHERE EXISTS (SELECT 1 FROM mdt_reports_restrictions own
                 WHERE own.reportid = mr.id AND own.type = 'owner' AND own.identifier = ?)
         ]], { snapshot.job })
-        if not ok or not CheckAuth(src) or not CheckPermission(src, 'reports_view') then
+        if not ok or not CheckAuth(src) or not CheckPermission(src, 'reports_view')
+            or not sameDashboardSnapshot(snapshot, dashboardSnapshot(src)) then
             return { totalThisWeek = 0, changeFromLastWeek = 0 }
         end
 
