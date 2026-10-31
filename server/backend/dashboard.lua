@@ -151,7 +151,8 @@ local function computeReportStatistics(src, snapshot)
                 COUNT(DISTINCT CASE WHEN mr.datecreated >= NOW() - INTERVAL 2 WEEK AND mr.datecreated < NOW() - INTERVAL 1 WEEK THEN mr.id END) AS totalLastWeek
             FROM mdt_reports mr WHERE %s
         ]]):format(EMS_REPORT_ACCESS), emsReportParameters(snapshot))
-        if not ok or not CheckAuth(src) or not CheckPermission(src, 'reports_view') then
+        if not ok or not CheckAuth(src) or not CheckPermission(src, 'reports_view')
+            or not sameDashboardSnapshot(snapshot, dashboardSnapshot(src)) then
             return { totalThisWeek = 0, changeFromLastWeek = 0 }
         end
         local row = type(response) == 'table' and type(response[1]) == 'table'
