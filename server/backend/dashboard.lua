@@ -446,7 +446,9 @@ end)
 
 local function computeActiveUnits(snapshot)
     if snapshot and snapshot.jobType == 'ems' then
-        return { count = tonumber(ps.getJobTypeCount(Config.MedicalJobType or 'ems')) or 0 }
+        local count = tonumber(ps.getJobTypeCount(Config.MedicalJobType or 'ems'))
+        if not count or count ~= count or count < 0 or count == math.huge then count = 0 end
+        return { count = math.floor(count) }
     end
     return Cache.getOrSet('dashboard:activeUnits:' .. tostring(snapshot and snapshot.jobType),
         Config.CacheTTL and Config.CacheTTL.ActiveUnits or 10, function()
