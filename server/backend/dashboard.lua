@@ -532,14 +532,15 @@ end
 
 -- Latest open investigations for the dashboard.
 local function computeOpenCases()
-    local rows = MySQL.query.await([[
+    local ok, rows = pcall(MySQL.query.await, [[
         SELECT id, case_number, title, status, priority, updated_at
         FROM mdt_cases
         WHERE status IN ('open', 'in_progress')
         ORDER BY updated_at DESC
         LIMIT 6
     ]])
-    return rows or {}
+    if not ok or type(rows) ~= 'table' then return {} end
+    return rows
 end
 
 -- Next few calendar entries (court/training/meetings) for the dashboard.
