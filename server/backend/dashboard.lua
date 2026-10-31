@@ -575,7 +575,7 @@ local function computeUpcomingHearings(src, snapshot)
         ORDER BY scheduled_at ASC
         LIMIT 6
     ]], { domain })
-    if not ok or type(rows) ~= 'table' then return {} end
+    if not ok or type(rows) ~= 'table' or not CheckAuth(src) then return {} end
     for _, row in ipairs(rows) do
         if type(row) ~= 'table' or not tonumber(row.id) then return {} end
     end
