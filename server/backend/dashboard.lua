@@ -319,7 +319,7 @@ ps.registerCallback(resourceName .. ':server:deleteBulletin', function(source, p
     end
 
     if not sameDashboardSnapshot(snapshot, dashboardSnapshot(src))
-        or not CheckPermission(src, 'bulletin_delete') then
+        or not CheckPermission(src, 'management_bulletins') then
         return { success = false, message = 'Authorization changed' }
     end
     local ok, deleted = pcall(MySQL.update.await,
