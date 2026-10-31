@@ -272,7 +272,7 @@ ps.registerCallback(resourceName .. ':server:createBulletin', function(source, p
     assert(src, 'Player ID cannot be nil')
     local snapshot = dashboardSnapshot(src)
     if not snapshot or (snapshot.jobType ~= 'leo' and snapshot.jobType ~= 'doj')
-        or not CheckAuth(src) or not CheckPermission(src, 'bulletin_create') then
+        or not CheckAuth(src) or not CheckPermission(src, 'bulletin_post') then
         return { success = false, message = 'Unauthorized' }
     end
 
@@ -284,7 +284,7 @@ ps.registerCallback(resourceName .. ':server:createBulletin', function(source, p
     end
 
     if not sameDashboardSnapshot(snapshot, dashboardSnapshot(src))
-        or not CheckPermission(src, 'bulletin_create') then
+        or not CheckPermission(src, 'bulletin_post') then
         return { success = false, message = 'Authorization changed' }
     end
     local ok, inserted = pcall(MySQL.insert.await,
