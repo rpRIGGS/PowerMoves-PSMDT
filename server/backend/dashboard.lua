@@ -559,7 +559,8 @@ local function computeUpcomingHearings(src, snapshot)
               AND scheduled_at >= (NOW() - INTERVAL 1 HOUR)
             ORDER BY scheduled_at ASC LIMIT 6
         ]], { 'ems' })
-        if not ok or type(rows) ~= 'table' then return {} end
+        if not ok or type(rows) ~= 'table' or not CheckAuth(src)
+            or not CheckPermission(src, 'training_view') then return {} end
         return rows
     end
     local domain = GetMdtDomain and GetMdtDomain(src)
