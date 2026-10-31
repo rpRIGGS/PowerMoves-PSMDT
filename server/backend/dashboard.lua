@@ -361,6 +361,9 @@ registerDashboardRead('getRecentReports', function(src, snapshot, page, limit)
             ORDER BY mr.datecreated DESC LIMIT ? OFFSET ?
         ]]):format(EMS_REPORT_ACCESS), params)
         if not ok or type(rows) ~= 'table' then return {} end
+        for _, row in ipairs(rows) do
+            if type(row) ~= 'table' then return {} end
+        end
         return rows
     end
 
