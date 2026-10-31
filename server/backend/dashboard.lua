@@ -165,9 +165,7 @@ local function computeReportStatistics(src, snapshot)
                 COUNT(CASE WHEN datecreated >= NOW() - INTERVAL 1 WEEK THEN 1 END) AS totalThisWeek,
                 COUNT(CASE WHEN datecreated >= NOW() - INTERVAL 2 WEEK AND datecreated < NOW() - INTERVAL 1 WEEK THEN 1 END) AS totalLastWeek
             FROM mdt_reports mr
-            WHERE NOT EXISTS (SELECT 1 FROM mdt_reports_restrictions own
-                WHERE own.reportid = mr.id AND own.type = 'owner')
-              OR EXISTS (SELECT 1 FROM mdt_reports_restrictions own
+            WHERE EXISTS (SELECT 1 FROM mdt_reports_restrictions own
                 WHERE own.reportid = mr.id AND own.type = 'owner' AND own.identifier = ?)
         ]], { snapshot.job })
         if not ok or not CheckAuth(src) or not CheckPermission(src, 'reports_view') then
