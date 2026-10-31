@@ -397,7 +397,7 @@ registerDashboardRead('getRecentReports', function(src, snapshot, page, limit)
     if not ok then return {} end
     if type(rows) ~= 'table' then return {} end
     for _, row in ipairs(rows) do
-        if type(row) ~= 'table' then return {} end
+        if type(row) ~= 'table' or not tonumber(row.id) then return {} end
     end
     return rows
 end)
