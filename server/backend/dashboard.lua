@@ -1035,7 +1035,8 @@ local function computeUsageMetrics(src, snapshot)
                         WHERE own.reportid = mr.id AND own.type = 'owner' AND own.identifier = ?)]], {snapshot.job}),
                 arrestsLast7   = snapshot.permissions.arrests_view
                     and safeCount('SELECT COUNT(*) FROM mdt_arrests WHERE created_at >= NOW() - INTERVAL 7 DAY') or 0,
-                arrestsLast30  = safeCount('SELECT COUNT(*) FROM mdt_arrests WHERE created_at >= NOW() - INTERVAL 30 DAY'),
+                arrestsLast30  = snapshot.permissions.arrests_view
+                    and safeCount('SELECT COUNT(*) FROM mdt_arrests WHERE created_at >= NOW() - INTERVAL 30 DAY') or 0,
             },
             impound = computeImpoundMetrics(safeCount),
         }
