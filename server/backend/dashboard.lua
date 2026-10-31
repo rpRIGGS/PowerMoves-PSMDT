@@ -913,7 +913,7 @@ local function computeRecentDispatches(src, snapshot)
 end
 
 registerDashboardRead('getRecentDispatches', function(src, snapshot)
-    if not snapshot.permissions.dispatch_view then return {} end
+    if not snapshot.permissions.dispatch_attach then return {} end
     if snapshot.jobType ~= 'leo' and snapshot.jobType ~= 'ems'
         and snapshot.jobType ~= 'fire' and snapshot.jobType ~= 'doj' then return {} end
     return computeRecentDispatches(src, snapshot)
@@ -1073,7 +1073,7 @@ registerDashboardRead('getDashboard', function(src, snapshot)
             activeBolos = {},
             activeUnits = computeActiveUnits(snapshot),
             usageMetrics = computeUsageMetrics(src, snapshot),
-            recentDispatches = snapshot.permissions.dispatch_view
+            recentDispatches = snapshot.permissions.dispatch_attach
             and computeRecentDispatches(src, snapshot) or {},
         }
     end
@@ -1099,7 +1099,7 @@ registerDashboardRead('getDashboard', function(src, snapshot)
         usageMetrics     = snapshot.permissions.reports_view
             and (snapshot.jobType == 'leo' or snapshot.jobType == 'doj')
             and computeUsageMetrics(src, snapshot) or {},
-        recentDispatches = snapshot.permissions.dispatch_view
+        recentDispatches = snapshot.permissions.dispatch_attach
             and computeRecentDispatches(src, snapshot) or {},
     }
 end)
