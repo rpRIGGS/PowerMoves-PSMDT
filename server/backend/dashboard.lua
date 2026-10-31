@@ -770,7 +770,7 @@ local function normalizedDispatchAudience(value)
             if type(key) == 'number' and type(entry) == 'string' and entry ~= ''
                 and #entry <= 64 and not entry:find('%z') then
                 audience[entry] = true
-            elseif type(key) == 'string' and key ~= '' and
+            elseif type(key) == 'string' and key ~= '' and #key <= 64 and not key:find('%z') and
                 (entry == true or (type(entry) == 'number' and entry >= 0)) then
                 audience[key] = true
             end
