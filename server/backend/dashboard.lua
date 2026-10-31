@@ -411,6 +411,7 @@ local function computeActiveBolos(src)
         'SELECT id, type, subject_id, subject_name, reportId, notes, status FROM mdt_bolos WHERE status = ? ORDER BY id DESC LIMIT 500', { 'active' })
     if not ok then return {} end
     if type(BOLOS) ~= 'table' or #BOLOS > 500 then return {} end
+    if not CheckAuth(src) or not CheckPermission(src, 'bolos_view') then return {} end
     local result = {}
     for _, v in pairs(BOLOS) do
         if type(v) ~= 'table' or not tonumber(v.id) then return {} end
