@@ -998,7 +998,9 @@ local function computeUsageMetrics(snapshot)
         Config.CacheTTL and Config.CacheTTL.UsageMetrics or 60, function()
         local function safeCount(query, params)
             local ok, result = pcall(MySQL.scalar.await, query, params or {})
-            return ok and (tonumber(result) or 0) or 0
+            local count = ok and tonumber(result) or nil
+            if not count or count ~= count or count < 0 or count == math.huge then return 0 end
+            return math.floor(count)
         end
         return {
             totals = {
