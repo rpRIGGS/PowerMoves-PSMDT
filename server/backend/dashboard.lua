@@ -362,7 +362,7 @@ registerDashboardRead('getRecentReports', function(src, snapshot, page, limit)
         ]]):format(EMS_REPORT_ACCESS), params)
         if not ok or type(rows) ~= 'table' then return {} end
         for _, row in ipairs(rows) do
-            if type(row) ~= 'table' then return {} end
+            if type(row) ~= 'table' or not tonumber(row.id) then return {} end
         end
         return rows
     end
