@@ -1032,7 +1032,7 @@ registerDashboardRead('getDashboard', function(src, snapshot)
         jobData          = computeJobData(src),
         upcomingHearings = computeUpcomingHearings(src),
         openCases        = computeOpenCases(),
-        reportStatistics = computeReportStatistics(),
+        reportStatistics = computeReportStatistics(src, snapshot),
         timeStatistics   = computeTimeStatistics(src),
         activeWarrants   = (GetActiveWarrantsData and GetActiveWarrantsData(src)) or {},
         bulletins        = computeBulletins(),
