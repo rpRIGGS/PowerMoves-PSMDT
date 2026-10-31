@@ -938,7 +938,9 @@ local function computeImpoundMetrics(safeCount)
         local paid = r.fee_paid == true or r.fee_paid == 1
         if not paid then
             local billable = math.min(days, maxDays)
-            outstanding = outstanding + (r.fee or 0) + (billable * perDay)
+            local fee = tonumber(r.fee) or 0
+            if fee ~= fee or fee < 0 or fee == math.huge then fee = 0 end
+            outstanding = outstanding + fee + (billable * perDay)
         end
     end
 
