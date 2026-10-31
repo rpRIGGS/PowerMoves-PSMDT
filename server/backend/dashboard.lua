@@ -782,7 +782,11 @@ local function projectEmsDispatch(call, audience)
     local result = {}
     for key, value in pairs(call) do if key ~= 'units' then result[key] = value end end
     result.jobs = {}
-    for jobName in pairs(audience) do result.jobs[#result.jobs + 1] = jobName end
+    for jobName in pairs(audience) do
+        if type(jobName) == 'string' and #jobName <= 64 then
+            result.jobs[#result.jobs + 1] = jobName
+        end
+    end
     table.sort(result.jobs)
     result.units = {}
     for _, unit in pairs(call.units or {}) do
