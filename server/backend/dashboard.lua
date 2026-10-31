@@ -785,7 +785,8 @@ local function projectEmsDispatch(call, audience)
     result.jobs = {}
     for jobName in pairs(audience) do
         if #result.jobs >= 100 then break end
-        if type(jobName) == 'string' and #jobName <= 64 then
+        if type(jobName) == 'string' and #jobName <= 64
+            and jobName:find('%S') and not jobName:find('%z') then
             result.jobs[#result.jobs + 1] = jobName
         end
     end
