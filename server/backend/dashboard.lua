@@ -857,7 +857,8 @@ local function computeRecentDispatches(src, snapshot)
         for _, call in ipairs(dispatches) do
             local audience = dispatchAudiences[call] or {}
             if audience[snapshot.job] or audience[Config.MedicalJobType or 'ems'] or audience.ems then
-                filtered[#filtered + 1] = projectEmsDispatch(call, audience)
+                local projected = projectEmsDispatch(call, audience)
+                if projected then filtered[#filtered + 1] = projected end
             end
         end
         if not CheckAuth(src) or not sameDashboardSnapshot(snapshot, dashboardSnapshot(src)) then return {} end
