@@ -915,6 +915,7 @@ local function computeImpoundMetrics(safeCount)
     local maxDays = tonumber(storage.MaxDays) or 0
     if perDay ~= perDay or perDay < 0 or perDay == math.huge then perDay = 0 end
     if maxDays ~= maxDays or maxDays < 0 or maxDays == math.huge then maxDays = 0 end
+    maxDays = math.floor(math.min(maxDays, 36500))
 
     local held = safeCount("SELECT COUNT(*) FROM mdt_impound WHERE status = 'active'")
     local impoundedLast7 = safeCount(
