@@ -809,6 +809,7 @@ local function buildSanitizedDispatches()
     if type(providerCalls) ~= 'table' then providerCalls = {} end
     local recentDispatches = {}
     for _, call in pairs(providerCalls) do
+        if #recentDispatches >= 500 then break end
         if type(call) == 'table' then recentDispatches[#recentDispatches + 1] = call end
     end
 
