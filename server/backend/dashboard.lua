@@ -1030,7 +1030,7 @@ registerDashboardRead('getDashboard', function(src, snapshot)
     end
     return {
         jobData          = computeJobData(src),
-        upcomingHearings = computeUpcomingHearings(src),
+        upcomingHearings = computeUpcomingHearings(src, snapshot),
         openCases        = snapshot.permissions.cases_view and computeOpenCases() or {},
         reportStatistics = computeReportStatistics(src, snapshot),
         timeStatistics   = computeTimeStatistics(src),
