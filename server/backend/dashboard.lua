@@ -540,6 +540,9 @@ local function computeOpenCases()
         LIMIT 6
     ]])
     if not ok or type(rows) ~= 'table' then return {} end
+    for _, row in ipairs(rows) do
+        if type(row) ~= 'table' or not tonumber(row.id) then return {} end
+    end
     return rows
 end
 
