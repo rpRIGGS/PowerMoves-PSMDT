@@ -852,6 +852,7 @@ local function computeRecentDispatches(src, snapshot)
     if Config and Config.Dispatch and Config.Dispatch.FilterByJob == true then
         local jobName = ps.getJobName(src)
         local jobType = ps.getJobType and ps.getJobType(src) or nil
+        if not jobName then return {} end
         if jobName then
             local filtered = {}
             for _, call in ipairs(dispatches) do
