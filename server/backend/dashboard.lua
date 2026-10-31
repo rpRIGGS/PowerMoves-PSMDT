@@ -805,7 +805,12 @@ local function buildSanitizedDispatches()
         return dispatchListCache.list
     end
 
-    local recentDispatches = fetchDispatchCalls() or {}
+    local providerCalls = fetchDispatchCalls()
+    if type(providerCalls) ~= 'table' then providerCalls = {} end
+    local recentDispatches = {}
+    for _, call in pairs(providerCalls) do
+        if type(call) == 'table' then recentDispatches[#recentDispatches + 1] = call end
+    end
 
     -- Merge MDT-created calls in alongside the provider's own calls.
     for _, call in pairs(ManualDispatches) do
