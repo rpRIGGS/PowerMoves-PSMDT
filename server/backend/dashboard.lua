@@ -136,7 +136,8 @@ registerDashboardRead('getJobData', function(src)
 end)
 
 local function computeReportStatistics(src, snapshot)
-    if not snapshot or not snapshot.permissions.reports_view then
+    if not snapshot or not snapshot.permissions.reports_view
+        or not CheckAuth(src) or not CheckPermission(src, 'reports_view') then
         return { totalThisWeek = 0, changeFromLastWeek = 0 }
     end
     if snapshot.jobType == 'ems' then
