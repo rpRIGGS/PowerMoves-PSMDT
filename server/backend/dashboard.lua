@@ -1003,7 +1003,7 @@ local function computeUsageMetrics(src, snapshot)
         or (snapshot.jobType ~= 'leo' and snapshot.jobType ~= 'doj')
         or type(snapshot.job) ~= 'string' or not snapshot.job:find('%S')
         or #snapshot.job > 64 or snapshot.job:find('%z') then return {} end
-    return Cache.getOrSet('dashboard:usageMetrics:' .. snapshot.job .. ':' .. tostring(snapshot.permissionKey)
+    local metrics = Cache.getOrSet('dashboard:usageMetrics:' .. snapshot.job .. ':' .. tostring(snapshot.permissionKey)
         .. ':' .. tostring(snapshot.citizenid),
         Config.CacheTTL and Config.CacheTTL.UsageMetrics or 60, function()
         local function safeCount(query, params)
@@ -1037,6 +1037,9 @@ local function computeUsageMetrics(src, snapshot)
             impound = computeImpoundMetrics(safeCount),
         }
     end)
+    if not CheckAuth(src) or not CheckPermission(src, 'reports_view')
+        or not sameDashboardSnapshot(snapshot, dashboardSnapshot(src)) then return {} end
+    return metrics
 end
 
 registerDashboardRead('getUsageMetrics', function(src, snapshot)
