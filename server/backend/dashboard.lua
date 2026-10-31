@@ -1005,7 +1005,9 @@ local function computeUsageMetrics(snapshot)
         end
         return {
             totals = {
-                reports       = safeCount('SELECT COUNT(*) FROM mdt_reports'),
+                reports       = safeCount([[SELECT COUNT(*) FROM mdt_reports mr
+                    WHERE EXISTS (SELECT 1 FROM mdt_reports_restrictions own
+                        WHERE own.reportid = mr.id AND own.type = 'owner' AND own.identifier = ?)]], {snapshot.job}),
                 arrests       = safeCount('SELECT COUNT(*) FROM mdt_arrests'),
                 activeWarrants = safeCount('SELECT COUNT(*) FROM mdt_reports_warrants WHERE expirydate >= NOW()'),
             },
