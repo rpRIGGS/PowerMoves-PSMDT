@@ -1037,7 +1037,7 @@ registerDashboardRead('getDashboard', function(src, snapshot)
         activeWarrants   = (GetActiveWarrantsData and GetActiveWarrantsData(src)) or {},
         bulletins        = computeBulletins(),
         activeBolos      = computeActiveBolos(src),
-        activeUnits      = computeActiveUnits(),
+        activeUnits      = computeActiveUnits(snapshot),
         -- The frontend already reads usageMetrics off this payload but the server
         -- never sent it, so the numbers (and the impound tile) stayed empty.
         usageMetrics     = computeUsageMetrics(),
