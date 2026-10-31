@@ -981,7 +981,9 @@ local function computeUsageMetrics(src, snapshot)
                     COUNT(DISTINCT CASE WHEN mr.datecreated >= NOW() - INTERVAL 30 DAY THEN mr.id END) AS reportsLast30
                 FROM mdt_reports mr WHERE %s
             ]]):format(EMS_REPORT_ACCESS), emsReportParameters(snapshot))
-            row = ok and type(rows) == 'table' and type(rows[1]) == 'table' and rows[1] or {}
+            row = ok and CheckAuth(src) and CheckPermission(src, 'reports_view')
+                and sameDashboardSnapshot(snapshot, dashboardSnapshot(src))
+                and type(rows) == 'table' and type(rows[1]) == 'table' and rows[1] or {}
         end
         return {
             totals = { reports = tonumber(row.reports) or 0, arrests = 0, activeWarrants = 0 },
