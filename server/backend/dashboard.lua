@@ -466,7 +466,8 @@ local function sanitizeDispatch(call)
     if type(call) ~= 'table' then return nil end
     if call.id ~= nil and type(call.id) ~= 'number' and type(call.id) ~= 'string' then return nil end
     if type(call.id) == 'string' and (#call.id > 128 or call.id:find('%z')) then return nil end
-    if type(call.id) == 'number' and (call.id ~= call.id or math.abs(call.id) == math.huge) then return nil end
+    if type(call.id) == 'number' and (call.id ~= call.id or math.abs(call.id) == math.huge
+        or call.id < 0) then return nil end
     local sanitized = {
         id          = call.id,
         message     = call.message     or call.dispatchMessage or '',
