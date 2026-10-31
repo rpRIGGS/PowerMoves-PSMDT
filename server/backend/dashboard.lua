@@ -793,7 +793,10 @@ local function projectEmsDispatch(call, audience)
     table.sort(result.jobs)
     result.units = {}
     if type(call.units) ~= 'table' then return nil end
+    local projectedUnitCount = 0
     for _, unit in pairs(call.units) do
+        projectedUnitCount = projectedUnitCount + 1
+        if projectedUnitCount > 100 then return nil end
         if type(unit) ~= 'table' then return nil end
         local info = type(unit.charinfo) == 'table' and unit.charinfo or {}
         local job = type(unit.job) == 'table' and unit.job or {}
