@@ -1041,7 +1041,7 @@ registerDashboardRead('getDashboard', function(src, snapshot)
         -- The frontend already reads usageMetrics off this payload but the server
         -- never sent it, so the numbers (and the impound tile) stayed empty.
         usageMetrics     = computeUsageMetrics(),
-        recentDispatches = computeRecentDispatches(src),
+        recentDispatches = computeRecentDispatches(src, snapshot),
     }
 end)
 -- Human-readable description of a call for audit labels, e.g. "10-71 (Shooting)"
