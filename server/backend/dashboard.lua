@@ -845,6 +845,7 @@ local function computeRecentDispatches(src, snapshot)
                 filtered[#filtered + 1] = projectEmsDispatch(call, audience)
             end
         end
+        if not CheckAuth(src) or not sameDashboardSnapshot(snapshot, dashboardSnapshot(src)) then return {} end
         return filtered
     end
 
