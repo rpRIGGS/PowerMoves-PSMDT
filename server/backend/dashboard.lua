@@ -784,6 +784,7 @@ local function projectEmsDispatch(call, audience)
     for key, value in pairs(call) do if key ~= 'units' then result[key] = value end end
     result.jobs = {}
     for jobName in pairs(audience) do
+        if #result.jobs >= 100 then break end
         if type(jobName) == 'string' and #jobName <= 64 then
             result.jobs[#result.jobs + 1] = jobName
         end
