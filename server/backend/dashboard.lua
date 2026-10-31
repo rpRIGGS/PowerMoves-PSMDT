@@ -510,7 +510,9 @@ local function sanitizeDispatch(call)
     if call.jobs and type(call.jobs) == 'table' and #call.jobs <= 100 then
         sanitized.jobs = {}
         for _, job in ipairs(call.jobs) do
-            sanitized.jobs[#sanitized.jobs + 1] = job
+            if type(job) == 'string' and #job <= 64 and job:find('%S') then
+                sanitized.jobs[#sanitized.jobs + 1] = job
+            end
         end
     end
     return sanitized
