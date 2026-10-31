@@ -491,6 +491,15 @@ local function sanitizeDispatch(call)
             sanitized.coords = { x = call.coords.x or call.coords[1], y = call.coords.y or call.coords[2], z = call.coords.z or call.coords[3] }
         end
     end
+    if sanitized.coords then
+        local x, y, z = tonumber(sanitized.coords.x), tonumber(sanitized.coords.y), tonumber(sanitized.coords.z)
+        if not x or not y or not z or x ~= x or y ~= y or z ~= z
+            or math.abs(x) > 100000 or math.abs(y) > 100000 or math.abs(z) > 100000 then
+            sanitized.coords = nil
+        else
+            sanitized.coords = { x = x, y = y, z = z }
+        end
+    end
     sanitized.units = {}
     if call.units and type(call.units) == 'table' then
         local unitCount = 0
