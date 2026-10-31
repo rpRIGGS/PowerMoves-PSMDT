@@ -993,7 +993,9 @@ local function computeUsageMetrics(snapshot)
             impound = { held = 0, outstanding = 0, oldestDays = 0, impoundedLast7 = 0 },
         }
     end
-    if not snapshot or not snapshot.permissions.reports_view or type(snapshot.job) ~= 'string' or not snapshot.job:find('%S')
+    if not snapshot or not snapshot.permissions.reports_view
+        or (snapshot.jobType ~= 'leo' and snapshot.jobType ~= 'doj')
+        or type(snapshot.job) ~= 'string' or not snapshot.job:find('%S')
         or #snapshot.job > 64 or snapshot.job:find('%z') then return {} end
     return Cache.getOrSet('dashboard:usageMetrics:' .. snapshot.job .. ':' .. tostring(snapshot.permissionKey),
         Config.CacheTTL and Config.CacheTTL.UsageMetrics or 60, function()
