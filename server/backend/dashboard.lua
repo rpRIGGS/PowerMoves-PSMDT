@@ -558,7 +558,8 @@ local function computeUpcomingHearings(src, snapshot)
         return rows
     end
     local domain = GetMdtDomain and GetMdtDomain(src)
-    if type(domain) ~= 'string' or domain == '' then return {} end
+    if type(domain) ~= 'string' or not domain:find('%S')
+        or #domain > 64 or domain:find('%z') then return {} end
     local ok, rows = pcall(MySQL.query.await, [[
         SELECT id, title, category, hearing_type, defendant_name, scheduled_at, location, status
         FROM mdt_court_hearings
