@@ -555,7 +555,8 @@ local function computeUpcomingHearings(src, snapshot)
             ORDER BY scheduled_at ASC LIMIT 6
         ]], { 'ems' }) or {}
     end
-    local domain = (GetMdtDomain and GetMdtDomain(src)) or 'police'
+    local domain = GetMdtDomain and GetMdtDomain(src)
+    if type(domain) ~= 'string' or domain == '' then return {} end
     local rows = MySQL.query.await([[
         SELECT id, title, category, hearing_type, defendant_name, scheduled_at, location, status
         FROM mdt_court_hearings
