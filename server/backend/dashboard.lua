@@ -507,7 +507,7 @@ local function sanitizeDispatch(call)
             end
         end
     end
-    if call.jobs and type(call.jobs) == 'table' then
+    if call.jobs and type(call.jobs) == 'table' and #call.jobs <= 100 then
         sanitized.jobs = {}
         for _, job in ipairs(call.jobs) do
             sanitized.jobs[#sanitized.jobs + 1] = job
