@@ -911,8 +911,10 @@ end)
 local function computeImpoundMetrics(safeCount)
     local cfg = (Config and Config.Impound) or {}
     local storage = cfg.Storage or {}
-    local perDay  = storage.PerDay or 0
-    local maxDays = storage.MaxDays or 0
+    local perDay = tonumber(storage.PerDay) or 0
+    local maxDays = tonumber(storage.MaxDays) or 0
+    if perDay ~= perDay or perDay < 0 or perDay == math.huge then perDay = 0 end
+    if maxDays ~= maxDays or maxDays < 0 or maxDays == math.huge then maxDays = 0 end
 
     local held = safeCount("SELECT COUNT(*) FROM mdt_impound WHERE status = 'active'")
     local impoundedLast7 = safeCount(
