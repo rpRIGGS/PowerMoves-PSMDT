@@ -307,7 +307,7 @@ ps.registerCallback(resourceName .. ':server:deleteBulletin', function(source, p
     assert(src, 'Player ID cannot be nil')
     local snapshot = dashboardSnapshot(src)
     if not snapshot or (snapshot.jobType ~= 'leo' and snapshot.jobType ~= 'doj')
-        or not CheckAuth(src) or not CheckPermission(src, 'bulletin_delete') then
+        or not CheckAuth(src) or not CheckPermission(src, 'management_bulletins') then
         return { success = false, message = 'Unauthorized' }
     end
 
