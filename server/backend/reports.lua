@@ -1530,14 +1530,24 @@ ps.registerCallback(resourceName .. ':server:getReportsByPlate', function(source
         FROM mdt_report_vehicles mrv
         INNER JOIN mdt_reports mr ON mr.id = mrv.reportid
         LEFT JOIN mdt_reports_restrictions mrr ON mrr.reportid = mr.id
-        WHERE mrv.plate = ? AND %s
+        WHERE mrv.plate = ? AND (
+            %s
+            OR EXISTS (
+                SELECT 1 FROM mdt_report_disclosures disclosure
+                WHERE disclosure.report_id = mr.id
+                  AND disclosure.recipient_citizenid = ?
+                  AND disclosure.recipient_job = ?
+                  AND disclosure.revoked_at IS NULL
+                  AND (disclosure.expires_at IS NULL OR disclosure.expires_at > NOW())
+            )
+        )
         GROUP BY mr.id
         ORDER BY mr.datecreated DESC, mr.id DESC
         LIMIT 20
     ]]):format(buildReportAccessClause())
     local rows = MySQL.query.await(query, {
         plate, jobType, jobType, jobType, citizenId, job, jobType,
-        job, citizenId, job
+        job, citizenId, job, citizenId, job
     })
     if not CheckAuth(src) or not CheckPermission(src, 'reports_view')
         or ps.getIdentifier(src) ~= citizenId or ps.getJobName(src) ~= job
