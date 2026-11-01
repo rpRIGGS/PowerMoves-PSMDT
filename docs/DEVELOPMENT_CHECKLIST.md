@@ -65,6 +65,18 @@ Source of truth: this repository's main branch, including `config.lua` and `plan
 - [ ] SAGOV.net — state/county/city jurisdiction, budgets, legislation, licensing, voting, and records publication.
 - [ ] SADOT.net — oversight, mechanic licensing, jurisdictional fleet operations, and qualified towing.
 
+## LEO report backend audit — first pass (2026-11-01)
+
+Inspected `server/backend/reports.lua` (1,684 lines). These are verified code observations, **not** end-to-end signoff:
+
+- `getEffectiveJobType` derives the record domain from authenticated interface access, distinguishing LEO, DOJ, EMS, and FIRE.
+- `CanReadMdtReport` requires authenticated `reports_view` permission and delegates to `checkReportAccess`.
+- `checkReportAccess` evaluates report restrictions and agency ownership; explicitly named disclosures are read-only.
+- `checkReportWriteAccess` requires action-specific permission and blocks writes to records owned by another agency.
+- The delete callback rechecks access and includes an owner constraint in its SQL delete operation.
+
+**Still to verify before changing authorization behavior:** report search/list filtering, all detail and attachment paths, write/update SQL race protection, event/callback bypass attempts, legacy reports without owner restrictions, and regression coverage for cross-agency disclosures. Do not mistake these initial guards for a complete security audit.
+
 ## Immediate next development slice
 
 **LEO authorization and report lifecycle audit:** inspect the existing backend entry points and UI calls, identify actual gaps, then implement a coherent end-to-end correction with regression coverage. Do not begin unrelated portal features while this slice is open.
