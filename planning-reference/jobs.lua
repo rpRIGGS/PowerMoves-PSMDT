@@ -757,7 +757,6 @@ sadoj = {
     },
 },
 
-	},
 	safleet = {
 		label = 'San Andreas State Fleet Maintenance',
 		type = 'mechanic',
@@ -829,8 +828,6 @@ sadoj = {
 			['8'] = { name = 'Fleet Manager', isboss = true, payment = 600 },
 			['9'] = { name = 'Director of Fleet Management', isboss = true, payment = 650 },
 		},
-	},
-	},
 	},
 	
 	--- MECHANICS ---
