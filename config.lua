@@ -898,13 +898,10 @@ Config.Interfaces = {
         Sharing = Config.Sharingdot,
         Permissions = 'mechanic',
         FleetJobs = {
-            'sahpfleet',
             'safleet',
             'bcfleet',
             'lscofleet',
             'lscityfleet',
-            'samsfleet',
-            'safrfleet',
         },
         ServiceJobs = {
             'paradise',
