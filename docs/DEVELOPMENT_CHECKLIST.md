@@ -42,6 +42,7 @@ Only investigate incidental defects when they block the active deliverable; do n
 - [x] **Agency isolation policy inspected:** `Config.Sharingleo.Mutual.departments` is empty; peer agencies do not receive blanket mutual access from this configuration.
 - [x] Officer callsign, radio, unit location and source-ID callbacks now require authenticated SADLE identity and configured LEO job (commit 0a05a34).
 - [x] Inspected roster rank-change callback: `promoteOfficer` validates the requested grade against QBCore job definitions, checks department personnel authority, rejects self-promotion, and verifies the target session before `SetJob`. This is code inventory, not integrated signoff.
+- [x] Revalidate requesting character and statewide oversight after roster loading; revoked statewide access cannot return cross-agency personnel from an in-flight roster request (commit 20d90b9).
 - [ ] Trace the actual runtime access evaluator and permissions registry to verify the configuration is honored across the LEO interface.
 - [ ] Inspect and complete agency rank/grade handling against the active jobs reference.
 - [ ] Confirm all LEO modules use the configured oversight and sharing policies, rather than legacy hard-coded assumptions.
