@@ -156,6 +156,10 @@ ps.registerCallback('ps-mdt:server:getRosterList', function(source)
     -- Fire and hospitals still use the shared legacy responder domain.
     local access = GetMdtAccess(source)
     if not access or not access.authorized then return { roster = {}, activeUnits = {} } end
+    local requesterCitizenId = ps.getIdentifier(source)
+    if type(requesterCitizenId) ~= 'string' or requesterCitizenId == '' then
+        return { roster = {}, activeUnits = {} }
+    end
     local jobList, matchFn, defaultDept, scopeJobType
     if access.jobType == 'doj' and access.agency ~= (Config.MdtAccess and Config.MdtAccess.AttorneyGeneral and Config.MdtAccess.AttorneyGeneral.job) then
         -- DOJ's court interface includes different employers (SADOJ and law
@@ -311,7 +315,21 @@ ps.registerCallback('ps-mdt:server:getRosterList', function(source)
     if not CheckAuth(source) then return { roster = {}, activeUnits = {} } end
     local currentAccess = GetMdtAccess(source)
     if not currentAccess or not currentAccess.authorized
+        or ps.getIdentifier(source) ~= requesterCitizenId
         or currentAccess.agency ~= access.agency or currentAccess.interfaceId ~= access.interfaceId then
+        return { roster = {}, activeUnits = {} }
+    end
+    -- A statewide oversight grant can be revoked while the roster query yields.
+    -- Recheck it before returning personnel from other departments.
+    if access.interfaceId == 'sadle' and #jobList > 1
+        and (type(CanViewStatewideLeoRoster) ~= 'function'
+            or CanViewStatewideLeoRoster(source) ~= true) then
+        return { roster = {}, activeUnits = {} }
+    end
+    if (access.interfaceId == 'safr' or access.interfaceId == 'sams')
+        and #jobList > 1
+        and (type(CanViewStatewideServiceRoster) ~= 'function'
+            or CanViewStatewideServiceRoster(source, access.interfaceId) ~= true) then
         return { roster = {}, activeUnits = {} }
     end
     return {
