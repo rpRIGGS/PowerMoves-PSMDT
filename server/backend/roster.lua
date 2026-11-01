@@ -759,7 +759,8 @@ ps.registerCallback('ps-mdt:server:getOfficerTags', function(source)
 
     local jobType = ps.getJobType(src)
     local rows
-    if jobType and (jobType == 'leo' or jobType == 'ems' or jobType == 'fire') then
+    if jobType ~= 'leo' and jobType ~= 'ems' and jobType ~= 'fire' then return {} end
+    if jobType == 'leo' or jobType == 'ems' or jobType == 'fire' then
         rows = MySQL.query.await([[
             SELECT id, name, color, description FROM mdt_tags
             WHERE type = 'officer'
@@ -773,6 +774,7 @@ ps.registerCallback('ps-mdt:server:getOfficerTags', function(source)
             ORDER BY name ASC
         ]])
     end
+    if not CheckAuth(src) or ps.getJobType(src) ~= jobType then return {} end
     return rows or {}
 end)
 
