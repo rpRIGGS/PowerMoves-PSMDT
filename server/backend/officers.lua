@@ -2,9 +2,23 @@ local resourceName = tostring(GetCurrentResourceName())
 local ok, QBCore = pcall(function() return exports['qb-core']:GetCoreObject() end)
 if not ok then QBCore = nil end
  
+-- Officer-only callbacks require the authenticated SADLE interface and a configured LEO job.
+local function isActiveLeo(src)
+    if not CheckAuth(src) then return false end
+    local access = GetMdtAccess(src)
+    if not access or not access.authorized or access.isCivilian or access.interfaceId ~= 'sadle' then return false end
+    local interface = (Config.Interfaces or {}).sadle
+    if not interface or interface.Enabled ~= true then return false end
+    local job = ps.getJobName(src)
+    for _, allowed in ipairs(interface.Jobs or {}) do
+        if job == allowed then return true end
+    end
+    return false
+end
+
 -- Get player source ID by citizenId
 ps.registerCallback(resourceName .. ':server:GetPlayerSourceId', function(source, targetCitizenId)
-    if not CheckAuth(source) then return nil end
+    if not isActiveLeo(source) then return nil end
     if type(targetCitizenId) ~= 'string' or not targetCitizenId:find('%S')
         or #targetCitizenId > 64 then return nil end
     if targetCitizenId ~= ps.getIdentifier(source)
@@ -24,7 +38,7 @@ end)
 -- Set Callsign
 ps.registerCallback(resourceName .. ':server:setCallsign', function(source, payload)
     local src = source
-    if not CheckAuth(src) then return { success = false, message = 'Unauthorized' } end
+    if not isActiveLeo(src) then return { success = false, message = 'Unauthorized' } end
     if type(payload) ~= 'table' then return { success = false, message = 'Invalid request' } end
     local cid = payload.citizenid or payload.cid
     local newCallsign = payload.callsign or payload.newcallsign
@@ -79,7 +93,7 @@ ps.registerCallback(resourceName .. ':server:setCallsign', function(source, payl
 end)
  
 ps.registerCallback(resourceName .. ':server:getCallsign', function(source, payload)
-    if not CheckAuth(source) then return { callsign = '' } end
+    if not isActiveLeo(source) then return { callsign = '' } end
     local cid = type(payload) == 'table' and (payload.citizenid or payload.cid) or nil
     if type(cid) ~= 'string' or not cid:find('%S') or #cid > 64 then return { callsign = '' } end
     if cid ~= ps.getIdentifier(source)
@@ -103,7 +117,7 @@ end)
 -- Set Radio Frequency
 ps.registerCallback(resourceName .. ':server:setRadio', function(source, payload)
     local src = source
-    if not CheckAuth(src) then return { success = false, message = 'Unauthorized' } end
+    if not isActiveLeo(src) then return { success = false, message = 'Unauthorized' } end
  
     if type(payload) ~= 'table' then return { success = false, message = 'Invalid request' } end
     local cid = payload.citizenid or payload.cid
@@ -154,7 +168,7 @@ end)
  
 -- Get Unit Location (GPS to officer)
 ps.registerCallback(resourceName .. ':server:getUnitLocation', function(source, cid)
-    if not CheckAuth(source) then return {} end
+    if not isActiveLeo(source) then return {} end
     if type(cid) ~= 'string' or not cid:find('%S') or #cid > 64 then return {} end
     if cid ~= ps.getIdentifier(source)
         and (not CheckPermission(source, 'roster_manage_officers')
