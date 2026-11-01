@@ -25,6 +25,26 @@ Source of truth: this repository's main branch, including `config.lua` and `plan
 - [ ] Audit job names across every runtime module against the active `planning-reference/jobs.lua` entries.
 - [ ] Confirm no stale references to retired fleet job names outside `config.lua`.
 
+## Delivery order — complete features before defect hunts
+
+1. **LEO foundation and configuration** — job roster, agency identity, SADLE oversight, access/permissions, sharing policy. This is the active deliverable.
+2. **LEO operational records** — reports, investigations, evidence, warrants, BOLOs, and associated search workflows.
+3. **LEO personnel operations** — rosters, ranks, training, certifications, FTO.
+4. **LEO oversight and public access** — IA, complaints, public records, qb-target service counters.
+5. **LEO integration and code-level acceptance** — regressions and completion review.
+
+Only investigate incidental defects when they block the active deliverable; do not substitute defect-hunting commits for feature completion.
+
+### LEO foundation inventory (2026-11-01)
+
+- [x] **Configuration alignment inspected:** `Config.PoliceJobs` includes `police` (dev), `post`, `lspd`, `lspe`, `lscso`, `bcso`, `sahp`, `sasp`, `sadle`, `saspa`; each name is present in `planning-reference/jobs.lua`.
+- [x] **Oversight configuration inspected:** `Config.Interfaces.sadle.OversightJobs` contains `sadle`; `Config.Sharingleo.OneWay` allows `sadle` to view configured LEO departments, including independent State Parks (`sasp`).
+- [x] **Agency isolation policy inspected:** `Config.Sharingleo.Mutual.departments` is empty; peer agencies do not receive blanket mutual access from this configuration.
+- [ ] Trace the actual runtime access evaluator and permissions registry to verify the configuration is honored across the LEO interface.
+- [ ] Inspect and complete agency rank/grade handling against the active jobs reference.
+- [ ] Confirm all LEO modules use the configured oversight and sharing policies, rather than legacy hard-coded assumptions.
+- [ ] Sign off LEO foundation as an integrated feature only after the above are validated.
+
 ## SADLE.net — LEO workflow completion (current priority)
 
 ### 1. Access, identity, and agency boundaries
