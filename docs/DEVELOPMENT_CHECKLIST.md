@@ -75,7 +75,7 @@ Inspected `server/backend/reports.lua` (1,684 lines). These are verified code ob
 - `checkReportWriteAccess` requires action-specific permission and blocks writes to records owned by another agency.
 - The delete callback rechecks access and includes an owner constraint in its SQL delete operation.
 
-**Implemented correction (commit d04febb):** Vehicle-plate report lookup now applies report-domain, agency-owner, and explicit restriction SQL checks **before** its 20-result limit, then revalidates each returned row through `CanReadMdtReport`. This prevents inaccessible records from consuming all result slots. Explicit named disclosures are still not included in the SQL prefilter and need a separate consistency review; this workflow remains **in progress**, not signed off.
+**Implemented correction (commit d04febb):** Vehicle-plate report lookup now applies report-domain, agency-owner, and explicit restriction SQL checks **before** its 20-result limit, then revalidates each returned row through `CanReadMdtReport`. This prevents inaccessible records from consuming all result slots. Active named disclosures are now included in the plate-search SQL prefilter (commit 91e7296), with final per-row authorization still enforced. **Other list/search and analytics paths remain to be reconciled**, and the report workflow is **in progress**, not signed off.
 
 **Still to verify before changing authorization behavior:** report search/list filtering, all detail and attachment paths, write/update SQL race protection, event/callback bypass attempts, legacy reports without owner restrictions, and regression coverage for cross-agency disclosures. Do not mistake these initial guards for a complete security audit.
 
