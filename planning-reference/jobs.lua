@@ -1051,8 +1051,8 @@ sadoj = {
             ['1'] = { name = 'Associate', payment = 75 },
             ['2'] = { name = 'Partner', isboss = true, payment = 125 },
         },
-    },
-	'jetsam'] = {label = 'Jetsam Logistics', defaultDuty = false, offDutyPay = false,
+    },]]--
+	jetsam = {label = 'Jetsam Logistics', defaultDuty = false, offDutyPay = false,
         grades = {
 			['0'] = { name = 'Trainee Driver', payment = 50 },
 			['1'] = { name = 'Storeman', payment = 50 },
@@ -1065,5 +1065,5 @@ sadoj = {
 			['8'] = { name = 'President', isboss = true, payment = 50 },
 			['9'] = { name = 'AIG Founding Partner', isboss = true, payment = 0 },
 		},
-    },]]--
+    },
 }
