@@ -1510,34 +1510,41 @@ ps.registerCallback(resourceName..':server:getReportAnalytics', function(source,
     }
 end)
 
+-- Apply the same agency/owner visibility rules before the plate-result limit.
+-- Filtering after LIMIT 20 can hide accessible reports behind unrelated,
+-- restricted reports for the same vehicle.
 ps.registerCallback(resourceName .. ':server:getReportsByPlate', function(source, plate)
     local src = source
     if not CheckAuth(src) or not CheckPermission(src, 'reports_view') then return {} end
-
     if type(plate) ~= 'string' or not plate:find('%S')
-        or #plate > 32 or plate:find('%z') then
-        return {}
-    end
+        or #plate > 32 or plate:find('%z') then return {} end
 
-    local requesterCitizenId = ps.getIdentifier(src)
-    local requesterJob = ps.getJobName(src)
-    if type(requesterCitizenId) ~= 'string' or not requesterCitizenId:find('%S')
-        or type(requesterJob) ~= 'string' or not requesterJob:find('%S') then return {} end
-    local rows = MySQL.query.await([[
-        SELECT
-            mr.id,
-            mr.title,
-            mr.type,
-            mr.datecreated,
-            mr.authorplaintext
+    local citizenId, job = ps.getIdentifier(src), ps.getJobName(src)
+    local jobType = getEffectiveJobType(src)
+    if type(citizenId) ~= 'string' or not citizenId:find('%S') or #citizenId > 64
+        or citizenId:find('%z') or type(job) ~= 'string' or not job:find('%S')
+        or #job > 64 or job:find('%z') or not jobType then return {} end
+
+    local query = ([[
+        SELECT mr.id, mr.title, mr.type, mr.datecreated, mr.authorplaintext
         FROM mdt_report_vehicles mrv
         INNER JOIN mdt_reports mr ON mr.id = mrv.reportid
-        WHERE mrv.plate = ?
+        LEFT JOIN mdt_reports_restrictions mrr ON mrr.reportid = mr.id
+        WHERE mrv.plate = ? AND %s
+        GROUP BY mr.id
         ORDER BY mr.datecreated DESC, mr.id DESC
         LIMIT 20
-    ]], { plate })
+    ]]):format(buildReportAccessClause())
+    local rows = MySQL.query.await(query, {
+        plate, jobType, jobType, jobType, citizenId, job, jobType,
+        job, citizenId, job
+    })
+    if not CheckAuth(src) or not CheckPermission(src, 'reports_view')
+        or ps.getIdentifier(src) ~= citizenId or ps.getJobName(src) ~= job
+        or getEffectiveJobType(src) ~= jobType then return {} end
 
-    if ps.getIdentifier(src) ~= requesterCitizenId or ps.getJobName(src) ~= requesterJob then return {} end
+    -- Revalidate each result against the canonical report-detail authorization
+    -- (including explicit disclosures) before exposing its metadata.
     local visible = {}
     for _, row in ipairs(type(rows) == 'table' and rows or {}) do
         if type(row) == 'table' and CanReadMdtReport(src, row.id) then
@@ -1545,8 +1552,8 @@ ps.registerCallback(resourceName .. ':server:getReportsByPlate', function(source
         end
     end
     if not CheckAuth(src) or not CheckPermission(src, 'reports_view')
-        or ps.getIdentifier(src) ~= requesterCitizenId
-        or ps.getJobName(src) ~= requesterJob then return {} end
+        or ps.getIdentifier(src) ~= citizenId or ps.getJobName(src) ~= job
+        or getEffectiveJobType(src) ~= jobType then return {} end
     return visible
 end)
 
