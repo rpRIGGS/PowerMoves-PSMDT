@@ -1066,4 +1066,22 @@ sadoj = {
 			['9'] = { name = 'AIG Founding Partner', isboss = true, payment = 0 },
 		},
     },
+    -- Marlowe Vineyard: provisional wages pending economy rebalance.
+    ['marlowe'] = {
+        label = 'Marlowe Vineyard',
+        defaultDuty = false,
+        offDutyPay = false,
+        grades = {
+            ['0'] = { name = 'Vineyard Associate', payment = 100 },
+            ['1'] = { name = 'Vineyard Specialist', payment = 125 },
+            ['2'] = { name = 'Senior Associate', payment = 150 },
+            ['3'] = { name = 'Team Lead', payment = 175 },
+            ['4'] = { name = 'Department Supervisor', payment = 200 },
+            ['5'] = { name = 'Department Manager', payment = 250 },
+            ['6'] = { name = 'Operations Manager', payment = 300 },
+            ['7'] = { name = 'General Manager', isboss = true, payment = 375 },
+            ['8'] = { name = 'Owner', isboss = true, payment = 450 },
+        },
+    },
+
 }
