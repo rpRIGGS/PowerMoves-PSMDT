@@ -1072,6 +1072,7 @@ sadoj = {
             ['2'] = { name = 'Partner', isboss = true, payment = 125 },
         },
     },]]--
+    --[[ Second Jetsam definition retained as reference; inactive.
 	jetsam = {label = 'Jetsam Logistics', defaultDuty = false, offDutyPay = false,
         grades = {
 			['0'] = { name = 'Trainee Driver', payment = 85 },
@@ -1086,6 +1087,7 @@ sadoj = {
 			['9'] = { name = 'AIG Founding Partner', isboss = true, payment = 0 },
 		},
     },
+    ]]--
     -- Marlowe Vineyard: provisional wages pending economy rebalance.
     ['marlowe'] = {
         label = 'Marlowe Vineyard',
