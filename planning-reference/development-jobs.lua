@@ -984,7 +984,7 @@ burgershot = {
         ['4'] = { name = 'Floor Supervisor', isboss = true, payment = 105 },
         ['5'] = { name = 'Restaurant Manager', isboss = true, payment = 130 },
         ['6'] = { name = 'General Manager', isboss = true, payment = 160 },
-        ['7'] = { name = 'Franchise Owner', isboss = true, payment = 0 },
+        ['7'] = { name = 'Franchise Owner', isboss = true, payment = 200 },
     },
 },
 hookiesmp = {
@@ -999,7 +999,7 @@ hookiesmp = {
         ['4'] = { name = 'Floor Supervisor', isboss = true, payment = 105 },
         ['5'] = { name = 'Restaurant Manager', isboss = true, payment = 130 },
         ['6'] = { name = 'General Manager', isboss = true, payment = 160 },
-        ['7'] = { name = 'Franchise Owner', isboss = true, payment = 0 },
+        ['7'] = { name = 'Franchise Owner', isboss = true, payment = 200 },
     },
 },
 horneyspb = {
@@ -1014,7 +1014,7 @@ horneyspb = {
         ['4'] = { name = 'Floor Supervisor', isboss = true, payment = 105 },
         ['5'] = { name = 'Restaurant Manager', isboss = true, payment = 130 },
         ['6'] = { name = 'General Manager', isboss = true, payment = 160 },
-        ['7'] = { name = 'Franchise Owner', isboss = true, payment = 0 },
+        ['7'] = { name = 'Franchise Owner', isboss = true, payment = 200 },
     },
 },
 horneysss = {
@@ -1029,7 +1029,7 @@ horneysss = {
         ['4'] = { name = 'Floor Supervisor', isboss = true, payment = 105 },
         ['5'] = { name = 'Restaurant Manager', isboss = true, payment = 130 },
         ['6'] = { name = 'General Manager', isboss = true, payment = 160 },
-        ['7'] = { name = 'Franchise Owner', isboss = true, payment = 0 },
+        ['7'] = { name = 'Franchise Owner', isboss = true, payment = 200 },
     },
 },
 horneyssls = {
@@ -1044,7 +1044,7 @@ horneyssls = {
         ['4'] = { name = 'Floor Supervisor', isboss = true, payment = 105 },
         ['5'] = { name = 'Restaurant Manager', isboss = true, payment = 130 },
         ['6'] = { name = 'General Manager', isboss = true, payment = 160 },
-        ['7'] = { name = 'Franchise Owner', isboss = true, payment = 0 },
+        ['7'] = { name = 'Franchise Owner', isboss = true, payment = 200 },
     },
 },
 hookies = {
