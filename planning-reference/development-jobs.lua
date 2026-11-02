@@ -1144,7 +1144,7 @@ grades = {
 },
 },
 ]]--
--- Marlowe Vineyard: provisional wages pending economy rebalance.
+-- Marlowe Vineyard: wages updated in the server economy salary pass.
 ['marlowe'] = {
 label = 'Marlowe Vineyard',
 defaultDuty = false,
