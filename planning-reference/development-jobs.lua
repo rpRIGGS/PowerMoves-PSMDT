@@ -1162,4 +1162,20 @@ grades = {
 },
 },
 
+-- Sandy Shores University (PM Education). Staff job only; students enroll through PM Education.
+ssuniversity = {
+    label = 'Sandy Shores University',
+    defaultDuty = false,
+    offDutyPay = false,
+    grades = {
+        ['0'] = { name = 'Administrative Assistant', payment = 100 },
+        ['1'] = { name = 'Admissions Officer', payment = 125 },
+        ['2'] = { name = 'Instructor', payment = 150 },
+        ['3'] = { name = 'Senior Instructor', payment = 175 },
+        ['4'] = { name = 'Department Chair', payment = 200 },
+        ['5'] = { name = 'Dean', isboss = true, payment = 250 },
+        ['6'] = { name = 'University President', isboss = true, payment = 300 },
+    },
+},
+
 }
