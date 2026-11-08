@@ -1145,21 +1145,21 @@ grades = {
 },
 ]]--
 -- Marlowe Vineyard: wages updated in the server economy salary pass.
-['marlowe'] = {
-label = 'Marlowe Vineyard',
-defaultDuty = false,
-offDutyPay = false,
-grades = {
-    ['0'] = { name = 'Vineyard Associate', payment = 100 },
-    ['1'] = { name = 'Vineyard Specialist', payment = 125 },
-    ['2'] = { name = 'Senior Associate', payment = 150 },
-    ['3'] = { name = 'Team Lead', payment = 175 },
-    ['4'] = { name = 'Department Supervisor', payment = 200 },
-    ['5'] = { name = 'Department Manager', payment = 250 },
-    ['6'] = { name = 'Operations Manager', payment = 300 },
-    ['7'] = { name = 'General Manager', isboss = true, payment = 375 },
-    ['8'] = { name = 'Owner', isboss = true, payment = 450 },
-},
+marlowe = {
+    label = 'Marlowe Vineyard',
+    defaultDuty = false,
+    offDutyPay = false,
+    grades = {
+        ['0'] = { name = 'Vineyard Associate', payment = 100 },
+        ['1'] = { name = 'Vineyard Specialist', payment = 125 },
+        ['2'] = { name = 'Senior Associate', payment = 150 },
+        ['3'] = { name = 'Team Lead', payment = 175 },
+        ['4'] = { name = 'Department Supervisor', payment = 200 },
+        ['5'] = { name = 'Department Manager', payment = 250 },
+        ['6'] = { name = 'Operations Manager', payment = 300 },
+        ['7'] = { name = 'General Manager', isboss = true, payment = 375 },
+        ['8'] = { name = 'Owner', isboss = true, payment = 450 },
+    },
 },
 
 -- Sandy Shores University (PM Education). Staff job only; students enroll through PM Education.
